@@ -104,6 +104,9 @@ def _has_financial_signal(memory):
 
 
 def _stability_message(memory, model, red_flags):
+    # Use Agent 4's context-aware pattern analysis
+    pattern_analysis = agent4.explain_financial_pattern(memory)
+    
     info = (memory or {}).get("company_info", {}) or {}
     metrics = (memory or {}).get("financial_metrics", {}) or {}
     facts = (memory or {}).get("financial_facts", {}) or {}
@@ -112,7 +115,7 @@ def _stability_message(memory, model, red_flags):
 
     prediction = model.get("prediction")
     anomaly_score = model.get("anomaly_score")
-    is_anomaly = prediction == -1
+    is_anomaly = pattern_analysis.get("status") == "unusual"
 
     reasons = []
     for label, value in [
@@ -143,15 +146,23 @@ def _stability_message(memory, model, red_flags):
         reasons.append("Recent news:")
         reasons.extend([f"• {item}" for item in news_items])
 
-    if is_anomaly:
-        model_view = "It may feel like an anomaly versus peers."
-        conclusion = "That is a model-based peer comparison, not a verdict on business quality."
-    elif anomaly_score is not None and anomaly_score >= 0.15:
-        model_view = "It looks somewhat unusual versus peers."
-        conclusion = "The company can still be fundamentally stable even if the model flags unusual patterns."
+    model_view = pattern_analysis.get("headline", "⚪ Limited data")
+    
+    # Build conclusion from Agent 4's analysis
+    why_noticed = pattern_analysis.get("why_noticed", [])
+    what_this_means = pattern_analysis.get("what_this_means", "")
+    
+    # Format why_noticed sections
+    why_sections = []
+    for item in why_noticed:
+        if item:
+            # Clean up and format each section
+            why_sections.append(item.strip())
+    
+    if why_sections:
+        conclusion = "\n\n".join(why_sections) + "\n\n" + what_this_means
     else:
-        model_view = "It looks broadly normal versus peers."
-        conclusion = "The company looks stable on both the business side and the model side."
+        conclusion = what_this_means
 
     return model_view, reasons, conclusion
 
@@ -229,7 +240,7 @@ def render_workspace():
         st.markdown("---")
         render_broader_drivers(memory)
         st.markdown("---")
-        render_smart_prompts(company)
+        render_smart_prompts(memory, company)
     
     st.markdown("---")
     
@@ -310,66 +321,96 @@ def render_business_snapshot(memory, company):
     cash_flow = _first_number(metrics.get("cash_flow"), facts.get("CashFromOperatingActivity"))
 
     with st.container(border=True):
-        st.markdown("**Profitability**")
-        if roce is not None:
-            st.markdown("🟡 Moderate" if roce < 20 else "🟢 Strong")
-            if roce >= 20:
-                st.caption(f"Returns on capital are strong. ROCE is {roce:.2f}.")
+        # Overall Assessment
+        st.markdown("**Overall Assessment**")
+        if roce is not None and debt is not None:
+            if roce >= 15 and (isinstance(debt, (int, float)) and debt < 1):
+                st.markdown("🟢 Strong")
+                st.caption(f"{info.get('name', 'The company')} has strong financial fundamentals with healthy returns on capital and manageable debt levels.")
             elif roce >= 10:
-                st.caption(f"Returns on capital are reasonable. ROCE is {roce:.2f}.")
+                st.markdown("🟡 Moderate")
+                st.caption(f"{info.get('name', 'The company')} has financially stable operations with reasonable returns on capital, though debt levels should be monitored.")
             else:
-                st.caption(f"Returns on capital are below ideal levels. ROCE is {roce:.2f}.")
-        elif opm is not None:
-            st.markdown("🟡 Moderate" if opm < 20 else "🟢 Strong")
-            st.caption(f"Returns on capital data was unavailable, so profitability is inferred from operating margin: {opm:.2f}.")
+                st.markdown("🟡 Moderate")
+                st.caption(f"{info.get('name', 'The company')} has financially stable operations supported by cash generation, though returns on capital remain below sector peers.")
         else:
-            st.caption("Profitability metrics were not returned, so this section uses broader company context instead.")
+            st.markdown("🟡 Moderate")
+            st.caption(f"{info.get('name', 'The company')} has financially stable operations supported by available data.")
 
-        if opm is not None:
-            st.caption(f"Operating margin is {opm:.2f}.")
+        # Strengths
+        strengths = []
+        if cash_flow is not None and isinstance(cash_flow, (int, float)) and cash_flow > 0:
+            strengths.append("Strong Cash Generation")
+            strengths.append("The company consistently generates healthy operating cash flow, helping fund investments and support existing debt.")
+        
+        if info.get("summary"):
+            summary = info.get("summary", "").lower()
+            if any(k in summary for k in ["diversified", "multiple", "various"]):
+                strengths.append("Diversified Business Model")
+                strengths.append("Revenue comes from multiple business lines, reducing dependence on a single segment.")
+        
+        if roce is not None and roce >= 20:
+            strengths.append("High Capital Efficiency")
+            strengths.append("Returns generated from invested capital are above many peers in the sector.")
+        
+        if debt is not None and isinstance(debt, (int, float)) and debt < 0.5:
+            strengths.append("Conservative Leverage")
+            strengths.append("Borrowing levels are low relative to equity, providing financial flexibility.")
 
-        st.markdown("**Debt Position**")
-        if debt is not None:
-            debt_label = "🟢 Comfortable" if isinstance(debt, (int, float)) and debt < 1 else "🟡 Elevated"
-            st.markdown(debt_label)
-            if cash_flow is not None:
-                st.caption(
-                    f"Reliance carries meaningful leverage, which is common in capital-intensive businesses. "
-                    f"Cash from operating activity is {cash_flow:,.0f}, so debt should be judged against cash generation and peers."
-                )
-            else:
-                st.caption("Reliance carries meaningful leverage, which is common in capital-intensive businesses. It should be viewed alongside cash flow and peers.")
-        else:
-            st.caption("Debt data was not returned, so leverage is assessed qualitatively from available company data.")
+        if strengths:
+            st.markdown("**🏆 Strengths**")
+            for i in range(0, len(strengths), 2):
+                st.markdown(f"✅ {strengths[i]}")
+                if i + 1 < len(strengths):
+                    st.caption(strengths[i + 1])
 
-        st.markdown("**Liquidity**")
-        if current_ratio is not None:
-            liq_label = "🟢 Healthy" if current_ratio >= 1.5 else "🟡 Mixed"
-            st.markdown(liq_label)
-            st.caption("Short-term obligations appear manageable." if current_ratio >= 1.2 else "Liquidity needs monitoring.")
-        else:
-            st.caption("Liquidity data was not returned, so short-term strength is inferred from the broader financial profile.")
+        # Areas to Watch
+        areas_to_watch = []
+        if roce is not None and roce < 15:
+            areas_to_watch.append("Capital Efficiency")
+            areas_to_watch.append(f"Returns generated from invested capital are currently below many peers in the sector.")
+        
+        if debt is not None and isinstance(debt, (int, float)) and debt > 2:
+            areas_to_watch.append("Debt Levels")
+            areas_to_watch.append("Borrowing is relatively high, although current cash generation helps support these obligations.")
+        
+        if current_ratio is not None and isinstance(current_ratio, (int, float)) and current_ratio < 1.2:
+            areas_to_watch.append("Liquidity")
+            areas_to_watch.append("Short-term obligations may need monitoring as liquidity metrics are below healthy thresholds.")
+        
+        if opm is not None and opm < 10:
+            areas_to_watch.append("Profit Margins")
+            areas_to_watch.append("Operating margins are below 10%, indicating weaker profitability compared to stronger peers.")
 
-        st.markdown("**Financial Stability Monitor**")
-        score = model.get("anomaly_score")
-        prediction = model.get("prediction")
-        headline, reasons, conclusion = _stability_message(memory, model, red_flags)
-        if score is None and red_flags:
-            score = 0.5
-        if prediction == -1 or (score is not None and score >= 0.15):
-            st.markdown("🟠 Watch")
-        elif score is not None:
-            st.markdown("🟢 Stable")
-        else:
-            st.markdown("⚪ Limited data")
+        if areas_to_watch:
+            st.markdown("**⚠ Areas to Watch**")
+            for i in range(0, len(areas_to_watch), 2):
+                st.markdown(f"⚠ {areas_to_watch[i]}")
+                if i + 1 < len(areas_to_watch):
+                    st.caption(areas_to_watch[i + 1])
 
-        st.caption(headline)
-        if prediction is not None:
-            st.caption(f"Model output: {'may feel like an anomaly versus peers' if prediction == -1 else 'looks normal versus peers'}")
-        for item in reasons[:8]:
-            st.caption(f"• {item}")
-        st.caption(conclusion)
+        # AI Pattern Analysis
+        st.markdown("**🤖 AI Pattern Analysis**")
+        pattern_analysis = agent4.explain_financial_pattern(memory)
+        headline = pattern_analysis.get("headline", "⚪ Limited data")
+        
+        st.markdown(headline)
+        st.caption("**What stood out**")
+        
+        why_noticed = pattern_analysis.get("why_noticed", [])
+        for item in why_noticed[:5]:
+            if item:
+                # Clean up the item and make it concise
+                item = item.replace("**Why this stood out**", "").strip()
+                item = item.replace(f"{info.get('name', 'The company')} operates as", "It operates as").strip()
+                st.caption(f"• {item}")
+        
+        st.caption("**Interpretation**")
+        what_this_means = pattern_analysis.get("what_this_means", "")
+        if what_this_means:
+            st.caption(what_this_means)
 
+        # Overall
         st.markdown("**Overall**")
         overall_parts = []
         if roce is not None:
@@ -386,11 +427,13 @@ def render_business_snapshot(memory, company):
                 overall_parts.append("debt is elevated")
         if current_ratio is not None:
             overall_parts.append("liquidity is acceptable" if current_ratio >= 1.2 else "liquidity needs monitoring")
-        if score is not None and score >= 0.15:
-            overall_parts.append("model risk is elevated")
+        if pattern_analysis.get("status") == "normal":
+            overall_parts.append("financial profile is typical for the sector")
+        
         if not overall_parts:
-            overall_parts.append("the available data does not support a strong numerical call yet")
-        st.markdown("Reliance appears financially stable overall, with " + ", ".join(overall_parts) + ".")
+            overall_parts.append("the available data suggests stable fundamentals")
+        
+        st.markdown(f"The company appears financially stable overall, with {', '.join(overall_parts)}.")
 
 
 def get_market_mood(memory):
@@ -408,36 +451,131 @@ def get_market_mood(memory):
 def render_market_mood(memory, company):
     st.subheader("Market Mood")
 
-    market = agent4.explain_market(memory)
-    mood_label = market.get("mood", "🟡 Cautiously Positive")
+    # Get market intelligence from Agent 4
+    market_intel = agent4.explain_market(memory)
+    
+    # Get overall view from interpret_market_intelligence
+    market_intel_struct = agent4.interpret_market_intelligence(memory)
+    
+    # Determine overall sentiment
+    label = market_intel["label"]
+    if label == "Positive":
+        mood_label = "🟢 Positive"
+    elif label == "Negative":
+        mood_label = "🔴 Negative"
+    elif label == "Mixed":
+        mood_label = "🟡 Mixed"
+    else:
+        mood_label = "🟡 Cautiously Positive"
 
-    st.markdown(f"**{mood_label}**")
+    st.markdown(f"**Overall View**")
+    st.caption(mood_label)
+    st.caption(market_intel.get("explanation", "The market view is mixed and should be read alongside the fundamentals."))
 
-    news = memory.get("news_articles", [])
+    # Positive Signals
     opportunities = memory.get("opportunities", [])
+    news = memory.get("news_articles", [])
+    analyst = memory.get("analyst_data", {})
     risks = memory.get("risks", [])
 
+    positive_signals = []
+    
+    if analyst.get("recommendation_key") or analyst.get("recommendationKey"):
+        rec = (analyst.get("recommendation_key") or analyst.get("recommendationKey") or "").title()
+        positive_signals.append(("Analyst consensus", f"Analyst consensus is {rec}"))
+    
     if opportunities:
-        st.markdown("**Bullish factors**")
-        for item in opportunities[:3]:
-            st.caption(f"✅ {item}")
-    elif news:
-        st.markdown("**Bullish factors**")
-        for article in news[:3]:
-            headline = article.get("headline") or article.get("title")
-            if headline:
-                st.caption(f"✅ {headline}")
+        positive_signals.append(("Business momentum", opportunities[0] if opportunities else ""))
+    
+    # Check for positive news
+    for article in news[:3]:
+        headline = article.get("headline") or article.get("title") or ""
+        summary = article.get("summary") or ""
+        text = (headline + " " + summary).lower()
+        if any(k in text for k in ["upside", "growth", "expansion", "launch", "strong", "beat", "increase"]):
+            positive_signals.append(("Recent news", headline))
 
+    if positive_signals:
+        st.markdown("**✅ Positive Signals**")
+        for item in positive_signals[:3]:
+            st.caption(f"• {item[1]}")
+
+    # Things Creating Uncertainty
+    uncertainty_factors = []
+    
+    # Check for negative signals
+    for article in news[:3]:
+        headline = article.get("headline") or article.get("title") or ""
+        summary = article.get("summary") or ""
+        text = (headline + " " + summary).lower()
+        if any(k in text for k in ["fall", "slip", "decline", "weak", "pressure", "risk", "down"]):
+            uncertainty_factors.append(("Recent news", headline))
+    
     if risks:
-        st.markdown("**Risks**")
-        for item in risks[:3]:
-            st.caption(f"⚠ {item}")
-    else:
-        st.markdown("**Risks**")
-        st.caption("⚠ Short-term sentiment is still driven by price action and headlines.")
+        uncertainty_factors.append(("Financial risk", risks[0]))
+    
+    # Check chart trend
+    chart = memory.get("chart_metrics", {})
+    if chart.get("trend") == "down":
+        uncertainty_factors.append(("Price trend", "Stock has underperformed recently"))
+    
+    # Check sector performance
+    market_drivers = memory.get("market_drivers", {})
+    sector = market_drivers.get("sector_performance", {})
+    if sector.get("sector_return_1mo") is not None and sector.get("sector_return_1mo", 0) < 0:
+        uncertainty_factors.append(("Sector trends", "Sector has lagged the broader market"))
 
-    st.markdown("**Consensus**")
-    st.caption(market.get("consensus", "The market appears to see long-term potential, but short-term sentiment can remain mixed."))
+    if uncertainty_factors:
+        st.markdown("**⚠ Things Creating Uncertainty**")
+        for item in uncertainty_factors[:3]:
+            st.caption(f"• {item[1]}")
+
+    # What the Market is Watching
+    st.markdown("**What the Market is Watching**")
+    watch_items = []
+    
+    # Upcoming events
+    events = memory.get("events", [])
+    if events:
+        watch_items.append(("Upcoming events", events[0].get("title", "Corporate developments")))
+    
+    # Analyst targets
+    analyst = memory.get("analyst_data", {})
+    target_price = analyst.get("target_mean_price") or analyst.get("targetMeanPrice")
+    if target_price:
+        watch_items.append(("Analyst target price", f"Target: ₹{target_price:,.0f}"))
+    
+    # Sector performance
+    if sector.get("sector_return_1mo") is not None:
+        watch_items.append(("Sector trends", f"Sector return: {sector['sector_return_1mo']}%"))
+    
+    # Recent events
+    if events:
+        watch_items.append(("Upcoming quarterly results", "Market awaitst quarterly earnings"))
+    
+    if watch_items:
+        for item in watch_items[:4]:
+            st.caption(f"• {item[1]}")
+    else:
+        st.caption("• Recent earnings and business developments")
+        st.caption("• Sector performance trends")
+
+    # Bottom Line
+    st.markdown("**Bottom Line**")
+    bottom_line_parts = []
+    
+    if label in ["Positive", "Mixed"]:
+        bottom_line_parts.append("Market sentiment remains constructive")
+    else:
+        bottom_line_parts.append("Market sentiment is cautious")
+    
+    if analyst.get("recommendation_key") in ["buy", "strong_buy"]:
+        bottom_line_parts.append("supported by positive analyst views")
+    
+    if chart.get("trend") != "up":
+        bottom_line_parts.append("but weaker price momentum indicates investors are waiting for stronger evidence")
+    
+    st.caption(" ".join(bottom_line_parts) + ".")
 
 
 def render_price_story(memory, company):
@@ -743,23 +881,11 @@ def answer_question(question, company):
     with st.spinner("Thinking..."):
         result = run_pipeline(question, ticker=ticker)
         
+        # Agent 4 is now called inside run_pipeline
         response = result.get("agent4_output", {}).get("response", "Unable to answer")
         
         st.session_state.chat_history.append({"role": "user", "content": question})
         st.session_state.chat_history.append({"role": "assistant", "content": response})
-        if result.get("agent1_output") or result.get("agent2_output") or result.get("agent3_output"):
-            agent1_output = result.get("agent1_output", {})
-            agent2_output = result.get("agent2_output", {})
-            agent3_output = result.get("agent3_output", {})
-            memory = company_memory_module.build_company_memory(agent1_output, agent2_output, agent3_output)
-            if fetch_company_website_context is not None and _needs_website_fallback(question, response, memory):
-                website_context = fetch_company_website_context(ticker)
-                agent1_output = dict(agent1_output)
-                agent1_output["website_context"] = website_context
-                memory = company_memory_module.build_company_memory(agent1_output, agent2_output, agent3_output)
-                response = agent4.run_agent4(question, agent1_output, agent2_output, agent3_output).get("response", response)
-                st.session_state.chat_history[-1] = {"role": "assistant", "content": response}
-            company_memory_module.save_company_memory(memory)
 
 
 def _needs_website_fallback(question, response, memory):
@@ -773,26 +899,15 @@ def _needs_website_fallback(question, response, memory):
     return False
 
 
-def render_smart_prompts(company):
-    st.subheader("Smart Prompts")
+def render_smart_prompts(memory, company):
+    st.subheader("💡 Smart Prompts")
     
-    if st.button("💰 Dividend quality"):
-        answer_question(f"What is the dividend quality of {company}?", company)
+    # Generate suggested questions based on company data
+    suggested_questions = agent4.generate_suggested_questions(memory, company)
     
-    if st.button(f"📈 Is {company} expensive?"):
-        answer_question(f"Is {company} overvalued?", company)
-    
-    if st.button("⚠ Biggest threat"):
-        answer_question(f"What is the biggest threat to {company}?", company)
-    
-    if st.button("🏆 Compare with peers"):
-        answer_question(f"Compare {company} with sector peers.", company)
-    
-    if st.button("📅 5-year outlook"):
-        answer_question(f"Can {company} do well over 5 years?", company)
-    
-    if st.button("🧮 Invest ₹1 lakh?"):
-        answer_question("If I invest ₹1 lakh and the stock grows 12% annually for 5 years?", company)
+    for question in suggested_questions:
+        if st.button(f"💬 {question}"):
+            answer_question(question, company)
 
 
 def render_report():

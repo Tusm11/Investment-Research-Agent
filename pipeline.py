@@ -6,12 +6,12 @@ import re
 from difflib import SequenceMatcher
 from typing import Optional
 
-from agent_1.data_fetcher import fetch_all_data
-from agent_1.tools.nifty50 import NIFTY50
-from agent_2.agent import run_agent2
-from agent_2.final_agent2_router import route_query
-from agent_3.agent import run_agent3
-from agent_4.agent import run_agent4
+def classify_intent(query: str) -> dict:
+    """Return default classification - Agent 4 handles its own intent routing."""
+    return {
+        "intent": "general",
+        "modules": [],
+    }
 
 logger = logging.getLogger(__name__)
 
@@ -80,14 +80,6 @@ def extract_companies(query: str):
         return [best_match]
 
     return []
-
-
-def classify_intent(query: str) -> dict:
-    result = route_query(query)
-    return {
-        "intent": result["intent"],
-        "modules": result["modules"],
-    }
 
 
 def cache_key(entities):

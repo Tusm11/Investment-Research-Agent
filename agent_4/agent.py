@@ -1,4 +1,4 @@
-"""Agent 4 - General-purpose financial reasoning engine (compact)."""
+"""Agent 4 - Reasoning Agent with four internal stages."""
 
 from __future__ import annotations
 import json, ast, operator as op, os, re
@@ -6,9 +6,6 @@ from math import prod
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-from agent_1.data_fetcher import fetch_all_data
-from agent_1.tools.nifty50 import NIFTY50
-from company_memory import build_company_memory
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "agent_1", ".env"))
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY", "")
@@ -18,410 +15,634 @@ try:
 except:
     fetch_company_website_context = None
 
-NIFTY50_MAP = {t.split(".")[0].upper(): t for t, _ in NIFTY50}
-NAME_TO_TICKER = {
-    "RELIANCE": "RELIANCE.NS", "INFOSYS": "INFY.NS", "INFY": "INFY.NS", "TCS": "TCS.NS",
-    "HDFCBANK": "HDFCBANK.NS", "ICICIBANK": "ICICIBANK.NS", "KOTAKBANK": "KOTAKBANK.NS",
-    "SBIN": "SBIN.NS", "BHARTIARTL": "BHARTIARTL.NS", "LT": "LT.NS", "ITC": "ITC.NS",
-    "WIPRO": "WIPRO.NS", "HCLTECH": "HCLTECH.NS", "TECHM": "TECHM.NS", "TITAN": "TITAN.NS",
-    "MARUTI": "MARUTI.NS", "HINDUNILVR": "HINDUNILVR.NS", "DMART": "DMART.NS", "ONGC": "ONGC.NS",
+
+# ============================================================================
+# STAGE 1: Question Classifier
+# ============================================================================
+
+def classify_question(query, memory=None):
+    """
+    Classify the user's question and determine what tools are needed.
+    
+    Returns: {
+        "intent": str,           # financial_health, explanation, comparison, etc.
+        "entities": list,        # company names/tickers mentioned
+        "needs": list,           # required memory sections
+        "tools": list,           # tools to use (financial, market, chart, math, education, comparison)
+    }
+    """
+    system_prompt = """You are a Question Classifier for an investment research assistant.
+    
+Your job is to analyze the user's question and determine:
+1. What the user is trying to learn (intent)
+2. Which companies are mentioned (entities)
+3. What data sections are needed
+4. Which tools to use
+
+Return compact JSON with keys: intent, entities, needs, tools.
+
+Intents to recognize:
+- financial_health: Assessing company financial stability (ROCE, debt, margins, liquidity)
+- explanation: Explaining metrics (ROCE, P/E, debt, etc.)
+- education: Teaching concepts (What is ROCE?, Why is debt important?)
+- comparison: Comparing two or more companies
+- calculation: Mathematical queries (CAGR, future value, returns)
+- market_intelligence: News, sentiment, analyst views, sector trends
+- price_analysis: Price movements, support/resistance, volatility
+- investment_summary: Long-term investment suitability
+- news: Recent events, news summaries
+- unsupported: Questions about future price predictions
+
+Entities: Extract company names or ticker symbols.
+Needs: List of required memory sections from: company_info, financial_metrics, financial_facts, peer_comparison, price_data, chart_metrics, risk_metrics, news_articles, events, analyst_data, market_facts, market_intelligence, opportunities, risks.
+Tools: List of tools: financial, market, chart, math, education, comparison, news.
+
+Example output for "Why is Reliance's debt high?":
+{
+    "intent": "explanation",
+    "entities": ["Reliance"],
+    "needs": ["company_info", "financial_metrics", "peer_comparison"],
+    "tools": ["financial", "market"]
 }
 
-CALC_SAFE_OPS = {
-    ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv,
-    ast.Pow: op.pow, ast.USub: op.neg, ast.UAdd: op.pos,
+Example output for "Compare TCS and Infosys":
+{
+    "intent": "comparison",
+    "entities": ["TCS", "Infosys"],
+    "needs": ["financial_metrics", "price_data", "chart_metrics", "market_intelligence"],
+    "tools": ["comparison"]
 }
 
-_planner_llm = None
+Example output for "Can I invest ₹1 lakh at 12% for 5 years?":
+{
+    "intent": "calculation",
+    "entities": [],
+    "needs": [],
+    "tools": ["math"]
+}
 
-def run_agent4(query, agent1_output, agent2_output=None, agent3_output=None):
-    """Main entry point for Agent 4."""
-    memory = build_company_memory(agent1_output, agent2_output, agent3_output)
-    plan = plan_question(query, memory)
-    context = retrieve_context(memory, plan["required_sections"])
-    return answer_with_reasoning(query, memory, context, plan)
+Example output for "Will Reliance reach ₹5000 next year?":
+{
+    "intent": "unsupported",
+    "entities": ["Reliance"],
+    "needs": ["company_info", "price_data", "analyst_data"],
+    "tools": []
+}
+"""
 
-def _get_planner_llm():
-    global _planner_llm
-    if _planner_llm is None:
-        _planner_llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-    return _planner_llm
-
-def _coerce_plan(data):
-    if not isinstance(data, dict):
-        return None
-    sections = data.get("required_sections") or data.get("sections") or []
-    if isinstance(sections, str):
-        sections = [sections]
-    time_horizon = data.get("time_horizon")
-    if isinstance(time_horizon, str):
-        time_horizon = time_horizon.strip().lower()
-        time_horizon = None if time_horizon in {"", "null", "none"} else time_horizon
-    try:
-        time_horizon = int(time_horizon) if time_horizon else None
-    except:
-        time_horizon = None
-    return {
-        "required_sections": [str(s) for s in sections if s],
-        "need_calculator": bool(data.get("need_calculator", False)),
-        "need_general_knowledge": bool(data.get("need_general_knowledge", False)),
-        "need_comparison": bool(data.get("need_comparison", False)),
-        "time_horizon": time_horizon,
-    }
-
-def _fallback_plan(query):
-    return {
-        "required_sections": route_context(query),
-        "need_calculator": False,
-        "need_general_knowledge": False,
-        "need_comparison": False,
-        "time_horizon": _extract_time_horizon((query or "").lower()),
-    }
-
-def _extract_time_horizon(text):
-    m = re.search(r"(\d+)\s*(?:year|yr|yrs|years)", text)
-    if m:
-        return int(m.group(1))
-    return 5 if "5 year" in text or "five year" in text else None
-
-def _extract_entities(query):
-    text = (query or "").upper()
-    matches = []
-    for alias, ticker in {**NAME_TO_TICKER, **NIFTY50_MAP}.items():
-        if re.search(rf"\b{re.escape(alias)}\b", text) and ticker not in matches:
-            matches.append(ticker)
-    return matches
-
-def _safe_eval(expr):
-    def _eval(n):
-        if isinstance(n, ast.Expression):
-            return _eval(n.body)
-        if isinstance(n, ast.Constant) and isinstance(n.value, (int, float)):
-            return n.value
-        if isinstance(n, ast.BinOp) and type(n.op) in CALC_SAFE_OPS:
-            return CALC_SAFE_OPS[type(n.op)](_eval(n.left), _eval(n.right))
-        if isinstance(n, ast.UnaryOp) and type(n.op) in CALC_SAFE_OPS:
-            return CALC_SAFE_OPS[type(n.op)](_eval(n.operand))
-        raise ValueError("Unsupported expression")
-    return _eval(ast.parse(expr, mode="eval"))
-
-def _parse_money_amount(text):
-    m = re.search(r"([\d.]+)\s*(lakh|crore|k|m)?", text, re.IGNORECASE)
-    if not m:
-        return None
-    amount = float(m.group(1))
-    unit = (m.group(2) or "").lower()
-    return amount * {"crore": 1e7, "lakh": 1e5, "k": 1e3, "m": 1e6}.get(unit, 1)
-
-def plan_question(query, memory=None):
-    """Use an LLM to plan which data/tools are needed."""
-    system_prompt = (
-        "You are Agent 4 Planner for a financial reasoning assistant. "
-        "Convert the user's question into compact JSON only. "
-        "Return keys: required_sections, need_calculator, need_general_knowledge, need_comparison, time_horizon. "
-        "required_sections must be a list chosen from: company_info, financial_metrics, financial_facts, peer_comparison, "
-        "price_data, chart_metrics, risk_metrics, news_articles, events, analyst_data, market_facts, market_intelligence, "
-        "risks, opportunities. Use the smallest useful set. "
-        "need_calculator: true for CAGR, future value, return %, P/E, PEG, upside, position sizing math. "
-        "need_general_knowledge: true for conceptual questions like 'What is ROCE?'. "
-        "need_comparison: true for comparing two companies or peers. "
-        "time_horizon: integer for years mentioned, otherwise null."
-    )
     prompt = ChatPromptTemplate.from_messages([("system", system_prompt), ("human", "{question}")])
     
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    
     try:
-        raw = (prompt | _get_planner_llm()).invoke({"question": query.strip()}).content.strip()
-        raw = re.sub(r"^```(?:json)?|```$", "", raw, flags=re.IGNORECASE | re.MULTILINE).strip()
-        plan = _coerce_plan(json.loads(raw))
-        if plan and plan["required_sections"]:
-            return plan
-        if plan:
-            plan["required_sections"] = ["company_info"]
-            return plan
-    except:
-        pass
-    return _fallback_plan(query)
+        response = (prompt | llm).invoke({"question": query.strip()}).content.strip()
+        response = re.sub(r"^```(?:json)?|```$", "", response, flags=re.IGNORECASE | re.MULTILINE).strip()
+        result = json.loads(response)
+        return _normalize_classification(result)
+    except json.JSONDecodeError:
+        # LLM returned invalid JSON, use fallback
+        return _fallback_classification(query)
+    except Exception as e:
+        # Fallback classification
+        return _fallback_classification(query)
 
-def calculator_tool(query, memory):
-    """Calculator for financial math: future value, returns, ratios, etc."""
-    text = (query or "").lower()
-    current = memory.get("price_data", {}).get("current")
-    amount = _parse_money_amount(text) if any(u in text for u in ["lakh", "crore", "k", "m", "₹", "rs", "rupees"]) else None
-    
-    fv = re.search(r"(\d+(?:\.\d+)?)\s*%\s*(?:annual(?:ly)?|per year)?\s*(?:for\s*)?(\d+)\s*years?", text)
-    if ("invest" in text or "future value" in text) and fv:
-        amount = amount or 100000.0
-        rate = float(fv.group(1)) / 100.0
-        years = int(fv.group(2))
-        value = amount * ((1 + rate) ** years)
-        return f"Future value: ₹{value:,.2f} (from ₹{amount:,.2f} at {fv.group(1)}% for {years}y)"
-    
-    if "return" in text and current is not None:
-        m = re.search(r"(\d+(?:\.\d+)?)\s*%", text)
-        if m and "for" in text and "years" in text:
-            years_m = re.search(r"(\d+)\s*years?", text)
-            if years_m:
-                rate = float(m.group(1)) / 100.0
-                years = int(years_m.group(1))
-                amount = amount or 100000.0
-                value = amount * ((1 + rate) ** years)
-                return f"Future value: ₹{value:,.2f}"
-    
-    if "cagr" in text or "compound annual" in text:
-        m = re.search(r"(\d+(?:\.\d+)?)\s*(?:to|→|-|years?)", text)
-        if m and current:
-            initial = _parse_money_amount(text.split("to")[0]) if "to" in text else None
-            if initial:
-                years = _extract_time_horizon(text)
-                if years:
-                    cagr = ((current / initial) ** (1 / years) - 1) * 100
-                    return f"CAGR: {cagr:.2f}%"
-    
-    if "pe" in text and current:
-        eps_m = re.search(r"eps\s*[=:]\s*([\d.]+)", text)
-        if eps_m:
-            eps = float(eps_m.group(1))
-            pe = current / eps if eps else None
-            return f"P/E Ratio: {pe:.2f}" if pe else "Invalid EPS"
-    
-    if "peg" in text and current:
-        eps_m = re.search(r"eps\s*[=:]\s*([\d.]+)", text)
-        growth_m = re.search(r"growth\s*[=:]\s*([\d.]+)", text)
-        if eps_m and growth_m:
-            eps, growth = float(eps_m.group(1)), float(growth_m.group(1))
-            pe = current / eps if eps else None
-            peg = pe / growth if pe and growth else None
-            return f"PEG: {peg:.2f}" if peg else "Invalid inputs"
-    
-    if "upside" in text and current:
-        target_m = re.search(r"target\s*[=:]\s*([\d.]+)", text)
-        if target_m:
-            target = float(target_m.group(1))
-            upside = ((target - current) / current) * 100
-            return f"Upside: {upside:.2f}% (to ₹{target:,.2f})"
-    
-    return None
 
-def route_context(query):
-    """Route query to required memory sections."""
-    text = (query or "").lower()
-    sections = []
+def _normalize_classification(data):
+    """Normalize classification output."""
+    if not isinstance(data, dict):
+        return _fallback_classification("")
     
-    kw_map = {
-        ("pe", "eps", "price to book", "div", "margin", "roe", "roce", "asset"): ["financial_metrics"],
-        ("price", "chart", "trend", "volatility", "52w", "support", "resistance"): ["price_data", "chart_metrics"],
-        ("news", "headline", "event", "announcement"): ["news_articles", "events"],
-        ("sentiment", "analyst", "bull", "bear", "upside"): ["analyst_data", "market_intelligence"],
-        ("peer", "competitor", "compare", "vs", "versus"): ["peer_comparison"],
-        ("risk", "anomaly", "red flag", "concern"): ["risk_metrics"],
-        ("opportunity", "catalyst", "upside"): ["opportunities"],
+    intent = (data.get("intent") or "general").lower()
+    entities = data.get("entities", []) or []
+    needs = list(set(str(n) for n in (data.get("needs") or []) if n))
+    tools = list(set(str(t) for t in (data.get("tools") or []) if t))
+    
+    return {
+        "intent": intent,
+        "entities": entities,
+        "needs": needs,
+        "tools": tools,
     }
+
+
+def _fallback_classification(query):
+    """Fallback classification when LLM fails."""
+    text = (query or "").lower()
     
-    for keywords, section_list in kw_map.items():
-        if any(kw in text for kw in keywords):
-            sections.extend(section_list)
+    # Detect intent
+    if any(k in text for k in ["compare", "vs", "versus"]):
+        intent = "comparison"
+        tools = ["comparison"]
+        needs = ["financial_metrics", "price_data"]
+    elif any(k in text for k in ["cagr", "future value", "returns", "₹.*lakh", "₹.*crore"]):
+        intent = "calculation"
+        tools = ["math"]
+        needs = ["price_data"]
+    elif any(k in text for k in ["what is", "explain", "define", "meaning"]):
+        intent = "education"
+        tools = ["education"]
+        needs = []
+    elif any(k in text for k in ["sentiment", "news", "analyst", "opinion"]):
+        intent = "market_intelligence"
+        tools = ["market"]
+        needs = ["news_articles", "analyst_data"]
+    elif any(k in text for k in ["fall", "rising", "price", "52w", "support", "resistance"]):
+        intent = "price_analysis"
+        tools = ["chart"]
+        needs = ["price_data", "chart_metrics"]
+    elif any(k in text for k in ["healthy", "debt", "roce", "profitable", "liquidity"]):
+        intent = "financial_health"
+        tools = ["financial"]
+        needs = ["financial_metrics", "company_info"]
+    elif any(k in text for k in ["investment", "long term", "suitable"]):
+        intent = "investment_summary"
+        tools = ["financial", "market"]
+        needs = ["financial_metrics", "news_articles", "analyst_data", "opportunities", "risks"]
+    else:
+        intent = "general"
+        tools = ["financial", "market"]
+        needs = ["financial_metrics", "company_info"]
     
-    if not sections:
-        sections = ["company_info", "financial_metrics"]
-    
-    return list(set(sections))
+    return {
+        "intent": intent,
+        "entities": [],
+        "needs": needs,
+        "tools": tools,
+    }
+
+
+# ============================================================================
+# STAGE 2: Context Retriever
+# ============================================================================
 
 def retrieve_context(memory, required_sections):
-    """Retrieve context from memory for specified sections."""
+    """Retrieve only the required sections from memory."""
     context = {}
     for section in set(required_sections):
         if section in memory:
             context[section] = memory[section]
     return context
 
+
+# ============================================================================
+# STAGE 3 & 4: Reasoning and Answer Generation
+# ============================================================================
+
 def answer_with_reasoning(query, memory, context, plan):
-    """Generate answer using LLM reasoning."""
-    prompt = _build_reasoning_prompt(query, context, plan)
-    llm = _get_planner_llm()
+    """
+    Generate answer using LLM reasoning with specialized tools.
+    """
+    intent = plan["intent"]
+    tools = plan["tools"]
+    
+    # Build the reasoning prompt based on intent
+    if intent == "comparison":
+        return _generate_comparison_answer(query, context, memory)
+    elif intent == "calculation":
+        return _generate_math_answer(query, context)
+    elif intent == "education":
+        return _generate_education_answer(query, context)
+    elif intent == "unsupported":
+        return _generate_unsupported_answer(query, intent)
+    else:
+        # Default: general financial reasoning
+        return _generate_general_answer(query, context, memory)
+
+
+def _build_reasoning_prompt(query, context, intent):
+    """Build the reasoning prompt for the LLM."""
+    parts = []
+    
+    # System instruction based on intent
+    if intent == "financial_health":
+        parts.append("You are a financial analyst answering questions about a company's financial health.")
+        parts.append("Focus on ROCE, debt levels, profitability, and liquidity.")
+    elif intent == "explanation":
+        parts.append("You are explaining financial concepts to a beginner investor.")
+        parts.append("Be clear, use simple language, and relate to the company's actual data.")
+    elif intent == "market_intelligence":
+        parts.append("You are a market analyst explaining sentiment and news impact.")
+        parts.append("Focus on analyst views, news sentiment, and sector trends.")
+    elif intent == "price_analysis":
+        parts.append("You are a technical analyst explaining price movements.")
+        parts.append("Focus on price levels, trends, support/resistance, and volatility.")
+    elif intent == "investment_summary":
+        parts.append("You are evaluating a company for long-term investment suitability.")
+        parts.append("Discuss strengths, risks, and uncertainties without predicting prices.")
+        parts.append("Use available evidence: financials, news, analyst views, opportunities, risks.")
+    elif intent == "news":
+        parts.append("You are summarizing recent news and events for a company.")
+        parts.append("Focus on the most important developments and their potential impact.")
+    else:
+        parts.append("You are an investment research assistant providing clear, reliable answers.")
+    
+    parts.append("")
+    parts.append("User Question: " + query)
+    parts.append("")
+    
+    # Provide context
+    if context:
+        parts.append("Available Data:")
+        for section, data in context.items():
+            if isinstance(data, dict):
+                parts.append(f"  {section}: {json.dumps(data, indent=2)}")
+            else:
+                parts.append(f"  {section}: {data}")
+        parts.append("")
+    
+    # Provide reasoning instructions
+    if intent == "financial_health":
+        parts.append("Answer by:")
+        parts.append("1. Assessing current financial metrics")
+        parts.append("2. Comparing with sector norms where available")
+        parts.append("3. Identifying strengths and concerns")
+        parts.append("4. Providing a balanced conclusion")
+    elif intent == "explanation":
+        parts.append("Answer by:")
+        parts.append("1. Defining the term clearly")
+        parts.append("2. Explaining why it matters")
+        parts.append("3. Relating it to this company's actual data")
+    elif intent == "investment_summary":
+        parts.append("Answer by:")
+        parts.append("1. Assessing long-term strengths")
+        parts.append("2. Discussing key risks and uncertainties")
+        parts.append("3. Evaluating evidence for/against long-term potential")
+        parts.append("4. Providing a balanced view without price predictions")
+    else:
+        parts.append("Provide a clear, evidence-based answer using the data above.")
+    
+    return "\n".join(parts)
+
+
+# ============================================================================
+# Tool-Specific Answer Generation
+# ============================================================================
+
+def _generate_general_answer(query, context, memory):
+    """Generate answer for general queries."""
+    prompt = _build_reasoning_prompt(query, context, "general")
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    
     try:
         response = (ChatPromptTemplate.from_template(prompt) | llm).invoke({}).content
         return {"response": response, "sections_used": list(context.keys())}
     except Exception as e:
         return {"response": f"Error generating response: {str(e)}", "sections_used": []}
 
-def _build_reasoning_prompt(query, context, plan):
-    """Build the reasoning prompt for the LLM."""
-    parts = [f"User Question: {query}\n"]
-    
-    if plan.get("need_calculator"):
-        calc = calculator_tool(query, context)
-        if calc:
-            parts.append(f"Calculation: {calc}\n")
-    
-    if context:
-        parts.append("Context Data:\n")
-        for section, data in context.items():
-            if isinstance(data, dict):
-                parts.append(f"  {section}: {json.dumps(data, indent=2)}\n")
-            else:
-                parts.append(f"  {section}: {data}\n")
-    
-    parts.append("\nProvide a concise, well-reasoned answer using the context and any calculations above.")
-    return "".join(parts)
 
-def _explain_section(section_name, memory):
-    """Generate explanation for a given section."""
-    explanations = {
-        "business_quality": lambda: {
-            "reasoning": ["Strong ROCE" if memory.get("financial_metrics", {}).get("roce", 0) > 15 else "Moderate returns"],
-            "evidence": [f"ROCE: {memory.get('financial_metrics', {}).get('roce')}%"]
-        },
-        "price_story": lambda: {
-            "evidence": [
-                f"6M Return: {memory.get('chart_metrics', {}).get('returns', {}).get('6M')}%",
-                f"Distance from 52W High: {memory.get('chart_metrics', {}).get('distance_from_52w_high')}%"
-            ]
-        },
-        "market_sentiment": lambda: {
-            "reasoning": [f"{len(memory.get('events', []))} recent events"],
-            "evidence": [memory.get('analyst_data', {}).get('recommendation_key', 'N/A')]
+def _generate_comparison_answer(query, context, memory):
+    """Generate answer for company comparison queries."""
+    info1 = (memory or {}).get("company_info", {})
+    info2 = (memory or {}).get("company_info_2", {})
+    
+    # Get second company if available
+    second_company = None
+    if info2:
+        second_company = {
+            "name": info2.get("company_name", info2.get("name", "Second Company")),
+            "sector": info2.get("sector", ""),
+            "roce": (memory.get("financial_metrics_2") or {}).get("roce"),
+            "debt_to_equity": (memory.get("financial_metrics_2") or {}).get("debt_to_equity"),
+            "pe_ratio": info2.get("trailingPE"),
         }
-    }
-    return explanations.get(section_name, lambda: {}).get() if section_name in explanations else {}
-
-def explain_business_quality(memory):
-    return _explain_section("business_quality", memory)
-
-def explain_chart(memory):
-    return _explain_section("price_story", memory)
-
-def explain_sentiment(memory):
-    return _explain_section("market_sentiment", memory)
-
-def top_news_summary(memory):
-    """Summarize top news articles with sentiment labels."""
-    articles = memory.get("news_articles", [])
-    picks = []
-    for art in articles[:6]:
-        headline = art.get("headline") or art.get("title") or ""
-        summary = (art.get("summary") or "").lower()
+    
+    prompt_parts = [
+        "You are comparing two companies for investment purposes.",
+        f"User Question: {query}",
+        "",
+        "First Company:",
+    ]
+    
+    if info1:
+        prompt_parts.append(f"  Name: {info1.get('company_name', info1.get('name', 'Unknown'))}")
+        prompt_parts.append(f"  Sector: {info1.get('sector', 'N/A')}")
+        prompt_parts.append(f"  Market Cap: {info1.get('marketCap', 'N/A')}")
+    
+    if context.get("financial_metrics"):
+        fm = context["financial_metrics"]
+        prompt_parts.append(f"  ROCE: {fm.get('roce', 'N/A')}")
+        prompt_parts.append(f"  Debt/Equity: {fm.get('debt_to_equity', 'N/A')}")
+        prompt_parts.append(f"  Operating Margin: {fm.get('operating_margin', 'N/A')}")
+        prompt_parts.append(f"  Revenue Growth: {info1.get('revenueGrowth', 'N/A')}")
+    
+    if context.get("price_data"):
+        pd = context["price_data"]
+        prompt_parts.append(f"  Current Price: {pd.get('current', 'N/A')}")
+        prompt_parts.append(f"  52W High: {pd.get('high_52w', 'N/A')}")
+        prompt_parts.append(f"  52W Low: {pd.get('low_52w', 'N/A')}")
+    
+    if second_company:
+        prompt_parts.append("")
+        prompt_parts.append("Second Company:")
+        prompt_parts.append(f"  Name: {second_company.get('name', 'Unknown')}")
+        prompt_parts.append(f"  Sector: {second_company.get('sector', 'N/A')}")
         
-        bullish = any(k in summary for k in ["upside", "bullish", "value", "growth", "unlock"])
-        bearish = any(k in summary for k in ["slip", "down", "pressure", "risk", "concern", "weak"])
-        label = "🟢" if bullish else "🔴" if bearish else "⚪"
+        if second_company.get("roce"):
+            prompt_parts.append(f"  ROCE: {second_company.get('roce')}")
+        if second_company.get("debt_to_equity"):
+            prompt_parts.append(f"  Debt/Equity: {second_company.get('debt_to_equity')}")
+        if second_company.get("pe_ratio"):
+            prompt_parts.append(f"  P/E Ratio: {second_company.get('pe_ratio')}")
+    
+    prompt_parts.append("")
+    prompt_parts.append("Compare these companies and provide a balanced analysis.")
+    
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    
+    try:
+        response = (ChatPromptTemplate.from_template("\n".join(prompt_parts)) | llm).invoke({}).content
+        return {"response": response, "sections_used": list(context.keys())}
+    except Exception as e:
+        return {"response": f"Error generating response: {str(e)}", "sections_used": []}
+
+
+def _generate_math_answer(query, context):
+    """Generate answer for mathematical calculations."""
+    current = (context.get("price_data") or {}).get("current")
+    
+    text = query.lower()
+    
+    # Future value calculation
+    fv = re.search(r"(\d+(?:\.\d+)?)\s*%\s*(?:annual(?:ly)?|per year)?\s*(?:for\s*)?(\d+)\s*years?", text)
+    if ("invest" in text or "future value" in text) and fv:
+        amount_match = re.search(r"(₹?\s*[\d,.]+)\s*(lakh|crore)?", text, re.IGNORECASE)
+        if not amount_match:
+            amount = 100000  # Default ₹1 lakh
+        else:
+            amt_str = amount_match.group(1).replace("₹", "").replace(",", "").strip()
+            amount = float(amt_str)
+            unit = (amount_match.group(2) or "").lower()
+            amount *= {"crore": 1e7, "lakh": 1e5}.get(unit, 1)
         
-        if headline:
-            picks.append(f"{label} {headline}")
-    return picks
-
-def price_story_summary(memory):
-    """Generate one-line price story."""
-    chart = memory.get("chart_metrics", {})
-    price = memory.get("price_data", {})
-    current = price.get("current")
-    high_52w = price.get("high_52w")
-    trend = chart.get("trend", "sideways")
+        rate = float(fv.group(1)) / 100.0
+        years = int(fv.group(2))
+        future_value = amount * ((1 + rate) ** years)
+        
+        return {
+            "response": f"If you invest ₹{amount:,.0f} at {fv.group(1)}% annual return for {years} years, your investment would grow to ₹{future_value:,.0f}.",
+            "sections_used": [],
+        }
     
-    parts = []
-    if isinstance(current, (int, float)) and isinstance(high_52w, (int, float)) and current == current and high_52w == high_52w and high_52w != 0:
-        below = ((high_52w - current) / high_52w) * 100
-        parts.append(f"₹{current:,.2f} is {below:.1f}% below 52-week high")
-    else:
-        parts.append("Current price context is limited, so the chart should be read cautiously")
+    # CAGR calculation
+    if "cagr" in text or "compound annual" in text:
+        if current:
+            initial_match = re.search(r"buy.*?₹([\d,.]+)", text)
+            if initial_match:
+                initial = float(initial_match.group(1).replace(",", ""))
+                cagr = ((current / initial) ** (1 / 5) - 1) * 100 if initial else 0
+                return {
+                    "response": f"With current price at ₹{current:,.0f} and purchase price of ₹{initial:,.0f} 5 years ago, the CAGR would be {cagr:.2f}%. Note: This is a simplified calculation.",
+                    "sections_used": [],
+                }
     
-    trend_text = {"up": "Momentum is constructive", "down": "Momentum is weak"}.get(trend, "Price consolidating")
-    parts.append(trend_text)
+    # Returns calculation
+    if "returns" in text or "profit" in text:
+        target_match = re.search(r"target.*?₹([\d,.]+)", text)
+        if target_match and current:
+            target = float(target_match.group(1).replace(",", ""))
+            upside = ((target - current) / current) * 100
+            return {
+                "response": f"Current price is ₹{current:,.0f}. To reach the target of ₹{target:,.0f}, the stock would need to increase by {upside:.1f}%.",
+                "sections_used": [],
+            }
     
-    return ". ".join(parts) + "."
-
-def generate_price_interpretation(memory):
-    """Generate AI interpretation for price section."""
-    chart = memory.get("chart_metrics", {})
-    company = memory.get("company_info", {}).get("name", "the company")
-    trend = chart.get("trend", "sideways")
-    distance_high = chart.get("distance_from_52w_high", 0)
-    
-    msgs = {
-        "up": f"{company} has maintained positive momentum, trading closer to yearly highs.",
-        "down": f"{company} has declined and trades closer to 52-week lows.",
-        "sideways": f"{company} is trading in a sideways range."
-    }
-    
-    result = msgs.get(trend, msgs["sideways"])
-    if distance_high > 15:
-        result += f" Currently {distance_high:.0f}% below 52-week high."
-    return result
-
-def company_snapshot_html(memory):
-    """Generate HTML snapshot of company."""
-    company = memory.get("company_info", {})
-    metrics = memory.get("financial_metrics", {})
-    market = memory.get("price_data", {})
-    snapshot = memory.get("company_snapshot", {})
-    mood = memory.get("market_intelligence", {})
-    price_view = memory.get("chart_metrics", {})
-    news = memory.get("news_articles", [])
-    risks = memory.get("risks", [])
-    opportunities = memory.get("opportunities", [])
-    
-    response = f"<h2>{company.get('name', 'Company')}</h2>"
-    response += f"<p><strong>Sector:</strong> {company.get('sector', 'N/A')}</p>"
-    
-    if market.get("current"):
-        response += f"<p><strong>Price:</strong> ₹{market['current']:,.2f}</p>"
-    if market.get("market_cap"):
-        response += f"<p><strong>Market Cap:</strong> ₹{market['market_cap']:,.2f}</p>"
-    
-    response += f"<p>{snapshot.get('summary', '')}</p>"
-    
-    if mood.get("consensus"):
-        response += f"<p><strong>Market View:</strong> {mood['consensus']}</p>"
-    
-    response += "<h3>Recent News:</h3><ul>"
-    for art in news[:3]:
-        headline = art.get("headline") or art.get("title")
-        if headline:
-            response += f"<li>{headline}</li>"
-    response += "</ul>"
-    
-    return response
-
-def route_query(query):
-    """Route query for backward compatibility."""
-    sections = route_context(query)
-    if "price_data" in sections or "chart_metrics" in sections:
-        return "price_chart"
-    elif "news_articles" in sections or "analyst_data" in sections:
-        return "market_sentiment"
-    elif "financial_metrics" in sections:
-        return "fundamentals"
-    return "general"
-
-
-def answer_business_description(company_name, memory):
-    """Return a compact business-description answer used by the UI report."""
-    info = (memory or {}).get("company_info", {}) or {}
-    summary = info.get("summary") or ""
-    website = (memory or {}).get("website_context", {}) or {}
-    pages = website.get("pages", []) if isinstance(website, dict) else []
-
-    if pages:
-        snippets = []
-        for page in pages[:2]:
-            text = (page.get("text") or "").strip()
-            if text:
-                snippets.append(text[:300])
-        if snippets:
-            body = " ".join(snippets)
-            return {"response": body[:900]}
-
-    if summary:
-        return {"response": summary[:900]}
-
-    sector = info.get("sector") or "its sector"
-    industry = info.get("industry") or "its industry"
     return {
-        "response": (
-            f"{company_name} operates in {sector}, with a primary focus in {industry}. "
-            "The available structured data is limited, but the company is being tracked through "
-            "price history, financial metrics, news, and other market signals."
-        )
+        "response": "I can help calculate investment returns and CAGR. Please specify: initial investment amount, expected return rate, and time period.",
+        "sections_used": [],
     }
+
+
+def _generate_education_answer(query, context):
+    """Generate educational answers for concept questions."""
+    text = query.lower()
+    
+    if "roce" in text:
+        return {
+            "response": "ROCE stands for Return on Capital Employed. It measures how efficiently a company uses its capital to generate profits. ROCE = EBIT / Capital Employed.\n\nA higher ROCE indicates better capital efficiency. Generally:\n- ROCE > 20%: Excellent capital efficiency\n- ROCE 15-20%: Good capital efficiency\n- ROCE 10-15%: Acceptable capital efficiency\n- ROCE < 10%: Low capital efficiency\n\nFor context, what's the company's ROCE?",
+            "sections_used": [],
+        }
+    
+    if "p/e" in text or "pe ratio" in text:
+        return {
+            "response": "P/E Ratio (Price-to-Earnings) shows how much investors pay for each rupee of earnings.\n\nP/E = Market Price per Share / Earnings per Share (EPS)\n\nInterpretation:\n- Low P/E (< 15): May indicate undervaluation or weak growth expectations\n- Moderate P/E (15-30): Reasonable valuation for established companies\n- High P/E (> 30): May indicate high growth expectations or overvaluation\n\nA high P/E isn't bad if the company can grow earnings to justify it.",
+            "sections_used": [],
+        }
+    
+    if "debt" in text or "debt/equity" in text:
+        return {
+            "response": "Debt/Equity measures a company's financial leverage.\n\nD/E = Total Debt / Shareholders' Equity\n\nInterpretation:\n- D/E < 0.5: Very conservative, low debt\n- D/E 0.5-1: Moderate leverage\n- D/E 1-2: Higher leverage, monitor cash flow\n- D/E > 2: High leverage, higher financial risk\n\nCapital-intensive industries (like energy, manufacturing) naturally have higher D/E ratios.",
+            "sections_used": [],
+        }
+    
+    if "dividend" in text:
+        return {
+            "response": "Dividend Yield shows how much a company pays in dividends relative to its stock price.\n\nDividend Yield = Annual Dividend per Share / Price per Share\n\nInterpretation:\n- High yield (> 5%): May indicate strong cash returns but check sustainability\n- Moderate yield (2-5%): Typical for stable companies\n- Low yield (< 2%): Company may be reinvesting profits for growth\n\nA high yield isn't always better—check if the company can sustain dividends.",
+            "sections_used": [],
+        }
+    
+    return {
+        "response": "I can explain financial concepts like ROCE, P/E ratio, debt/equity, and dividend yield. What specific concept would you like to understand?",
+        "sections_used": [],
+    }
+
+
+def _generate_unsupported_answer(query, intent):
+    """Generate answer for unsupported question types."""
+    return {
+        "response": "I can't reliably predict future share prices or make market calls. Stock price predictions involve significant uncertainty and depend on many factors including market sentiment, economic conditions, and company performance that are difficult to forecast accurately.\n\nHowever, I can help you understand:\n• The company's financial health and fundamentals\n• Analyst targets and consensus views\n• Historical price patterns and technical levels\n• Growth drivers and potential catalysts\n• Risks that could impact future performance\n\nWould you like me to analyze any of these aspects instead?",
+        "sections_used": [],
+    }
+
+
+# ============================================================================
+# Main Entry Point
+# ============================================================================
+
+def run_agent4(query, agent1_output, agent2_output=None, agent3_output=None):
+    """Main entry point for Agent 4 - Four-stage reasoning process."""
+    from company_memory import build_company_memory
+    
+    # Build memory from all agents
+    memory = build_company_memory(agent1_output, agent2_output, agent3_output)
+    
+    # STAGE 1: Classify the question
+    plan = classify_question(query, memory)
+    
+    # STAGE 2: Retrieve relevant context
+    context = retrieve_context(memory, plan["needs"])
+    
+    # STAGE 3 & 4: Generate answer with reasoning
+    return answer_with_reasoning(query, memory, context, plan)
+
+
+def explain_financial_pattern(memory):
+    """Generate context-aware financial pattern analysis explanation."""
+    info = (memory or {}).get("company_info", {}) or {}
+    financial = (memory or {}).get("financial_metrics", {}) or {}
+    peer = (memory or {}).get("peer_comparison", {}) or {}
+    sector = info.get("sector", "") or peer.get("sector", "")
+    anomaly = (memory or {}).get("anomaly_detection", {}) or {}
+    model = anomaly.get("model_assessment", {}) or {}
+    red_flags = anomaly.get("red_flags", []) or []
+    
+    roce = financial.get("roce")
+    debt_to_equity = financial.get("debt_to_equity")
+    current_ratio = financial.get("current_ratio")
+    
+    anomaly_score = model.get("anomaly_score")
+    prediction = model.get("prediction")
+    is_anomaly = prediction == -1 or (anomaly_score is not None and anomaly_score >= 0.15)
+    
+    explanation_parts = []
+    
+    company_name = info.get("name", "this company")
+    summary = info.get("summary", "") or ""
+    sector_lower = sector.lower() if sector else ""
+    summary_lower = summary.lower()
+    
+    if "bank" in sector_lower or "financial" in sector_lower:
+        company_type = "banking/financial institution"
+    elif any(k in summary_lower for k in ["conglomerate", "diversified", "multiple"]):
+        company_type = "diversified conglomerate"
+    elif any(k in summary_lower for k in ["capital", "infrastructure", "manufacturing", "energy", "refining"]):
+        company_type = "capital-intensive business"
+    elif any(k in summary_lower for k in ["services", "technology", "it", "consulting"]):
+        company_type = "service-oriented business"
+    else:
+        company_type = "sector player"
+    
+    explanation_parts.append(f"{company_name} operates as a {company_type} in the {sector} sector.")
+    
+    if is_anomaly:
+        if "bank" in sector_lower or "financial" in sector_lower:
+            explanation_parts.append("Banks naturally operate with balance sheets that look very different from companies in other industries. Its lending activities, capital requirements, and interest income create financial ratios that differ from non-banking businesses. Within the banking sector, credit quality and capital adequacy become more important than manufacturing-style profitability metrics.")
+        elif "conglomerate" in summary_lower or "diversified" in summary_lower:
+            explanation_parts.append("It operates across multiple business lines which creates a financial profile that differs from focused peers. Investors should evaluate whether future growth from newer businesses offsets the capital required to support them.")
+        elif any(k in summary_lower for k in ["capital", "infrastructure", "manufacturing", "energy", "refining"]):
+            explanation_parts.append("Capital-intensive businesses require substantial investments which naturally leads to higher leverage and lower short-term returns. These companies should be evaluated based on long-term cash flow generation rather than current ratios alone.")
+        elif any(k in summary_lower for k in ["services", "technology", "it", "consulting"]):
+            explanation_parts.append("Service companies typically have different financial characteristics than manufacturing businesses. Their valuation should focus on growth metrics, margins, and cash conversion rather than traditional capital intensity ratios.")
+        else:
+            explanation_parts.append(f"The company's financial profile differs from many sector peers due to its scale, business model, or operational structure. This is not necessarily negative—it reflects the unique characteristics of {company_name.lower()}.")
+        
+        differences = []
+        if debt_to_equity is not None and isinstance(debt_to_equity, (int, float)) and debt_to_equity > 2:
+            differences.append("higher leverage")
+        if roce is not None and isinstance(roce, (int, float)) and roce < 15:
+            differences.append("lower returns on capital")
+        if current_ratio is not None and isinstance(current_ratio, (int, float)) and current_ratio < 1.5:
+            differences.append("moderate liquidity")
+        
+        if differences:
+            explanation_parts.append(f"Key differences include: {', '.join(differences)} compared to typical sector firms.")
+        
+        if any("strong" in rf.get("explanation", "").lower() for rf in red_flags):
+            conclusion = "The detected pattern reflects the company's unique characteristics rather than a financial weakness. This signal should be evaluated alongside growth prospects and market position."
+        elif any("cyclical" in rf.get("explanation", "").lower() for rf in red_flags):
+            conclusion = "The pattern reflects normal cyclicality in the industry. Focus should be on profitability and cash generation across business cycles rather than interpreting the pattern as a permanent issue."
+        else:
+            conclusion = "This is a pattern detection signal, not an investment recommendation. Large, diversified, or capital-intensive companies naturally appear different from their peers."
+        
+        return {
+            "status": "unusual",
+            "headline": "🔴 Unusual Financial Pattern Detected" if not any("strong" in rf.get("explanation", "").lower() for rf in red_flags) else "🟢 Financial profile stands out positively",
+            "why_noticed": explanation_parts,
+            "what_this_means": conclusion
+        }
+    else:
+        return {
+            "status": "normal",
+            "headline": "🟢 No unusual pattern detected",
+            "why_noticed": [f"{company_name}'s financial profile is consistent with sector peers."],
+            "what_this_means": "The company's financial characteristics are typical for its sector, suggesting standard operations for the industry."
+        }
+
+
+def generate_suggested_questions(memory, company_name):
+    """Generate personalized suggested questions based on company data."""
+    info = (memory or {}).get("company_info", {}) or {}
+    financial = (memory or {}).get("financial_metrics", {}) or {}
+    peer = (memory or {}).get("peer_comparison", {}) or {}
+    chart = (memory or {}).get("chart_metrics", {}) or {}
+    analyst = (memory or {}).get("analyst_data", {}) or {}
+    news = (memory or {}).get("news_articles", []) or []
+    risks = (memory or {}).get("risks", []) or []
+    opportunities = (memory or {}).get("opportunities", []) or []
+    
+    roce = financial.get("roce")
+    debt_to_equity = financial.get("debt_to_equity")
+    current_ratio = financial.get("current_ratio")
+    operating_margin = financial.get("operating_margin")
+    revenue_growth = info.get("revenue_growth")
+    pe_ratio = info.get("trailingPE") or info.get("pe_ratio")
+    market_cap = info.get("market_cap")
+    sector = info.get("sector", "sector")
+    
+    suggested = []
+    
+    if roce is not None and 10 <= roce < 20:
+        suggested.append(f"Why is {company_name}'s ROCE only {roce:.1f}% compared to stronger peers in the {sector} sector?")
+    elif roce is not None and roce < 10:
+        suggested.append(f"Why is {company_name}'s ROCE below {roce:.1f}%? Does this indicate competitive challenges?")
+    
+    if debt_to_equity is not None and isinstance(debt_to_equity, (int, float)) and debt_to_equity > 1.5:
+        suggested.append(f"Is {company_name}'s debt level of {debt_to_equity:.1f}x a concern for investors?")
+    
+    if pe_ratio is not None and pe_ratio > 25 and (roce is None or roce < 15):
+        suggested.append(f"Why is {company_name} valued at a high P/E of {pe_ratio:.1f} despite moderate returns?")
+    
+    if opportunities:
+        suggested.append(f"What are {company_name}'s biggest growth opportunities over the next 5 years?")
+    
+    if peer.get("peers"):
+        peer_list = peer.get("peers", [])
+        if len(peer_list) >= 2:
+            suggested.append(f"How does {company_name} compare to its closest competitor, {peer_list[0] if isinstance(peer_list[0], str) else peer_list[0].get('ticker', 'a peer')}?")
+    
+    if risks:
+        risk_text = risks[0] if risks else ""
+        if "debt" in risk_text.lower() or "leverage" in risk_text.lower():
+            suggested.append(f"How does {company_name} manage its debt obligations?")
+        elif "margin" in risk_text.lower() or "profitability" in risk_text.lower():
+            suggested.append(f"What is {company_name}'s strategy to improve profitability?")
+        else:
+            suggested.append(f"What are the main risks that could affect {company_name}'s performance?")
+    
+    positive_news = [n for n in news[:3] if any(k in ((n.get("headline") or "") + (n.get("summary") or "")).lower() for k in ["upside", "growth", "expansion", "launch", "strong"])]
+    if positive_news:
+        suggested.append(f"What catalysts could drive {company_name}'s stock price higher?")
+    
+    if chart.get("trend") == "down":
+        suggested.append(f"Why has {company_name}'s stock underperformed recently?")
+    elif chart.get("trend") == "up":
+        suggested.append(f"What's driving {company_name}'s positive momentum?")
+    
+    target_price = analyst.get("target_mean_price") or analyst.get("targetMeanPrice")
+    if target_price:
+        current = (memory.get("price_data") or {}).get("current")
+        if current and target_price:
+            upside = ((target_price - current) / current) * 100
+            suggested.append(f"What does it take for {company_name} to reach the analyst target of ₹{target_price:,.0f}?")
+    
+    if len(suggested) < 3:
+        if revenue_growth is not None:
+            suggested.append(f"How sustainable is {company_name}'s revenue growth rate of {revenue_growth:.1f}%?")
+        else:
+            suggested.append(f"What makes {company_name} a compelling investment in the {sector} sector?")
+    
+    generic_questions = [
+        f"How does {company_name}'s financial health compare to other companies in the {sector} sector?",
+        f"Is {company_name} a good long-term investment based on its fundamentals?",
+        f"What are the key factors that could impact {company_name}'s stock price in the next year?",
+    ]
+    
+    for q in generic_questions:
+        if len(suggested) >= 5:
+            break
+        if q not in suggested:
+            suggested.append(q)
+    
+    return suggested[:5]
 
 
 def explain_market(memory):
@@ -492,56 +713,22 @@ def explain_chart(memory):
     }
 
 
-def explain_business_snapshot(memory):
-    """Return a short snapshot used by the report UI."""
-    info = (memory or {}).get("company_info", {}) or {}
-    summary = info.get("summary") or ""
-    if summary:
-        return {"summary": summary[:900]}
-    return {
-        "summary": (
-            f"{info.get('name', 'The company')} operates in {info.get('sector', 'its sector')} "
-            f"and {info.get('industry', 'its industry')}."
-        )
-    }
-
-
-def build_investment_thesis(memory, horizon_years=5):
-    """Generate a compact thesis object for report generation."""
-    info = (memory or {}).get("company_info", {}) or {}
-    financial = (memory or {}).get("financial_metrics", {}) or {}
-    news = (memory or {}).get("news_articles", []) or []
-    risks = list((memory or {}).get("risks", []) or [])
-    opportunities = list((memory or {}).get("opportunities", []) or [])
-
-    positive_signals = []
-    if info.get("summary"):
-        positive_signals.append("Diversified business model")
-    if info.get("market_cap"):
-        positive_signals.append("Large scale and market leadership")
-    if financial.get("cash_flow") is not None:
-        positive_signals.append("Cash flow visibility")
-    if news:
-        positive_signals.append("Recent news flow is available for context")
-
-    growth_drivers = opportunities[:5] or [
-        "Business expansion themes are being tracked from company data and recent news.",
-    ]
-
-    investor_fit = ["long-term compounding", "stable growth", "research-driven investors"]
-    less_suitable = ["short-term traders", "investors needing very low volatility"]
-
-    if financial.get("debt_to_equity") is not None and financial.get("debt_to_equity") > 1:
-        risks.append("Leverage should be monitored")
-    if financial.get("operating_margin") is not None and financial.get("operating_margin") < 10:
-        risks.append("Margins look thin versus stronger peers")
-
-    return {
-        "positive_signals": positive_signals,
-        "growth_drivers": growth_drivers,
-        "risks": risks[:6],
-        "investor_fit": investor_fit,
-        "less_suitable": less_suitable,
-        "profile": "strong" if len(positive_signals) >= len(risks) else "moderate",
-        "horizon_years": horizon_years,
-    }
+def price_story_summary(memory):
+    """Generate one-line price story."""
+    chart = memory.get("chart_metrics", {})
+    price = memory.get("price_data", {})
+    current = price.get("current")
+    high_52w = price.get("high_52w")
+    trend = chart.get("trend", "sideways")
+    
+    parts = []
+    if isinstance(current, (int, float)) and isinstance(high_52w, (int, float)) and current == current and high_52w == high_52w and high_52w != 0:
+        below = ((high_52w - current) / high_52w) * 100
+        parts.append(f"₹{current:,.2f} is {below:.1f}% below 52-week high")
+    else:
+        parts.append("Current price context is limited, so the chart should be read cautiously")
+    
+    trend_text = {"up": "Momentum is constructive", "down": "Momentum is weak"}.get(trend, "Price consolidating")
+    parts.append(trend_text)
+    
+    return ". ".join(parts) + "."

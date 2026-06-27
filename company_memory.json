@@ -1,119 +1,131 @@
 {
   "company_info": {
-    "name": "Tata Consultancy Services Limited",
-    "ticker": "TCS.NS",
-    "sector": "Technology",
-    "industry": "Information Technology Services",
-    "summary": "Tata Consultancy Services Limited provides information technology (IT) and IT enabled services. It offers TCS ADD, a suite of AI powered life sciences platforms; TCS BaNCS, a financial services platform; TCS BFSI Platforms, a cloud-native, subscription-based as-a-service digital ecosystem for insurers and financial firms; TCS Chroma, a cloud-based AI-led hire-to-retire modular platform; TCS Customer Intelligence & Insights, an AI-powered, real-time customer data analytics solution; TCS ERP on Cloud, SAP transformation with AI-powered smart solutions; ignio, a cognitive automation software product; TCS iON, a learning ecosystem; and TCS HOBS, a cloud-native, catalog-centric platform with composable architecture and insights-led personalization capabilities. It also offers TCS Intelligent Urban Exchange for enterprises and smart cities; TCS OmniStore, a retail commerce platform; TCS Optumera, a strategic intelligence platform; TCS Tap, a platform for intelligent procurement; Quartz, a distributed ledger technology; TCS TwinX, a risk-free experimentation platform; TCS MasterCraft, an AI-driven cognitive automation product; Jile, an enterprise agile planning and delivery tool; TCS DigiBOLT, an end-to-end, organization-wide enterprise platform; and TCS AI WisdomNext, an enterprise grade GenAI platform. In addition, the company provides AI, data and analytics, cloud, cognitive business, consulting, cybersecurity, enterprise solutions, industrial autonomy and engineering, network solutions and services, TCS interactive, and sustainability services. It serves banking; capital markets; consumer packaged goods and distribution; communications, media, and information services; education; energy, resources, and utilities; healthcare; high tech; insurance; life sciences; manufacturing; public services; retail; and travel and logistics industries. The company was founded in 1968 and is based in Mumbai, India. The company operates as a subsidiary of Tata Sons Private Limited.",
+    "name": "Reliance Industries Limited",
+    "ticker": "RELIANCE.NS",
+    "sector": "Energy",
+    "industry": "Oil & Gas Refining & Marketing",
+    "summary": "Reliance Industries Limited engages in hydrocarbon exploration and production, petroleum refining and marketing, petrochemicals, advanced materials and composites, renewable, financial services, retail, and digital services worldwide. It operates through the Oil to Chemicals, Oil and Gas, Retail, Digital Services, and Others segments. The company is involved in refining and marketing products, including liquefied petroleum gas, propylene, naphtha, gasoline, jet/aviation turbine fuel, kerosine oil, diesel, sulfur, and petroleum coke. It also provides polymers comprising high-density and low-density polyethylene (PE), linear low-density PE, homopolymer, random and impact copolymer, and polyvinyl chloride; fiber intermediates that include purified terephthalic acid, and ethylene glycols and oxide; aromatics, such as paraxylene, ortho xylene, benzene, and linear alkyl benzene and paraffin; and textiles that consist of fabrics, apparel, and auto furnishings. In addition, the company offers elastomers, such as polybutadiene rubber, styrene butadiene rubber, and butyl rubber; fiber and yarn polyesters; and bioenergy solutions, including compressed biogas, and pellets and briquettes. Further, it engages in oil and gas exploration and production activities; operation of various stores comprising supermarkets, hypermarket, wholesale cash and carry, specialty, and online stores; operation of media and entertainment platforms, and Network18 and television channels; and publishing of magazines. Additionally, the company provides highway hospitality and fleet management services, as well as digital services, such as connectivity, fiber, mobile devices, apps, business, and other digital solutions. Reliance Industries Limited was founded in 1957 and is based in Mumbai, India.",
     "business_model": [
       "telecom and digital services",
-      "consumer retail"
+      "consumer retail",
+      "refining and petrochemicals",
+      "renewable energy"
     ],
-    "website": "https://www.tcs.com",
-    "employees": 584519,
-    "debt_to_equity": 10.389,
-    "current_ratio": 2.228,
-    "market_cap": 7451813347328,
-    "pe_ratio": 15.14746,
-    "dividend_yield": 5.83,
+    "website": "https://www.ril.com",
+    "employees": 404501,
+    "debt_to_equity": 36.653,
+    "current_ratio": 1.098,
+    "market_cap": 17815499177984,
+    "pe_ratio": 22.048233,
+    "dividend_yield": 0.46,
+    "peers": [
+      "ONGC.NS",
+      "COALINDIA.NS",
+      "BPCL.NS"
+    ],
     "return_on_equity": null,
     "operating_margins": null,
     "revenue_growth": null,
     "free_cashflow": null
   },
   "financial_metrics": {
-    "roce": 54.93,
-    "operating_margin": 25.1,
-    "net_margin": 492100000000.0,
-    "debt_to_equity": 112830000000.0,
-    "current_ratio": 2.228,
-    "cash_flow": 520940000000.0,
-    "sales": 2670210000000.0
+    "roce": 8.99,
+    "operating_margin": 11.48,
+    "net_margin": 807750000000.0,
+    "debt_to_equity": 3980000000000.0,
+    "current_ratio": 1.098,
+    "cash_flow": 1921130000000.0,
+    "sales": 10572190000000.0
   },
   "financial_facts": {
-    "ROCE": 54.9276,
-    "OperatingMargin": 25.0999,
-    "Debt": 112830000000.0,
+    "ROCE": 8.9938,
+    "OperatingMargin": 11.4808,
+    "Debt": 3980000000000.0,
     "CurrentRatio": null,
-    "NetProfit": 492100000000.0,
-    "CashFromOperatingActivity": 520940000000.0,
-    "DebtorDays": 78.7764,
-    "InventoryDays": 0.0722,
-    "WorkingCapitalDays": 102.2343
+    "NetProfit": 807750000000.0,
+    "CashFromOperatingActivity": 1921130000000.0,
+    "DebtorDays": 20.1937,
+    "InventoryDays": 77.4423,
+    "WorkingCapitalDays": 18.2963
   },
   "peer_comparison": {
-    "sector": "Technology",
+    "sector": "Energy",
+    "peers": [
+      "ONGC.NS",
+      "COALINDIA.NS",
+      "BPCL.NS"
+    ],
     "metrics": {
       "ROCE": {
-        "company": 54.93,
-        "sector_average": 26.26,
-        "percentile": 100
+        "company": 8.99,
+        "sector_average": 19.7,
+        "percentile": 0
       },
       "Debt": {
-        "company": 112830000000.0,
-        "sector_average": 56734800000.0,
-        "percentile": 80
+        "company": 3980000000000.0,
+        "sector_average": 809376966666.67,
+        "percentile": 100
       },
       "Sales": {
-        "company": 2670210000000.0,
-        "sector_average": 585190200000.0,
+        "company": 10572190000000.0,
+        "sector_average": 4286252133333.33,
         "percentile": 100
       },
       "Operating Profit": {
-        "company": 670220000000.0,
-        "sector_average": 129767000000.0,
-        "percentile": 100
+        "company": 1213770000000.0,
+        "sector_average": 661739900000.0,
+        "percentile": 67
       },
       "OPM %": {
-        "company": 25.1,
-        "sector_average": 18.96,
-        "percentile": 80
+        "company": 11.48,
+        "sector_average": 15.35,
+        "percentile": 33
       },
       "Net Profit": {
-        "company": 492100000000.0,
-        "sector_average": 72521600000.0,
+        "company": 807750000000.0,
+        "sector_average": 327873733333.33,
         "percentile": 100
       },
       "Total Assets": {
-        "company": 1823720000000.0,
-        "sector_average": 639374200000.0,
+        "company": 21781400000000.0,
+        "sector_average": 4420604933333.33,
         "percentile": 100
       },
       "Total Liabilities": {
-        "company": 738940000000.0,
-        "sector_average": 236298400000.0,
+        "company": 10922740000000.0,
+        "sector_average": 2317711233333.33,
         "percentile": 100
       },
       "Cash from Operating Activity": {
-        "company": 520940000000.0,
-        "sector_average": 85875200000.0,
+        "company": 1921130000000.0,
+        "sector_average": 689009766666.67,
         "percentile": 100
       },
       "Debtor Days": {
-        "company": 78.78,
-        "sector_average": 60.56,
-        "percentile": 100
+        "company": 20.19,
+        "sector_average": 15.58,
+        "percentile": 67
       },
       "Inventory Days": {
-        "company": 0.07,
-        "sector_average": 0.68,
-        "percentile": 0
+        "company": 77.44,
+        "sector_average": 137.78,
+        "percentile": 67
       },
       "Working Capital Days": {
-        "company": 102.23,
-        "sector_average": 118.83,
-        "percentile": 40
+        "company": 18.3,
+        "sector_average": 31.06,
+        "percentile": 67
       }
     }
   },
   "anomaly_detection": {
-    "anomaly_score": 0.084,
+    "anomaly_score": 0.0043,
     "model_assessment": {
       "model_path": "D:\\Mini project\\agent_2\\isolation_forest_model.pkl",
       "model_loaded": true,
       "prediction": -1,
-      "decision_function": -0.084,
-      "anomaly_score": 0.084,
+      "decision_function": -0.0043,
+      "anomaly_score": 0.0043,
       "is_anomaly": true,
       "used_features": [
         "Debt To Equity_z",
@@ -133,334 +145,336 @@
         "Asset Turnover_z"
       ]
     },
-    "red_flags_count": 1,
+    "red_flags_count": 3,
     "red_flags": [
       {
+        "metric": "Low Profit Margin",
+        "value": "7.6%",
+        "severity": "medium",
+        "explanation": "Profit margin is below 10%, indicating weaker profitability."
+      },
+      {
+        "metric": "Low ROE",
+        "value": "9.1%",
+        "severity": "low",
+        "explanation": "Return on equity is below 15%, below industry best practices."
+      },
+      {
         "metric": "Financial Statements",
-        "value": "Risk Score: 0.08",
+        "value": "Risk Score: 0.00",
         "severity": "high",
-        "explanation": "Isolation Forest flagged this company as anomalous (decision: -0.08, score: 0.08)."
+        "explanation": "Isolation Forest flagged this company as anomalous (decision: -0.00, score: 0.00)."
       }
     ]
   },
   "price_data": {
-    "current": NaN,
-    "open": 2111.0,
-    "day_high": 2114.0,
-    "day_low": 2055.0,
-    "high_52w": 3489.9,
-    "low_52w": 2055.0,
-    "avg_volume": 5368804,
-    "ohlcv_count": 30,
+    "current": 1318.1,
+    "open": 1318.0,
+    "day_high": 1328.0,
+    "day_low": 1314.6,
+    "high_52w": 1611.8,
+    "low_52w": 1253.2,
+    "avg_volume": 16196047,
+    "ohlcv_count": 29,
     "ohlcv": [
       {
-        "date": "2026-05-13",
-        "open": 2275.15,
-        "high": 2278.31,
-        "low": 2238.65,
-        "close": 2242.4,
-        "volume": 3171843
-      },
-      {
-        "date": "2026-05-14",
-        "open": 2234.7,
-        "high": 2234.7,
-        "low": 2176.88,
-        "close": 2215.95,
-        "volume": 5633313
-      },
-      {
-        "date": "2026-05-15",
-        "open": 2221.87,
-        "high": 2274.07,
-        "low": 2221.87,
-        "close": 2233.71,
-        "volume": 3410637
-      },
-      {
         "date": "2026-05-18",
-        "open": 2233.71,
-        "high": 2262.23,
-        "low": 2222.07,
-        "close": 2252.66,
-        "volume": 3773336
+        "open": 1327.86,
+        "high": 1335.82,
+        "low": 1312.63,
+        "close": 1329.75,
+        "volume": 13022473
       },
       {
         "date": "2026-05-19",
-        "open": 2269.23,
-        "high": 2345.79,
-        "low": 2266.37,
-        "close": 2295.97,
-        "volume": 10394707
+        "open": 1332.54,
+        "high": 1337.81,
+        "low": 1312.33,
+        "close": 1316.61,
+        "volume": 21665501
       },
       {
         "date": "2026-05-20",
-        "open": 2292.81,
-        "high": 2310.67,
-        "low": 2286.79,
-        "close": 2296.26,
-        "volume": 2537422
+        "open": 1312.63,
+        "high": 1356.63,
+        "low": 1306.56,
+        "close": 1353.44,
+        "volume": 13248515
       },
       {
         "date": "2026-05-21",
-        "open": 2299.82,
-        "high": 2304.65,
-        "low": 2283.04,
-        "close": 2296.07,
-        "volume": 3299087
+        "open": 1360.91,
+        "high": 1364.59,
+        "low": 1339.01,
+        "close": 1343.39,
+        "volume": 17150630
       },
       {
         "date": "2026-05-22",
-        "open": 2299.92,
-        "high": 2308.7,
-        "low": 2277.22,
-        "close": 2286.3,
-        "volume": 2617262
+        "open": 1343.79,
+        "high": 1361.11,
+        "low": 1342.89,
+        "close": 1348.27,
+        "volume": 7105813
       },
       {
         "date": "2026-05-25",
-        "open": 2325.0,
-        "high": 2326.1,
-        "low": 2293.0,
-        "close": 2308.2,
-        "volume": 3298364
+        "open": 1360.51,
+        "high": 1364.79,
+        "low": 1350.75,
+        "close": 1360.71,
+        "volume": 6750071
       },
       {
         "date": "2026-05-26",
-        "open": 2308.2,
-        "high": 2327.9,
-        "low": 2272.4,
-        "close": 2276.2,
-        "volume": 3587597
+        "open": 1353.84,
+        "high": 1362.2,
+        "low": 1346.18,
+        "close": 1350.06,
+        "volume": 13769747
       },
       {
         "date": "2026-05-27",
-        "open": 2275.0,
-        "high": 2295.6,
-        "low": 2260.9,
-        "close": 2284.2,
-        "volume": 2653950
+        "open": 1346.77,
+        "high": 1354.74,
+        "low": 1342.39,
+        "close": 1344.28,
+        "volume": 13215138
       },
       {
         "date": "2026-05-28",
-        "open": 2284.2,
-        "high": 2284.2,
-        "low": 2284.2,
-        "close": 2284.2,
+        "open": 1344.28,
+        "high": 1344.28,
+        "low": 1344.28,
+        "close": 1344.28,
         "volume": 0
       },
       {
         "date": "2026-05-29",
-        "open": 2291.0,
-        "high": 2334.0,
-        "low": 2235.0,
-        "close": 2258.9,
-        "volume": 16331582
+        "open": 1357.72,
+        "high": 1362.7,
+        "low": 1310.94,
+        "close": 1315.12,
+        "volume": 42634247
       },
       {
         "date": "2026-06-01",
-        "open": 2284.0,
-        "high": 2335.0,
-        "low": 2280.0,
-        "close": 2297.4,
-        "volume": 7505095
+        "open": 1326.37,
+        "high": 1329.35,
+        "low": 1312.43,
+        "close": 1313.92,
+        "volume": 10700603
       },
       {
         "date": "2026-06-02",
-        "open": 2320.0,
-        "high": 2457.4,
-        "low": 2316.2,
-        "close": 2446.9,
-        "volume": 11306127
+        "open": 1301.68,
+        "high": 1321.69,
+        "low": 1294.32,
+        "close": 1308.55,
+        "volume": 23302785
       },
       {
         "date": "2026-06-03",
-        "open": 2393.0,
-        "high": 2393.0,
-        "low": 2224.8,
-        "close": 2241.7,
-        "volume": 15660062
+        "open": 1308.95,
+        "high": 1317.91,
+        "low": 1295.01,
+        "close": 1307.16,
+        "volume": 20012293
       },
       {
         "date": "2026-06-04",
-        "open": 2241.7,
-        "high": 2253.1,
-        "low": 2216.6,
-        "close": 2241.0,
-        "volume": 4867263
+        "open": 1295.01,
+        "high": 1305.17,
+        "low": 1287.15,
+        "close": 1297.7,
+        "volume": 23474327
       },
       {
         "date": "2026-06-05",
-        "open": 2262.9,
-        "high": 2271.8,
-        "low": 2192.0,
-        "close": 2198.9,
-        "volume": 5019717
+        "open": 1304.5,
+        "high": 1306.0,
+        "low": 1288.0,
+        "close": 1291.0,
+        "volume": 17785223
       },
       {
         "date": "2026-06-08",
-        "open": 2170.0,
-        "high": 2177.0,
-        "low": 2143.3,
-        "close": 2151.4,
-        "volume": 6536734
+        "open": 1277.0,
+        "high": 1282.6,
+        "low": 1259.2,
+        "close": 1263.3,
+        "volume": 16494759
       },
       {
         "date": "2026-06-09",
-        "open": 2174.0,
-        "high": 2174.0,
-        "low": 2132.8,
-        "close": 2151.0,
-        "volume": 4148655
+        "open": 1269.0,
+        "high": 1274.2,
+        "low": 1257.5,
+        "close": 1269.2,
+        "volume": 23620214
       },
       {
         "date": "2026-06-10",
-        "open": 2151.3,
-        "high": 2180.8,
-        "low": 2144.8,
-        "close": 2153.9,
-        "volume": 2848650
+        "open": 1275.0,
+        "high": 1300.5,
+        "low": 1254.4,
+        "close": 1258.8,
+        "volume": 21012796
       },
       {
         "date": "2026-06-11",
-        "open": 2127.0,
-        "high": 2154.6,
-        "low": 2110.0,
-        "close": 2135.6,
-        "volume": 3079815
+        "open": 1258.0,
+        "high": 1276.0,
+        "low": 1253.2,
+        "close": 1263.0,
+        "volume": 13117486
       },
       {
         "date": "2026-06-12",
-        "open": 2150.0,
-        "high": 2168.0,
-        "low": 2138.0,
-        "close": 2161.4,
-        "volume": 2124656
+        "open": 1277.0,
+        "high": 1297.0,
+        "low": 1262.5,
+        "close": 1293.0,
+        "volume": 11988785
       },
       {
         "date": "2026-06-15",
-        "open": 2192.0,
-        "high": 2192.0,
-        "low": 2159.3,
-        "close": 2162.0,
-        "volume": 3337083
+        "open": 1315.3,
+        "high": 1325.0,
+        "low": 1303.3,
+        "close": 1307.0,
+        "volume": 18633321
       },
       {
         "date": "2026-06-16",
-        "open": 2167.0,
-        "high": 2209.0,
-        "low": 2160.6,
-        "close": 2199.0,
-        "volume": 3079898
+        "open": 1313.4,
+        "high": 1333.4,
+        "low": 1306.4,
+        "close": 1328.8,
+        "volume": 18513223
       },
       {
         "date": "2026-06-17",
-        "open": 2209.0,
-        "high": 2231.0,
-        "low": 2200.7,
-        "close": 2223.0,
-        "volume": 2865010
+        "open": 1333.0,
+        "high": 1334.0,
+        "low": 1317.0,
+        "close": 1332.7,
+        "volume": 10029170
       },
       {
         "date": "2026-06-18",
-        "open": 2209.0,
-        "high": 2214.0,
-        "low": 2182.0,
-        "close": 2203.3,
-        "volume": 3735188
+        "open": 1330.0,
+        "high": 1333.9,
+        "low": 1322.0,
+        "close": 1328.1,
+        "volume": 15494549
       },
       {
         "date": "2026-06-19",
-        "open": 2105.0,
-        "high": 2138.0,
-        "low": 2059.9,
-        "close": 2125.0,
-        "volume": 13286502
+        "open": 1328.0,
+        "high": 1338.2,
+        "low": 1305.3,
+        "close": 1309.5,
+        "volume": 24887034
       },
       {
         "date": "2026-06-22",
-        "open": 2132.2,
-        "high": 2157.0,
-        "low": 2121.0,
-        "close": 2127.8,
-        "volume": 4566101
+        "open": 1316.7,
+        "high": 1344.9,
+        "low": 1314.1,
+        "close": 1326.5,
+        "volume": 12931213
       },
       {
         "date": "2026-06-23",
-        "open": NaN,
-        "high": NaN,
-        "low": NaN,
-        "close": NaN,
-        "volume": 6388466
+        "open": 1328.9,
+        "high": 1333.0,
+        "low": 1304.0,
+        "close": 1309.5,
+        "volume": 15400184
+      },
+      {
+        "date": "2026-06-24",
+        "open": 1305.7,
+        "high": 1322.0,
+        "low": 1297.5,
+        "close": 1313.6,
+        "volume": 11030917
+      },
+      {
+        "date": "2026-06-25",
+        "open": 1318.0,
+        "high": 1328.0,
+        "low": 1314.6,
+        "close": 1318.1,
+        "volume": 12694362
       }
     ]
   },
   "chart_metrics": {
     "returns": {
-      "1D": NaN,
-      "1M": NaN,
-      "6M": 0,
-      "1Y": 0,
-      "5Y": 0
+      "1D": 0.34,
+      "1M": -1.95,
+      "6M": null,
+      "1Y": null,
+      "5Y": null
     },
-    "volatility": NaN,
-    "distance_from_52w_high": NaN,
-    "distance_from_52w_low": NaN,
+    "volatility": 1.18,
+    "distance_from_52w_high": 3.13,
+    "distance_from_52w_low": 4.71,
     "trend": "sideways",
     "moving_averages": {
       "50dma": null,
       "200dma": null
     },
     "support_resistance": {
-      "support_1": 2125.0,
-      "support_2": 2082.5,
-      "resistance_1": 2446.9,
-      "resistance_2": 2495.84
+      "support_1": 1258.8,
+      "support_2": 1233.62,
+      "resistance_1": 1360.71,
+      "resistance_2": 1387.92
     },
-    "current_price": NaN
+    "current_price": 1318.1
   },
   "market_stats": {
-    "market_cap": 7451813347328,
-    "pe_ratio": 15.14746,
-    "dividend_yield": 5.83,
-    "beta": 0.227,
-    "target_price": 2967.3096,
-    "recommendation": "buy",
-    "analyst_count": 42
+    "market_cap": 17815499177984,
+    "pe_ratio": 22.048233,
+    "dividend_yield": 0.46,
+    "beta": 0.182,
+    "target_price": 1694.3871,
+    "recommendation": "strong_buy",
+    "analyst_count": 31
   },
   "market_metrics": {
-    "market_cap": 7451813347328,
-    "pe_ratio": 15.14746,
-    "dividend_yield": 5.83,
-    "beta": 0.227,
-    "target_price": 2967.3096,
-    "recommendation": "buy",
-    "analyst_count": 42
+    "market_cap": 17815499177984,
+    "pe_ratio": 22.048233,
+    "dividend_yield": 0.46,
+    "beta": 0.182,
+    "target_price": 1694.3871,
+    "recommendation": "strong_buy",
+    "analyst_count": 31
   },
   "market_drivers": {
-    "ticker": "TCS.NS",
-    "sector": "Technology",
-    "company": "TCS",
+    "ticker": "RELIANCE.NS",
+    "sector": "Energy",
+    "company": "RELIANCE",
     "macro": {
-      "nifty50_return_1mo": 0.3,
-      "nifty50_return_3mo": 7.06,
-      "banknifty_return_1mo": 4.78,
-      "banknifty_return_3mo": 12.63,
-      "usd_inr": 94.72,
-      "gold": 4139.7,
-      "crude": 73.21,
-      "silver": 61.78,
-      "10y_treasury": 4.49
+      "nifty50_return_1mo": 0.6,
+      "nifty50_return_3mo": 5.42,
+      "banknifty_return_1mo": 5.6,
+      "banknifty_return_3mo": 11.29,
+      "usd_inr": 94.3,
+      "gold": 4078.7,
+      "crude": 69.23,
+      "silver": 59.22,
+      "10y_treasury": 4.45
     },
     "sector_performance": {
-      "peer_count": 5,
-      "sector_return_1mo": NaN,
+      "peer_count": 3,
+      "sector_return_1mo": -7.4,
       "peer_sample_returns_1mo": [
-        NaN,
-        NaN,
-        NaN,
-        NaN,
-        NaN
+        -18.92,
+        -4.97,
+        1.69
       ]
     },
     "earnings": {
@@ -470,215 +484,216 @@
     "corporate_actions": {
       "recent_actions": [
         {
-          "date": "2025-06-04",
-          "dividends": 30.0,
+          "date": "2023-08-21",
+          "dividends": 4.5,
           "stock_splits": 0.0
         },
         {
-          "date": "2025-07-16",
-          "dividends": 11.0,
+          "date": "2024-08-19",
+          "dividends": 5.0,
           "stock_splits": 0.0
         },
         {
-          "date": "2025-10-15",
-          "dividends": 11.0,
+          "date": "2024-10-28",
+          "dividends": 0.0,
+          "stock_splits": 2.0
+        },
+        {
+          "date": "2025-08-14",
+          "dividends": 5.5,
           "stock_splits": 0.0
         },
         {
-          "date": "2026-01-16",
-          "dividends": 57.0,
-          "stock_splits": 0.0
-        },
-        {
-          "date": "2026-05-25",
-          "dividends": 31.0,
+          "date": "2026-06-05",
+          "dividends": 6.0,
           "stock_splits": 0.0
         }
       ],
-      "dividend_rate": 124.0,
-      "ex_dividend_date": "1779667200"
+      "dividend_rate": 6.0,
+      "ex_dividend_date": "1780617600"
     },
     "promoter_activity": {
-      "held_percent_insiders": 0.71795,
-      "held_percent_institutions": 0.17825001,
+      "held_percent_insiders": 0.51181,
+      "held_percent_institutions": 0.29005,
       "major_holders": {
         "Value": {
-          "insidersPercentHeld": 0.71795,
-          "institutionsPercentHeld": 0.17825001,
-          "institutionsFloatPercentHeld": 0.63196,
-          "institutionsCount": 328.0
+          "insidersPercentHeld": 0.51181,
+          "institutionsPercentHeld": 0.29005,
+          "institutionsFloatPercentHeld": 0.59414,
+          "institutionsCount": 393.0
         }
       },
       "institutional_holders": []
     }
   },
+  "website_context": {},
   "risk_metrics": {
-    "annualized_volatility": NaN,
-    "max_drawdown": 13.16,
-    "sharpe_ratio": null,
+    "annualized_volatility": 18.76,
+    "max_drawdown": 7.49,
+    "sharpe_ratio": -0.68,
     "beta": null
   },
   "news_articles": [
     {
-      "headline": "Infosys, TCS, HCLTech And Other IT Stocks Under Pressure On Weak Global Tech Cues - NDTV Profit",
-      "summary": "IT stocks such as Infosys, Tata Consultancy Services, Infosys, HCL Technologies, Wipro are under pressure during the trading hours on Tuesday, June 23.\nBack home, IT stocks traded mostly lower, with Infosys emerging as the top laggard, falling 2.22% ",
+      "headline": "Reliance Industries share price to be in focus on Thursday. Here's why - Mint",
+      "summary": "The milestone marks an important step towards expanding access to high-quality cervical cancer screening and follow-up care.\nReliance Industries, in its regulatory filing, said cervical cancer prevention is often limited not only by access to screeni",
       "source": "web",
-      "url": "https://www.ndtvprofit.com/markets/infosys-tcs-hcltech-and-other-it-stocks-under-pressure-on-weak-global-tech-cues-11674014",
-      "date": "2026-06-24",
+      "url": "https://www.livemint.com/market/stock-market-news/reliance-industries-share-price-to-be-in-focus-on-thursday-heres-why-11782313951944.html",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Infosys, TCS to Wipro - IT stocks fall up to 3% amid global tech stocks selloff - Mint",
-      "summary": "Indian IT stocks like Infosys, Wipro, Tata Consultancy Services, HCL Tech fell up to 3% in Tuesday's trading session, amid global tech sell off, snapping single day gaining streak on Monday.\nThe Nifty IT index declined 1.64% to 27,174.45, continuing ",
+      "headline": "Reliance Industries stock jumps 2% after AGM; brokerages see up to 34 percent upside on AI, Jio IPO, new... - Moneycontrol.com",
+      "summary": "Brokerages remained bullish on Reliance Industries shares following the AGM, highlighting multiple growth drivers across telecom, retail, energy and emerging businesses.\nReliance Industries LtdReliance gains over 2% after AGM growth announcementsBrok",
       "source": "web",
-      "url": "https://www.livemint.com/market/stock-market-news/infosys-tcs-to-wipro-it-stocks-fall-up-to-3-amid-global-tech-stocks-selloff-11782187825262.html",
-      "date": "2026-06-24",
+      "url": "https://www.moneycontrol.com/news/business/markets/reliance-industries-stock-jumps-2-after-agm-brokerages-see-up-to-34-percent-upside-on-ai-jio-ipo-new-energy-13955348.html",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Nifty IT declines 2% on weak global tech cues; Infosys, TCS, Coforge among top losers - Upstox",
+      "headline": "IPO: Reliance Jio announces what may be India's biggest-ever share sale - BBC",
+      "summary": "The IPO comes after a year-long wait for Jio to go public.\nLast year, Ambani had said the company would be listed in the first half of 2026.",
+      "source": "web",
+      "url": "https://www.bbc.com/news/articles/cx2kerpkynko",
+      "date": "2026-06-27",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Reliance Industries shares: Stock slips nearly 2% after Jio update, other announcements; details here - Upstox",
       "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
       "source": "web",
-      "url": "https://upstox.com/news/market-news/stocks/nifty-it-declines-2-on-weak-global-tech-cues-infosys-tcs-coforge-among-top-losers/article-195812/",
-      "date": "2026-06-24",
+      "url": "https://upstox.com/news/market-news/stocks/reliance-industries-shares-stock-slips-nearly-2-after-jio-update-and-other-announcements-everything-investors-need-to-know/article-195671/",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Nifty IT slumps 6%, Infosys, TCS stocks crash up to 8% as Accenture guidance cut sparks sell-off - Moneycontrol.com",
-      "summary": "Nifty IT slumped as much as 6 percent on Friday morning after Accenture cut revenue growth guidance, with the stocks of Infosys, Tech Mahindra and TCS falling up to 8 percent and emerging as the top losers on benchmark Nifty 50 index.\nNifty IT FallsN",
+      "headline": "Tata leads, Reliance dominates, Adani expands: India's new corporate order, reveals Hurun India 500 - Business Today",
+      "summary": "India's corporate landscape is increasingly being defined by three business giants \u2014 the Tata Group, Reliance Industries and the Adani Group.\nMeanwhile, the Adani Group continued to expand its footprint across sectors, reinforcing its status as one o",
       "source": "web",
-      "url": "https://www.moneycontrol.com/news/business/markets/nifty-it-slumps-6-infosys-tcs-stocks-crash-up-to-7-after-accenture-guidance-cut-sparks-sell-off-13953640.html",
-      "date": "2026-06-24",
+      "url": "https://www.businesstoday.in/latest/corporate/story/tata-leads-reliance-dominates-adani-expands-indias-new-corporate-order-reveals-hurun-india-500-538994-2026-06-24",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Nifty IT index slips 2%; TCS, Infosys, HCL Tech, LTM, Wipro down up to 3% - Business Standard",
-      "summary": "Tata Consultancy Services (TCS), Infosys and Wipro were down 3 per cent each, while LTM, Tech Mahindra and HCL Technologies were trading lower in the range of 1 per cent to 2 per cent.\nAt 01:03 PM, the Nifty IT index was down 2.2 per cent, as compare",
+      "headline": "Jio IPO: Will it unlock value or hurt Reliance stock? - Business Standard",
+      "summary": "Jio IPO: Will it unlock value or hurt Reliance stock? - Business Standard",
       "source": "web",
-      "url": "https://www.business-standard.com/markets/news/nifty-it-index-slips-2-tcs-infosys-hcl-tech-ltm-wipro-down-up-to-3-126062300503_1.html",
-      "date": "2026-06-24",
+      "url": "https://www.business-standard.com/video-gallery/market/jio-ipo-will-it-unlock-value-or-hurt-reliance-stock-178975.htm",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Accenture warning sends Infosys, TCS and HCLTech tumbling. Here's why - India Today",
-      "summary": "Infosys, TCS, HCLTech and other IT stocks remained under pressure on Friday after global IT services giant Accenture cut the upper end of its annual revenue growth forecast, raising fresh concerns about demand in key overseas markets.\nHCLTech decline",
+      "headline": "Reliance Power - 5 stocks bought by FIIs, MFs and retail investors rally up to 60% in 6 months - The Economic Times",
+      "summary": "In the March \u201926 quarter, a notable trend emerged in the market.\nAround 22 stocks with a market capitalisation above Rs 3,000 crore saw a rare alignment, with FIIs, mutual funds and retail investors all increasing their stakes compared with the previ",
       "source": "web",
-      "url": "https://www.indiatoday.in/business/market/story/infosys-tcs-hcltech-shares-fall-after-accenture-cuts-revenue-growth-forecast-2929592-2026-06-19",
-      "date": "2026-06-24",
+      "url": "https://m.economictimes.com/markets/stocks/news/5-stocks-bought-by-fiis-mfs-and-retail-investors-rally-up-to-60-in-6-months/reliance-power/slideshow/131961414.cms",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Why IT stocks crashed today: Nifty IT, Infosys, TCS, Wipro slump as Accenture drags - BusinessLine",
-      "summary": "The decline followed Accenture\u2019s weaker-than-expected quarterly results and reduced full-year revenue growth guidance of 3-4 per cent, compared with 3-5 per cent earlier.\nAccenture outlook sparks concerns on IT spendingInvestor sentiment turned negat",
+      "headline": "India's largest telecom and digital service Jio Platforms files for IPO - CNBC",
+      "summary": "Billionaire Mukesh Ambani's Jio Platforms, India's largest wireless operator and digital service provider, filed draft papers for an initial public offering on Friday.\nJio Platforms said in its draft prospectus that funds raised will be used to pare ",
       "source": "web",
-      "url": "https://www.thehindubusinessline.com/markets/it-stocks-crash-nifty-it-infosys-tcs-wipro-hit-fresh-lows-rattled-by-accenture-outlook/article71120830.ece",
-      "date": "2026-06-24",
+      "url": "https://www.cnbc.com/2026/06/19/india-jio-platforms-ipo-mukesh-ambani.html",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9% - Reuters",
-      "summary": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9% - Reuters",
+      "headline": "RIL shares rise 5% in three sessions ahead of AGM: Here are other triggers - Moneycontrol.com",
+      "summary": "Reliance shares rise ahead of AGM on June 19Meta partners with Reliance for AI data centre in JamnagarSofter oil prices support Reliance stock rally Did our AI summary help?\nRI RI NSE/BSE Select NSE LIVE BSE LIVE Day HighDay LowVolume (NSE) More \u00d7Sha",
       "source": "web",
-      "url": "https://www.reuters.com/world/india/indias-it-stocks-head-worst-day-four-months-tcs-plunges-9-2026-06-03/",
-      "date": "2026-06-24",
+      "url": "https://www.moneycontrol.com/news/business/markets/ril-shares-rise-5-in-three-sessions-ahead-of-agm-here-are-other-triggers-13950748.html",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Infosys, TCS &amp; other Indian IT stocks crash! How Accenture\u2019s warning has led to big sell-off - what broke - The Times of India",
-      "summary": "The latest sell-off has further deepened the sector's troubles, taking the Nifty IT index's decline for calendar year 2026 to 29%.\n(AI image)What was the Accenture outlook that rattled IT stocks?\n(Disclaimer: Recommendations and views on the stock ma",
+      "headline": "Reliance share price jumps nearly 3% as Jio files papers for India\u2019s biggest-ever IPO - Upstox",
+      "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
       "source": "web",
-      "url": "https://timesofindia.indiatimes.com/business/india-business/infosys-tcs-other-indian-it-stocks-crash-how-accentures-warning-has-led-to-big-sell-off-what-brokerages-are-saying/articleshow/131847530.cms",
-      "date": "2026-06-24",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "DXC gets $213.6M after Supreme Court leaves TCS ruling in place - Stock Titan",
-      "summary": "DXC gets $213.6M after Supreme Court leaves TCS ruling in place - Stock Titan",
-      "source": "web",
-      "url": "https://www.stocktitan.net/news/DXC/dxc-collects-213-560-494-98-in-landmark-ip-theft-case-from-nvrmzoxgzr0c.html",
-      "date": "2026-06-24",
+      "url": "https://upstox.com/news/market-news/stocks/reliance-share-price-jumps-nearly-3-as-jio-files-papers-for-india-s-biggest-ever-ipo/article-195723/",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     }
   ],
   "news": [
     {
-      "headline": "Infosys, TCS, HCLTech And Other IT Stocks Under Pressure On Weak Global Tech Cues - NDTV Profit",
-      "summary": "IT stocks such as Infosys, Tata Consultancy Services, Infosys, HCL Technologies, Wipro are under pressure during the trading hours on Tuesday, June 23.\nBack home, IT stocks traded mostly lower, with Infosys emerging as the top laggard, falling 2.22% ",
+      "headline": "Reliance Industries share price to be in focus on Thursday. Here's why - Mint",
+      "summary": "The milestone marks an important step towards expanding access to high-quality cervical cancer screening and follow-up care.\nReliance Industries, in its regulatory filing, said cervical cancer prevention is often limited not only by access to screeni",
       "source": "web",
-      "url": "https://www.ndtvprofit.com/markets/infosys-tcs-hcltech-and-other-it-stocks-under-pressure-on-weak-global-tech-cues-11674014",
-      "date": "2026-06-24",
+      "url": "https://www.livemint.com/market/stock-market-news/reliance-industries-share-price-to-be-in-focus-on-thursday-heres-why-11782313951944.html",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Infosys, TCS to Wipro - IT stocks fall up to 3% amid global tech stocks selloff - Mint",
-      "summary": "Indian IT stocks like Infosys, Wipro, Tata Consultancy Services, HCL Tech fell up to 3% in Tuesday's trading session, amid global tech sell off, snapping single day gaining streak on Monday.\nThe Nifty IT index declined 1.64% to 27,174.45, continuing ",
+      "headline": "Reliance Industries stock jumps 2% after AGM; brokerages see up to 34 percent upside on AI, Jio IPO, new... - Moneycontrol.com",
+      "summary": "Brokerages remained bullish on Reliance Industries shares following the AGM, highlighting multiple growth drivers across telecom, retail, energy and emerging businesses.\nReliance Industries LtdReliance gains over 2% after AGM growth announcementsBrok",
       "source": "web",
-      "url": "https://www.livemint.com/market/stock-market-news/infosys-tcs-to-wipro-it-stocks-fall-up-to-3-amid-global-tech-stocks-selloff-11782187825262.html",
-      "date": "2026-06-24",
+      "url": "https://www.moneycontrol.com/news/business/markets/reliance-industries-stock-jumps-2-after-agm-brokerages-see-up-to-34-percent-upside-on-ai-jio-ipo-new-energy-13955348.html",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Nifty IT declines 2% on weak global tech cues; Infosys, TCS, Coforge among top losers - Upstox",
+      "headline": "IPO: Reliance Jio announces what may be India's biggest-ever share sale - BBC",
+      "summary": "The IPO comes after a year-long wait for Jio to go public.\nLast year, Ambani had said the company would be listed in the first half of 2026.",
+      "source": "web",
+      "url": "https://www.bbc.com/news/articles/cx2kerpkynko",
+      "date": "2026-06-27",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Reliance Industries shares: Stock slips nearly 2% after Jio update, other announcements; details here - Upstox",
       "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
       "source": "web",
-      "url": "https://upstox.com/news/market-news/stocks/nifty-it-declines-2-on-weak-global-tech-cues-infosys-tcs-coforge-among-top-losers/article-195812/",
-      "date": "2026-06-24",
+      "url": "https://upstox.com/news/market-news/stocks/reliance-industries-shares-stock-slips-nearly-2-after-jio-update-and-other-announcements-everything-investors-need-to-know/article-195671/",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Nifty IT slumps 6%, Infosys, TCS stocks crash up to 8% as Accenture guidance cut sparks sell-off - Moneycontrol.com",
-      "summary": "Nifty IT slumped as much as 6 percent on Friday morning after Accenture cut revenue growth guidance, with the stocks of Infosys, Tech Mahindra and TCS falling up to 8 percent and emerging as the top losers on benchmark Nifty 50 index.\nNifty IT FallsN",
+      "headline": "Tata leads, Reliance dominates, Adani expands: India's new corporate order, reveals Hurun India 500 - Business Today",
+      "summary": "India's corporate landscape is increasingly being defined by three business giants \u2014 the Tata Group, Reliance Industries and the Adani Group.\nMeanwhile, the Adani Group continued to expand its footprint across sectors, reinforcing its status as one o",
       "source": "web",
-      "url": "https://www.moneycontrol.com/news/business/markets/nifty-it-slumps-6-infosys-tcs-stocks-crash-up-to-7-after-accenture-guidance-cut-sparks-sell-off-13953640.html",
-      "date": "2026-06-24",
+      "url": "https://www.businesstoday.in/latest/corporate/story/tata-leads-reliance-dominates-adani-expands-indias-new-corporate-order-reveals-hurun-india-500-538994-2026-06-24",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Nifty IT index slips 2%; TCS, Infosys, HCL Tech, LTM, Wipro down up to 3% - Business Standard",
-      "summary": "Tata Consultancy Services (TCS), Infosys and Wipro were down 3 per cent each, while LTM, Tech Mahindra and HCL Technologies were trading lower in the range of 1 per cent to 2 per cent.\nAt 01:03 PM, the Nifty IT index was down 2.2 per cent, as compare",
+      "headline": "Jio IPO: Will it unlock value or hurt Reliance stock? - Business Standard",
+      "summary": "Jio IPO: Will it unlock value or hurt Reliance stock? - Business Standard",
       "source": "web",
-      "url": "https://www.business-standard.com/markets/news/nifty-it-index-slips-2-tcs-infosys-hcl-tech-ltm-wipro-down-up-to-3-126062300503_1.html",
-      "date": "2026-06-24",
+      "url": "https://www.business-standard.com/video-gallery/market/jio-ipo-will-it-unlock-value-or-hurt-reliance-stock-178975.htm",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Accenture warning sends Infosys, TCS and HCLTech tumbling. Here's why - India Today",
-      "summary": "Infosys, TCS, HCLTech and other IT stocks remained under pressure on Friday after global IT services giant Accenture cut the upper end of its annual revenue growth forecast, raising fresh concerns about demand in key overseas markets.\nHCLTech decline",
+      "headline": "Reliance Power - 5 stocks bought by FIIs, MFs and retail investors rally up to 60% in 6 months - The Economic Times",
+      "summary": "In the March \u201926 quarter, a notable trend emerged in the market.\nAround 22 stocks with a market capitalisation above Rs 3,000 crore saw a rare alignment, with FIIs, mutual funds and retail investors all increasing their stakes compared with the previ",
       "source": "web",
-      "url": "https://www.indiatoday.in/business/market/story/infosys-tcs-hcltech-shares-fall-after-accenture-cuts-revenue-growth-forecast-2929592-2026-06-19",
-      "date": "2026-06-24",
+      "url": "https://m.economictimes.com/markets/stocks/news/5-stocks-bought-by-fiis-mfs-and-retail-investors-rally-up-to-60-in-6-months/reliance-power/slideshow/131961414.cms",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Why IT stocks crashed today: Nifty IT, Infosys, TCS, Wipro slump as Accenture drags - BusinessLine",
-      "summary": "The decline followed Accenture\u2019s weaker-than-expected quarterly results and reduced full-year revenue growth guidance of 3-4 per cent, compared with 3-5 per cent earlier.\nAccenture outlook sparks concerns on IT spendingInvestor sentiment turned negat",
+      "headline": "India's largest telecom and digital service Jio Platforms files for IPO - CNBC",
+      "summary": "Billionaire Mukesh Ambani's Jio Platforms, India's largest wireless operator and digital service provider, filed draft papers for an initial public offering on Friday.\nJio Platforms said in its draft prospectus that funds raised will be used to pare ",
       "source": "web",
-      "url": "https://www.thehindubusinessline.com/markets/it-stocks-crash-nifty-it-infosys-tcs-wipro-hit-fresh-lows-rattled-by-accenture-outlook/article71120830.ece",
-      "date": "2026-06-24",
+      "url": "https://www.cnbc.com/2026/06/19/india-jio-platforms-ipo-mukesh-ambani.html",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9% - Reuters",
-      "summary": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9% - Reuters",
+      "headline": "RIL shares rise 5% in three sessions ahead of AGM: Here are other triggers - Moneycontrol.com",
+      "summary": "Reliance shares rise ahead of AGM on June 19Meta partners with Reliance for AI data centre in JamnagarSofter oil prices support Reliance stock rally Did our AI summary help?\nRI RI NSE/BSE Select NSE LIVE BSE LIVE Day HighDay LowVolume (NSE) More \u00d7Sha",
       "source": "web",
-      "url": "https://www.reuters.com/world/india/indias-it-stocks-head-worst-day-four-months-tcs-plunges-9-2026-06-03/",
-      "date": "2026-06-24",
+      "url": "https://www.moneycontrol.com/news/business/markets/ril-shares-rise-5-in-three-sessions-ahead-of-agm-here-are-other-triggers-13950748.html",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     },
     {
-      "headline": "Infosys, TCS &amp; other Indian IT stocks crash! How Accenture\u2019s warning has led to big sell-off - what broke - The Times of India",
-      "summary": "The latest sell-off has further deepened the sector's troubles, taking the Nifty IT index's decline for calendar year 2026 to 29%.\n(AI image)What was the Accenture outlook that rattled IT stocks?\n(Disclaimer: Recommendations and views on the stock ma",
+      "headline": "Reliance share price jumps nearly 3% as Jio files papers for India\u2019s biggest-ever IPO - Upstox",
+      "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
       "source": "web",
-      "url": "https://timesofindia.indiatimes.com/business/india-business/infosys-tcs-other-indian-it-stocks-crash-how-accentures-warning-has-led-to-big-sell-off-what-brokerages-are-saying/articleshow/131847530.cms",
-      "date": "2026-06-24",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "DXC gets $213.6M after Supreme Court leaves TCS ruling in place - Stock Titan",
-      "summary": "DXC gets $213.6M after Supreme Court leaves TCS ruling in place - Stock Titan",
-      "source": "web",
-      "url": "https://www.stocktitan.net/news/DXC/dxc-collects-213-560-494-98-in-landmark-ip-theft-case-from-nvrmzoxgzr0c.html",
-      "date": "2026-06-24",
+      "url": "https://upstox.com/news/market-news/stocks/reliance-share-price-jumps-nearly-3-as-jio-files-papers-for-india-s-biggest-ever-ipo/article-195723/",
+      "date": "2026-06-27",
       "sentiment": "neutral"
     }
   ],
@@ -693,20 +708,19 @@
     "articles_neutral": 0
   },
   "analyst_data": {
-    "recommendation_key": "buy",
-    "number_of_analysts": 42,
-    "target_mean_price": 2967.3096,
-    "current_price": 2059.6,
-    "upside_downside_percent": 44.07
+    "recommendation_key": "strong_buy",
+    "number_of_analysts": 31,
+    "target_mean_price": 1694.3871,
+    "current_price": 1316.5,
+    "upside_downside_percent": 28.7
   },
   "risks": [
-    "Debt/Equity at 112830000000.0 points to higher leverage risk."
+    "Low ROCE at 8.99% suggests weak capital efficiency.",
+    "Debt/Equity at 3980000000000.0 points to higher leverage risk."
   ],
   "opportunities": [
-    "Strong ROCE at 54.93% shows efficient capital use.",
-    "Healthy operating margin of 25.1% supports profitability.",
-    "Reasonable P/E of 15.14746 may leave room for rerating.",
-    "Recent news flow provides fresh catalysts to monitor."
+    "Recent news flow provides fresh catalysts to monitor.",
+    "Broader market momentum is positive."
   ],
   "market_intelligence": {
     "why_market_thinks_this": [
@@ -721,7 +735,7 @@
     "bear_case": "Bear case not requested.",
     "key_catalysts": [],
     "things_you_should_know": [
-      "Give a full analysis of TCS."
+      "Give a full analysis of RELIANCE."
     ],
     "price_snapshot": "No price data"
   },
