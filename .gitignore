@@ -1,0 +1,99 @@
+# Environment variables and secrets
+.env
+.env.*
+*.env
+*.key
+*.pem
+secrets.json
+credentials.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+
+# Agents folder (contains sensitive configs)
+.agents/
+
+# Models and serialized data
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+
+# Charts and generated images
+charts/*.png
+charts/*.jpg
+charts/*.jpeg
+charts/*.gif
+
+# PDFs and documents
+*.pdf
+docs/*.pdf
+
+# Backup files
+*.zip
+*.tar
+*.tar.gz
+tests_backup.zip
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data files
+*.csv
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.tmp.*
+*.swp
+
+# Output files
+output/
+output/*
+
+# Cache directories
+.cache/
+cache/

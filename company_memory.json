@@ -1,0 +1,730 @@
+{
+  "company_info": {
+    "name": "Tata Consultancy Services Limited",
+    "ticker": "TCS.NS",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "summary": "Tata Consultancy Services Limited provides information technology (IT) and IT enabled services. It offers TCS ADD, a suite of AI powered life sciences platforms; TCS BaNCS, a financial services platform; TCS BFSI Platforms, a cloud-native, subscription-based as-a-service digital ecosystem for insurers and financial firms; TCS Chroma, a cloud-based AI-led hire-to-retire modular platform; TCS Customer Intelligence & Insights, an AI-powered, real-time customer data analytics solution; TCS ERP on Cloud, SAP transformation with AI-powered smart solutions; ignio, a cognitive automation software product; TCS iON, a learning ecosystem; and TCS HOBS, a cloud-native, catalog-centric platform with composable architecture and insights-led personalization capabilities. It also offers TCS Intelligent Urban Exchange for enterprises and smart cities; TCS OmniStore, a retail commerce platform; TCS Optumera, a strategic intelligence platform; TCS Tap, a platform for intelligent procurement; Quartz, a distributed ledger technology; TCS TwinX, a risk-free experimentation platform; TCS MasterCraft, an AI-driven cognitive automation product; Jile, an enterprise agile planning and delivery tool; TCS DigiBOLT, an end-to-end, organization-wide enterprise platform; and TCS AI WisdomNext, an enterprise grade GenAI platform. In addition, the company provides AI, data and analytics, cloud, cognitive business, consulting, cybersecurity, enterprise solutions, industrial autonomy and engineering, network solutions and services, TCS interactive, and sustainability services. It serves banking; capital markets; consumer packaged goods and distribution; communications, media, and information services; education; energy, resources, and utilities; healthcare; high tech; insurance; life sciences; manufacturing; public services; retail; and travel and logistics industries. The company was founded in 1968 and is based in Mumbai, India. The company operates as a subsidiary of Tata Sons Private Limited.",
+    "business_model": [
+      "telecom and digital services",
+      "consumer retail"
+    ],
+    "website": "https://www.tcs.com",
+    "employees": 584519,
+    "debt_to_equity": 10.389,
+    "current_ratio": 2.228,
+    "market_cap": 7451813347328,
+    "pe_ratio": 15.14746,
+    "dividend_yield": 5.83,
+    "return_on_equity": null,
+    "operating_margins": null,
+    "revenue_growth": null,
+    "free_cashflow": null
+  },
+  "financial_metrics": {
+    "roce": 54.93,
+    "operating_margin": 25.1,
+    "net_margin": 492100000000.0,
+    "debt_to_equity": 112830000000.0,
+    "current_ratio": 2.228,
+    "cash_flow": 520940000000.0,
+    "sales": 2670210000000.0
+  },
+  "financial_facts": {
+    "ROCE": 54.9276,
+    "OperatingMargin": 25.0999,
+    "Debt": 112830000000.0,
+    "CurrentRatio": null,
+    "NetProfit": 492100000000.0,
+    "CashFromOperatingActivity": 520940000000.0,
+    "DebtorDays": 78.7764,
+    "InventoryDays": 0.0722,
+    "WorkingCapitalDays": 102.2343
+  },
+  "peer_comparison": {
+    "sector": "Technology",
+    "metrics": {
+      "ROCE": {
+        "company": 54.93,
+        "sector_average": 26.26,
+        "percentile": 100
+      },
+      "Debt": {
+        "company": 112830000000.0,
+        "sector_average": 56734800000.0,
+        "percentile": 80
+      },
+      "Sales": {
+        "company": 2670210000000.0,
+        "sector_average": 585190200000.0,
+        "percentile": 100
+      },
+      "Operating Profit": {
+        "company": 670220000000.0,
+        "sector_average": 129767000000.0,
+        "percentile": 100
+      },
+      "OPM %": {
+        "company": 25.1,
+        "sector_average": 18.96,
+        "percentile": 80
+      },
+      "Net Profit": {
+        "company": 492100000000.0,
+        "sector_average": 72521600000.0,
+        "percentile": 100
+      },
+      "Total Assets": {
+        "company": 1823720000000.0,
+        "sector_average": 639374200000.0,
+        "percentile": 100
+      },
+      "Total Liabilities": {
+        "company": 738940000000.0,
+        "sector_average": 236298400000.0,
+        "percentile": 100
+      },
+      "Cash from Operating Activity": {
+        "company": 520940000000.0,
+        "sector_average": 85875200000.0,
+        "percentile": 100
+      },
+      "Debtor Days": {
+        "company": 78.78,
+        "sector_average": 60.56,
+        "percentile": 100
+      },
+      "Inventory Days": {
+        "company": 0.07,
+        "sector_average": 0.68,
+        "percentile": 0
+      },
+      "Working Capital Days": {
+        "company": 102.23,
+        "sector_average": 118.83,
+        "percentile": 40
+      }
+    }
+  },
+  "anomaly_detection": {
+    "anomaly_score": 0.084,
+    "model_assessment": {
+      "model_path": "D:\\Mini project\\agent_2\\isolation_forest_model.pkl",
+      "model_loaded": true,
+      "prediction": -1,
+      "decision_function": -0.084,
+      "anomaly_score": 0.084,
+      "is_anomaly": true,
+      "used_features": [
+        "Debt To Equity_z",
+        "Debt Ratio_z",
+        "Net Debt To Ebitda_z",
+        "Total Debt To Capitalization_z",
+        "Current Ratio_z",
+        "Quick Ratio_z",
+        "Cash Ratio_z",
+        "Net Profit Margin_z",
+        "Operating Profit Margin_z",
+        "ROE_z",
+        "ROIC_z",
+        "Income Quality_z",
+        "Cash Flow To Debt Ratio_z",
+        "Interest Coverage_z",
+        "Asset Turnover_z"
+      ]
+    },
+    "red_flags_count": 1,
+    "red_flags": [
+      {
+        "metric": "Financial Statements",
+        "value": "Risk Score: 0.08",
+        "severity": "high",
+        "explanation": "Isolation Forest flagged this company as anomalous (decision: -0.08, score: 0.08)."
+      }
+    ]
+  },
+  "price_data": {
+    "current": NaN,
+    "open": 2111.0,
+    "day_high": 2114.0,
+    "day_low": 2055.0,
+    "high_52w": 3489.9,
+    "low_52w": 2055.0,
+    "avg_volume": 5368804,
+    "ohlcv_count": 30,
+    "ohlcv": [
+      {
+        "date": "2026-05-13",
+        "open": 2275.15,
+        "high": 2278.31,
+        "low": 2238.65,
+        "close": 2242.4,
+        "volume": 3171843
+      },
+      {
+        "date": "2026-05-14",
+        "open": 2234.7,
+        "high": 2234.7,
+        "low": 2176.88,
+        "close": 2215.95,
+        "volume": 5633313
+      },
+      {
+        "date": "2026-05-15",
+        "open": 2221.87,
+        "high": 2274.07,
+        "low": 2221.87,
+        "close": 2233.71,
+        "volume": 3410637
+      },
+      {
+        "date": "2026-05-18",
+        "open": 2233.71,
+        "high": 2262.23,
+        "low": 2222.07,
+        "close": 2252.66,
+        "volume": 3773336
+      },
+      {
+        "date": "2026-05-19",
+        "open": 2269.23,
+        "high": 2345.79,
+        "low": 2266.37,
+        "close": 2295.97,
+        "volume": 10394707
+      },
+      {
+        "date": "2026-05-20",
+        "open": 2292.81,
+        "high": 2310.67,
+        "low": 2286.79,
+        "close": 2296.26,
+        "volume": 2537422
+      },
+      {
+        "date": "2026-05-21",
+        "open": 2299.82,
+        "high": 2304.65,
+        "low": 2283.04,
+        "close": 2296.07,
+        "volume": 3299087
+      },
+      {
+        "date": "2026-05-22",
+        "open": 2299.92,
+        "high": 2308.7,
+        "low": 2277.22,
+        "close": 2286.3,
+        "volume": 2617262
+      },
+      {
+        "date": "2026-05-25",
+        "open": 2325.0,
+        "high": 2326.1,
+        "low": 2293.0,
+        "close": 2308.2,
+        "volume": 3298364
+      },
+      {
+        "date": "2026-05-26",
+        "open": 2308.2,
+        "high": 2327.9,
+        "low": 2272.4,
+        "close": 2276.2,
+        "volume": 3587597
+      },
+      {
+        "date": "2026-05-27",
+        "open": 2275.0,
+        "high": 2295.6,
+        "low": 2260.9,
+        "close": 2284.2,
+        "volume": 2653950
+      },
+      {
+        "date": "2026-05-28",
+        "open": 2284.2,
+        "high": 2284.2,
+        "low": 2284.2,
+        "close": 2284.2,
+        "volume": 0
+      },
+      {
+        "date": "2026-05-29",
+        "open": 2291.0,
+        "high": 2334.0,
+        "low": 2235.0,
+        "close": 2258.9,
+        "volume": 16331582
+      },
+      {
+        "date": "2026-06-01",
+        "open": 2284.0,
+        "high": 2335.0,
+        "low": 2280.0,
+        "close": 2297.4,
+        "volume": 7505095
+      },
+      {
+        "date": "2026-06-02",
+        "open": 2320.0,
+        "high": 2457.4,
+        "low": 2316.2,
+        "close": 2446.9,
+        "volume": 11306127
+      },
+      {
+        "date": "2026-06-03",
+        "open": 2393.0,
+        "high": 2393.0,
+        "low": 2224.8,
+        "close": 2241.7,
+        "volume": 15660062
+      },
+      {
+        "date": "2026-06-04",
+        "open": 2241.7,
+        "high": 2253.1,
+        "low": 2216.6,
+        "close": 2241.0,
+        "volume": 4867263
+      },
+      {
+        "date": "2026-06-05",
+        "open": 2262.9,
+        "high": 2271.8,
+        "low": 2192.0,
+        "close": 2198.9,
+        "volume": 5019717
+      },
+      {
+        "date": "2026-06-08",
+        "open": 2170.0,
+        "high": 2177.0,
+        "low": 2143.3,
+        "close": 2151.4,
+        "volume": 6536734
+      },
+      {
+        "date": "2026-06-09",
+        "open": 2174.0,
+        "high": 2174.0,
+        "low": 2132.8,
+        "close": 2151.0,
+        "volume": 4148655
+      },
+      {
+        "date": "2026-06-10",
+        "open": 2151.3,
+        "high": 2180.8,
+        "low": 2144.8,
+        "close": 2153.9,
+        "volume": 2848650
+      },
+      {
+        "date": "2026-06-11",
+        "open": 2127.0,
+        "high": 2154.6,
+        "low": 2110.0,
+        "close": 2135.6,
+        "volume": 3079815
+      },
+      {
+        "date": "2026-06-12",
+        "open": 2150.0,
+        "high": 2168.0,
+        "low": 2138.0,
+        "close": 2161.4,
+        "volume": 2124656
+      },
+      {
+        "date": "2026-06-15",
+        "open": 2192.0,
+        "high": 2192.0,
+        "low": 2159.3,
+        "close": 2162.0,
+        "volume": 3337083
+      },
+      {
+        "date": "2026-06-16",
+        "open": 2167.0,
+        "high": 2209.0,
+        "low": 2160.6,
+        "close": 2199.0,
+        "volume": 3079898
+      },
+      {
+        "date": "2026-06-17",
+        "open": 2209.0,
+        "high": 2231.0,
+        "low": 2200.7,
+        "close": 2223.0,
+        "volume": 2865010
+      },
+      {
+        "date": "2026-06-18",
+        "open": 2209.0,
+        "high": 2214.0,
+        "low": 2182.0,
+        "close": 2203.3,
+        "volume": 3735188
+      },
+      {
+        "date": "2026-06-19",
+        "open": 2105.0,
+        "high": 2138.0,
+        "low": 2059.9,
+        "close": 2125.0,
+        "volume": 13286502
+      },
+      {
+        "date": "2026-06-22",
+        "open": 2132.2,
+        "high": 2157.0,
+        "low": 2121.0,
+        "close": 2127.8,
+        "volume": 4566101
+      },
+      {
+        "date": "2026-06-23",
+        "open": NaN,
+        "high": NaN,
+        "low": NaN,
+        "close": NaN,
+        "volume": 6388466
+      }
+    ]
+  },
+  "chart_metrics": {
+    "returns": {
+      "1D": NaN,
+      "1M": NaN,
+      "6M": 0,
+      "1Y": 0,
+      "5Y": 0
+    },
+    "volatility": NaN,
+    "distance_from_52w_high": NaN,
+    "distance_from_52w_low": NaN,
+    "trend": "sideways",
+    "moving_averages": {
+      "50dma": null,
+      "200dma": null
+    },
+    "support_resistance": {
+      "support_1": 2125.0,
+      "support_2": 2082.5,
+      "resistance_1": 2446.9,
+      "resistance_2": 2495.84
+    },
+    "current_price": NaN
+  },
+  "market_stats": {
+    "market_cap": 7451813347328,
+    "pe_ratio": 15.14746,
+    "dividend_yield": 5.83,
+    "beta": 0.227,
+    "target_price": 2967.3096,
+    "recommendation": "buy",
+    "analyst_count": 42
+  },
+  "market_metrics": {
+    "market_cap": 7451813347328,
+    "pe_ratio": 15.14746,
+    "dividend_yield": 5.83,
+    "beta": 0.227,
+    "target_price": 2967.3096,
+    "recommendation": "buy",
+    "analyst_count": 42
+  },
+  "market_drivers": {
+    "ticker": "TCS.NS",
+    "sector": "Technology",
+    "company": "TCS",
+    "macro": {
+      "nifty50_return_1mo": 0.3,
+      "nifty50_return_3mo": 7.06,
+      "banknifty_return_1mo": 4.78,
+      "banknifty_return_3mo": 12.63,
+      "usd_inr": 94.72,
+      "gold": 4139.7,
+      "crude": 73.21,
+      "silver": 61.78,
+      "10y_treasury": 4.49
+    },
+    "sector_performance": {
+      "peer_count": 5,
+      "sector_return_1mo": NaN,
+      "peer_sample_returns_1mo": [
+        NaN,
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ]
+    },
+    "earnings": {
+      "calendar": {},
+      "earnings_date": ""
+    },
+    "corporate_actions": {
+      "recent_actions": [
+        {
+          "date": "2025-06-04",
+          "dividends": 30.0,
+          "stock_splits": 0.0
+        },
+        {
+          "date": "2025-07-16",
+          "dividends": 11.0,
+          "stock_splits": 0.0
+        },
+        {
+          "date": "2025-10-15",
+          "dividends": 11.0,
+          "stock_splits": 0.0
+        },
+        {
+          "date": "2026-01-16",
+          "dividends": 57.0,
+          "stock_splits": 0.0
+        },
+        {
+          "date": "2026-05-25",
+          "dividends": 31.0,
+          "stock_splits": 0.0
+        }
+      ],
+      "dividend_rate": 124.0,
+      "ex_dividend_date": "1779667200"
+    },
+    "promoter_activity": {
+      "held_percent_insiders": 0.71795,
+      "held_percent_institutions": 0.17825001,
+      "major_holders": {
+        "Value": {
+          "insidersPercentHeld": 0.71795,
+          "institutionsPercentHeld": 0.17825001,
+          "institutionsFloatPercentHeld": 0.63196,
+          "institutionsCount": 328.0
+        }
+      },
+      "institutional_holders": []
+    }
+  },
+  "risk_metrics": {
+    "annualized_volatility": NaN,
+    "max_drawdown": 13.16,
+    "sharpe_ratio": null,
+    "beta": null
+  },
+  "news_articles": [
+    {
+      "headline": "Infosys, TCS, HCLTech And Other IT Stocks Under Pressure On Weak Global Tech Cues - NDTV Profit",
+      "summary": "IT stocks such as Infosys, Tata Consultancy Services, Infosys, HCL Technologies, Wipro are under pressure during the trading hours on Tuesday, June 23.\nBack home, IT stocks traded mostly lower, with Infosys emerging as the top laggard, falling 2.22% ",
+      "source": "web",
+      "url": "https://www.ndtvprofit.com/markets/infosys-tcs-hcltech-and-other-it-stocks-under-pressure-on-weak-global-tech-cues-11674014",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Infosys, TCS to Wipro - IT stocks fall up to 3% amid global tech stocks selloff - Mint",
+      "summary": "Indian IT stocks like Infosys, Wipro, Tata Consultancy Services, HCL Tech fell up to 3% in Tuesday's trading session, amid global tech sell off, snapping single day gaining streak on Monday.\nThe Nifty IT index declined 1.64% to 27,174.45, continuing ",
+      "source": "web",
+      "url": "https://www.livemint.com/market/stock-market-news/infosys-tcs-to-wipro-it-stocks-fall-up-to-3-amid-global-tech-stocks-selloff-11782187825262.html",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Nifty IT declines 2% on weak global tech cues; Infosys, TCS, Coforge among top losers - Upstox",
+      "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
+      "source": "web",
+      "url": "https://upstox.com/news/market-news/stocks/nifty-it-declines-2-on-weak-global-tech-cues-infosys-tcs-coforge-among-top-losers/article-195812/",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Nifty IT slumps 6%, Infosys, TCS stocks crash up to 8% as Accenture guidance cut sparks sell-off - Moneycontrol.com",
+      "summary": "Nifty IT slumped as much as 6 percent on Friday morning after Accenture cut revenue growth guidance, with the stocks of Infosys, Tech Mahindra and TCS falling up to 8 percent and emerging as the top losers on benchmark Nifty 50 index.\nNifty IT FallsN",
+      "source": "web",
+      "url": "https://www.moneycontrol.com/news/business/markets/nifty-it-slumps-6-infosys-tcs-stocks-crash-up-to-7-after-accenture-guidance-cut-sparks-sell-off-13953640.html",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Nifty IT index slips 2%; TCS, Infosys, HCL Tech, LTM, Wipro down up to 3% - Business Standard",
+      "summary": "Tata Consultancy Services (TCS), Infosys and Wipro were down 3 per cent each, while LTM, Tech Mahindra and HCL Technologies were trading lower in the range of 1 per cent to 2 per cent.\nAt 01:03 PM, the Nifty IT index was down 2.2 per cent, as compare",
+      "source": "web",
+      "url": "https://www.business-standard.com/markets/news/nifty-it-index-slips-2-tcs-infosys-hcl-tech-ltm-wipro-down-up-to-3-126062300503_1.html",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Accenture warning sends Infosys, TCS and HCLTech tumbling. Here's why - India Today",
+      "summary": "Infosys, TCS, HCLTech and other IT stocks remained under pressure on Friday after global IT services giant Accenture cut the upper end of its annual revenue growth forecast, raising fresh concerns about demand in key overseas markets.\nHCLTech decline",
+      "source": "web",
+      "url": "https://www.indiatoday.in/business/market/story/infosys-tcs-hcltech-shares-fall-after-accenture-cuts-revenue-growth-forecast-2929592-2026-06-19",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Why IT stocks crashed today: Nifty IT, Infosys, TCS, Wipro slump as Accenture drags - BusinessLine",
+      "summary": "The decline followed Accenture\u2019s weaker-than-expected quarterly results and reduced full-year revenue growth guidance of 3-4 per cent, compared with 3-5 per cent earlier.\nAccenture outlook sparks concerns on IT spendingInvestor sentiment turned negat",
+      "source": "web",
+      "url": "https://www.thehindubusinessline.com/markets/it-stocks-crash-nifty-it-infosys-tcs-wipro-hit-fresh-lows-rattled-by-accenture-outlook/article71120830.ece",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9% - Reuters",
+      "summary": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9% - Reuters",
+      "source": "web",
+      "url": "https://www.reuters.com/world/india/indias-it-stocks-head-worst-day-four-months-tcs-plunges-9-2026-06-03/",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Infosys, TCS &amp; other Indian IT stocks crash! How Accenture\u2019s warning has led to big sell-off - what broke - The Times of India",
+      "summary": "The latest sell-off has further deepened the sector's troubles, taking the Nifty IT index's decline for calendar year 2026 to 29%.\n(AI image)What was the Accenture outlook that rattled IT stocks?\n(Disclaimer: Recommendations and views on the stock ma",
+      "source": "web",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/infosys-tcs-other-indian-it-stocks-crash-how-accentures-warning-has-led-to-big-sell-off-what-brokerages-are-saying/articleshow/131847530.cms",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "DXC gets $213.6M after Supreme Court leaves TCS ruling in place - Stock Titan",
+      "summary": "DXC gets $213.6M after Supreme Court leaves TCS ruling in place - Stock Titan",
+      "source": "web",
+      "url": "https://www.stocktitan.net/news/DXC/dxc-collects-213-560-494-98-in-landmark-ip-theft-case-from-nvrmzoxgzr0c.html",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    }
+  ],
+  "news": [
+    {
+      "headline": "Infosys, TCS, HCLTech And Other IT Stocks Under Pressure On Weak Global Tech Cues - NDTV Profit",
+      "summary": "IT stocks such as Infosys, Tata Consultancy Services, Infosys, HCL Technologies, Wipro are under pressure during the trading hours on Tuesday, June 23.\nBack home, IT stocks traded mostly lower, with Infosys emerging as the top laggard, falling 2.22% ",
+      "source": "web",
+      "url": "https://www.ndtvprofit.com/markets/infosys-tcs-hcltech-and-other-it-stocks-under-pressure-on-weak-global-tech-cues-11674014",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Infosys, TCS to Wipro - IT stocks fall up to 3% amid global tech stocks selloff - Mint",
+      "summary": "Indian IT stocks like Infosys, Wipro, Tata Consultancy Services, HCL Tech fell up to 3% in Tuesday's trading session, amid global tech sell off, snapping single day gaining streak on Monday.\nThe Nifty IT index declined 1.64% to 27,174.45, continuing ",
+      "source": "web",
+      "url": "https://www.livemint.com/market/stock-market-news/infosys-tcs-to-wipro-it-stocks-fall-up-to-3-amid-global-tech-stocks-selloff-11782187825262.html",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Nifty IT declines 2% on weak global tech cues; Infosys, TCS, Coforge among top losers - Upstox",
+      "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
+      "source": "web",
+      "url": "https://upstox.com/news/market-news/stocks/nifty-it-declines-2-on-weak-global-tech-cues-infosys-tcs-coforge-among-top-losers/article-195812/",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Nifty IT slumps 6%, Infosys, TCS stocks crash up to 8% as Accenture guidance cut sparks sell-off - Moneycontrol.com",
+      "summary": "Nifty IT slumped as much as 6 percent on Friday morning after Accenture cut revenue growth guidance, with the stocks of Infosys, Tech Mahindra and TCS falling up to 8 percent and emerging as the top losers on benchmark Nifty 50 index.\nNifty IT FallsN",
+      "source": "web",
+      "url": "https://www.moneycontrol.com/news/business/markets/nifty-it-slumps-6-infosys-tcs-stocks-crash-up-to-7-after-accenture-guidance-cut-sparks-sell-off-13953640.html",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Nifty IT index slips 2%; TCS, Infosys, HCL Tech, LTM, Wipro down up to 3% - Business Standard",
+      "summary": "Tata Consultancy Services (TCS), Infosys and Wipro were down 3 per cent each, while LTM, Tech Mahindra and HCL Technologies were trading lower in the range of 1 per cent to 2 per cent.\nAt 01:03 PM, the Nifty IT index was down 2.2 per cent, as compare",
+      "source": "web",
+      "url": "https://www.business-standard.com/markets/news/nifty-it-index-slips-2-tcs-infosys-hcl-tech-ltm-wipro-down-up-to-3-126062300503_1.html",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Accenture warning sends Infosys, TCS and HCLTech tumbling. Here's why - India Today",
+      "summary": "Infosys, TCS, HCLTech and other IT stocks remained under pressure on Friday after global IT services giant Accenture cut the upper end of its annual revenue growth forecast, raising fresh concerns about demand in key overseas markets.\nHCLTech decline",
+      "source": "web",
+      "url": "https://www.indiatoday.in/business/market/story/infosys-tcs-hcltech-shares-fall-after-accenture-cuts-revenue-growth-forecast-2929592-2026-06-19",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Why IT stocks crashed today: Nifty IT, Infosys, TCS, Wipro slump as Accenture drags - BusinessLine",
+      "summary": "The decline followed Accenture\u2019s weaker-than-expected quarterly results and reduced full-year revenue growth guidance of 3-4 per cent, compared with 3-5 per cent earlier.\nAccenture outlook sparks concerns on IT spendingInvestor sentiment turned negat",
+      "source": "web",
+      "url": "https://www.thehindubusinessline.com/markets/it-stocks-crash-nifty-it-infosys-tcs-wipro-hit-fresh-lows-rattled-by-accenture-outlook/article71120830.ece",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9% - Reuters",
+      "summary": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9% - Reuters",
+      "source": "web",
+      "url": "https://www.reuters.com/world/india/indias-it-stocks-head-worst-day-four-months-tcs-plunges-9-2026-06-03/",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Infosys, TCS &amp; other Indian IT stocks crash! How Accenture\u2019s warning has led to big sell-off - what broke - The Times of India",
+      "summary": "The latest sell-off has further deepened the sector's troubles, taking the Nifty IT index's decline for calendar year 2026 to 29%.\n(AI image)What was the Accenture outlook that rattled IT stocks?\n(Disclaimer: Recommendations and views on the stock ma",
+      "source": "web",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/infosys-tcs-other-indian-it-stocks-crash-how-accentures-warning-has-led-to-big-sell-off-what-brokerages-are-saying/articleshow/131847530.cms",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "DXC gets $213.6M after Supreme Court leaves TCS ruling in place - Stock Titan",
+      "summary": "DXC gets $213.6M after Supreme Court leaves TCS ruling in place - Stock Titan",
+      "source": "web",
+      "url": "https://www.stocktitan.net/news/DXC/dxc-collects-213-560-494-98-in-landmark-ip-theft-case-from-nvrmzoxgzr0c.html",
+      "date": "2026-06-24",
+      "sentiment": "neutral"
+    }
+  ],
+  "events": [],
+  "market_facts": {
+    "recommendation": null,
+    "target_price": null,
+    "analyst_count": null,
+    "upside_downside_percent": null,
+    "articles_positive": 0,
+    "articles_negative": 0,
+    "articles_neutral": 0
+  },
+  "analyst_data": {
+    "recommendation_key": "buy",
+    "number_of_analysts": 42,
+    "target_mean_price": 2967.3096,
+    "current_price": 2059.6,
+    "upside_downside_percent": 44.07
+  },
+  "risks": [
+    "Debt/Equity at 112830000000.0 points to higher leverage risk."
+  ],
+  "opportunities": [
+    "Strong ROCE at 54.93% shows efficient capital use.",
+    "Healthy operating margin of 25.1% supports profitability.",
+    "Reasonable P/E of 15.14746 may leave room for rerating.",
+    "Recent news flow provides fresh catalysts to monitor."
+  ],
+  "market_intelligence": {
+    "why_market_thinks_this": [
+      "No analyst data"
+    ],
+    "recent_developments": "No recent events",
+    "market_perception": "No analyst data",
+    "positive_factors": [],
+    "risk_factors": [],
+    "bull_case": "Bull case not requested.",
+    "base_case": "The stock looks stable based on the current inputs.",
+    "bear_case": "Bear case not requested.",
+    "key_catalysts": [],
+    "things_you_should_know": [
+      "Give a full analysis of TCS."
+    ],
+    "price_snapshot": "No price data"
+  },
+  "chart_artifacts": {},
+  "rag_context": ""
+}
