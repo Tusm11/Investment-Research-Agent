@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 
@@ -126,7 +127,7 @@ def _extract_financial_metrics(agent1, agent2):
     def clean_number(value):
         if value is None:
             return None
-        if isinstance(value, float) and isnan(value):
+        if isinstance(value, float) and math.isnan(value):
             return None
         return value
 
