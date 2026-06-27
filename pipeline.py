@@ -6,6 +6,8 @@ import re
 from difflib import SequenceMatcher
 from typing import Optional
 
+from agent_1.tools.nifty50 import NIFTY50
+
 def classify_intent(query: str) -> dict:
     """Return default classification - Agent 4 handles its own intent routing."""
     return {
