@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+  <script>tailwind.config = {
+    darkMode: "class", theme: {
+      extend: {
+        colors: {
+          "surface-dim": "#cbdbf5", "surface-container": "#e5eeff", "primary-container": "#131b2e", "on-tertiary-fixed": "#002111",
+          "on-surface-variant": "#45464d", "outline-variant": "#c6c6cd", "surface-bright": "#f8f9ff", "secondary-fixed-dim": "#b4c5ff",
+          "inverse-on-surface": "#eaf1ff", "inverse-primary": "#bec6e0", "on-surface": "#0b1c30", "outline": "#76777d",
+          "tertiary-container": "#002111", "error-container": "#ffdad6", "surface-tint": "#565e74", "tertiary": "#000000",
+          "surface-variant": "#d3e4fe", "on-tertiary-fixed-variant": "#005232", "on-tertiary": "#ffffff", "error": "#ba1a1a",
+          "on-primary-fixed": "#131b2e", "secondary-fixed": "#dbe1ff", "primary-fixed": "#dae2fd", "on-background": "#0b1c30",
+          "tertiary-fixed-dim": "#59de9b", "inverse-surface": "#213145", "secondary": "#0051d5", "on-secondary-fixed": "#00174b",
+          "surface-container-low": "#eff4ff", "on-primary": "#ffffff", "surface": "#f8f9ff", "surface-container-lowest": "#ffffff",
+          "surface-container-highest": "#d3e4fe", "surface-container-high": "#dce9ff", "on-secondary-container": "#fefcff",
+          "primary-fixed-dim": "#bec6e0", "on-tertiary-container": "#009760", "tertiary-fixed": "#78fbb6", "secondary-container": "#316bf3",
+          "on-error": "#ffffff", "on-primary-container": "#7c839b", "on-secondary-fixed-variant": "#003ea8", "on-secondary": "#ffffff",
+          "on-error-container": "#93000a", "on-primary-fixed-variant": "#3f465c", "background": "#f8f9ff", "primary": "#000000",
+          "gain-green": "#00A86B", "loss-red": "#E5484D", "text-primary": "#0F172A", "text-secondary": "#334155", "text-tertiary": "#64748B",
+          "text-muted": "#94A3B8", "surface-card": "#FFFFFF", "surface-page": "#F8FAFC", "border-subtle": "#E2E8F0", "border-strong": "#CBD5E1"
+        },
+        borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        spacing: { "space-2xs": "2px", "space-xs": "4px", "space-sm": "8px", "space-md": "12px", "space-base": "16px", "space-lg": "20px", "space-xl": "24px", "space-2xl": "32px" },
+        fontFamily: { "body-sm": ["Inter"], "body-base": ["Inter"], "body-lg": ["Inter"], "headline-sm": ["Inter"], "headline-lg": ["Inter"], "headline-xl": ["Inter"], "code-numeral": ["JetBrains Mono"], "tag-label": ["Inter"], "table-cell": ["Inter"], "table-header": ["Inter"], "metric-display": ["Inter"] },
+        fontSize: { "body-sm": ["12px", { lineHeight: "16px", fontWeight: "400" }], "body-base": ["13px", { lineHeight: "18px", fontWeight: "400" }], "body-lg": ["15px", { lineHeight: "22px", fontWeight: "400" }],
+          "headline-sm": ["18px", { lineHeight: "24px", letterSpacing: "-0.01em", fontWeight: "600" }], "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }], "headline-xl": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "code-numeral": ["12px", { lineHeight: "16px", letterSpacing: "-0.01em", fontWeight: "500" }], "tag-label": ["11px", { lineHeight: "14px", fontWeight: "500" }], "table-cell": ["12px", { lineHeight: "16px", fontWeight: "400" }], "table-header": ["11px", { lineHeight: "14px", letterSpacing: "0.04em", fontWeight: "600" }], "metric-display": ["22px", { lineHeight: "28px", letterSpacing: "-0.02em", fontWeight: "600" }] }
+      }
+    }
+  };</script>
+  <style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style>
+  <title>Investment Research Agent</title>
+</head>
+<body class="bg-surface-page font-body-base text-text-primary antialiased min-h-screen">
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface-card border-b border-border-subtle shadow-sm h-16 px-space-lg flex items-center justify-between">
+  <div class="flex items-center gap-space-lg"><h1 class="font-headline-lg text-headline-lg font-bold">Investment Research Agent: Your persistent assistant</h1></div>
+  <nav class="hidden md:flex items-center gap-space-base text-text-secondary"></nav>
+  <div class="flex items-center gap-space-sm"><button class="p-2 rounded hover:bg-surface-container-low" onclick="switchTheme()"><span class="material-symbols-outlined">light_mode</span></button></div>
+</header>
+
+<main class="w-full pt-20 px-space-lg pb-space-lg bg-surface-page min-h-screen">
+  <div class="max-w-[1400px] mx-auto space-y-space-lg">
+
+    <!-- HERO: NIFTY INDEX CARD -->
+    <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-space-lg">
+        <div class="space-y-space-base">
+          <div class="flex items-baseline gap-space-lg">
+            <span class="font-headline-xl text-headline-xl font-bold text-text-primary tabular-nums" id="nifty-price">--</span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gain-green-subtle text-gain-green font-code-numeral text-code-numeral font-semibold" id="nifty-change">--</span>
+          </div>
+          <div class="flex items-center gap-space-base text-text-tertiary font-body-sm">
+            <span>Today's Range: <strong class="text-text-secondary font-medium tabular-nums" id="nifty-range">--</strong></span>
+            <span class="text-border-subtle">|</span>
+            <span>Prev Close: <strong class="text-text-secondary font-medium tabular-nums" id="nifty-prev">--</strong></span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 bg-surface-secondary p-1 rounded-lg">
+          <button class="chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="1d">1D</button>
+          <button class="chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="1w">1W</button>
+          <button class="chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="1m">1M</button>
+          <button class="chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="6m">6M</button>
+          <button class="chart-tf-btn px-3 py-1 bg-surface-card text-primary font-semibold text-tag-label rounded shadow-sm" data-tf="1y">1Y</button>
+          <button class="chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="5y">5Y</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NIFTY TREND CHART -->
+    <div class="bg-surface-card p-space-lg rounded-xl shadow-sm border border-border-subtle">
+      <div id="nifty-chart" style="height:320px;width:100%"><div class="text-center p-8 text-text-tertiary text-body-sm">Loading chart...</div></div>
+    </div>
+
+    <!-- 6-STAT INDICATOR STRIP -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-space-md">
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">Advancing</div>
+        <div class="font-metric-display text-metric-display font-bold text-text-primary tabular-nums" id="ind-advancing">--</div>
+        <div class="w-full h-1 bg-surface-container-low rounded overflow-hidden"><div class="bg-gain-green h-full" id="ind-adv-bar" style="width:50%"></div></div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">Declining</div>
+        <div class="font-metric-display text-metric-display font-bold text-text-primary tabular-nums" id="ind-declining">--</div>
+        <div class="w-full h-1 bg-surface-container-low rounded overflow-hidden"><div class="bg-loss-red h-full" id="ind-dec-bar" style="width:30%"></div></div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">A/D Ratio</div>
+        <div class="font-metric-display text-metric-display font-bold text-text-primary tabular-nums" id="ind-ad-ratio">--</div>
+        <div class="text-body-sm text-text-tertiary" id="ind-ad-status">--</div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">Breadth %</div>
+        <div class="font-metric-display text-metric-display font-bold text-gain-green tabular-nums" id="ind-breadth">--</div>
+        <div class="text-body-sm text-text-tertiary">Market Strength</div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">Avg Return</div>
+        <div class="font-metric-display text-metric-display font-bold text-gain-green tabular-nums" id="ind-avg-return">--</div>
+        <div class="text-body-sm text-text-tertiary">1D Performance</div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">Turnover</div>
+        <div class="font-metric-display text-metric-display font-bold text-text-primary tabular-nums" id="ind-turnover">--</div>
+        <div class="text-body-sm text-text-tertiary">₹ Crores</div>
+      </div>
+    </div>
+
+    <!-- MOVERS, NEWS & SECTORS (3 COLS) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+      <!-- TOP MOVERS -->
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">swap_vert</span>Top Movers
+        </h2>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between p-2 rounded hover:bg-surface-page transition-colors">
+            <div><div class="font-body-base font-semibold text-text-primary">Gainers</div><div class="text-body-sm text-text-tertiary" id="gainers-list">Loading...</div></div>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded hover:bg-surface-page transition-colors">
+            <div><div class="font-body-base font-semibold text-text-primary">Losers</div><div class="text-body-sm text-text-tertiary" id="losers-list">Loading...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STOCK NEWS -->
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">newspaper</span>Stock News
+          <span class="ml-auto text-tag-label text-text-tertiary font-medium">Google News RSS</span>
+        </h2>
+        <div class="space-y-2 max-h-[320px] overflow-y-auto" id="market-news">Loading...</div>
+      </div>
+
+      <!-- SECTOR PERFORMANCE -->
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">bar_chart</span>Sectors
+        </h2>
+        <div class="space-y-2.5" id="sector-list">Loading...</div>
+      </div>
+    </div>
+
+    <!-- COMPANIES TABLE -->
+    <div class="bg-surface-card p-space-lg rounded-xl shadow-sm border border-border-subtle">
+      <div class="mb-space-lg">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-base">NIFTY 50 Companies</h2>
+        <input type="text" placeholder="Search ticker..." class="w-full md:w-80 px-3 py-2 border border-border-subtle rounded-lg bg-surface-page font-body-sm" id="search-input" />
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-body-sm">
+          <thead class="border-b border-border-subtle bg-surface-page">
+            <tr class="text-table-header font-table-header uppercase">
+              <th class="px-space-md py-2">Symbol</th><th class="px-space-md py-2">Name</th><th class="px-space-md py-2 text-right">Price</th><th class="px-space-md py-2 text-right">Change %</th><th class="px-space-md py-2 text-right">P/E</th><th class="px-space-md py-2 text-right text-text-tertiary text-[11px]">Forecast</th><th class="px-space-md py-2 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border-subtle" id="companies-tbody">
+            <tr><td colspan="6" class="px-space-md py-4 text-center text-text-tertiary">Loading companies...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const API_BASE = 'http://localhost:8502/api';
+
+  // ── NIFTY trend chart (1D–5Y, color changes per timeframe) ──
+  let _chartTf = '1y';
+  let _chartSeries = { history: [], intraday: [] };
+  const TF_COLORS = { '1d': '#14b8a6', '1w': '#3b82f6', '1m': '#8b5cf6', '6m': '#06b6d4', '1y': '#00A86B', '5y': '#06b6d4' };
+
+  function _filterSeries(tf) {
+    const daily = _chartSeries.history || [];
+    const intraday = _chartSeries.intraday || [];
+    if (tf === '1d') {
+      const last = intraday.slice(-75);
+      return last.length > 3 ? last : daily.slice(-2);
+    }
+    if (tf === '1w') {
+      const cutoff = new Date(Date.now() - 7 * 86400e3);
+      const f = intraday.filter(d => new Date(d.date) >= cutoff);
+      return f.length > 3 ? f : daily.slice(-7);
+    }
+    const days = { '1m': 30, '6m': 182, '1y': 365, '5y': 1825 }[tf] || 365;
+    const cutoff = new Date(Date.now() - days * 86400e3);
+    const f = daily.filter(d => new Date(d.date) >= cutoff);
+    return f.length >= 2 ? f : daily;
+  }
+
+  function renderNiftyChart(tf) {
+    const el = document.getElementById('nifty-chart');
+    if (!el) return;
+    // Always clear whatever is in the container (loading text, old plot)
+    el.innerHTML = '';
+    const data = _filterSeries(tf);
+    if (!data.length) {
+      el.innerHTML = '<p class="text-center p-8 text-text-tertiary text-body-sm">No chart data available</p>';
+      return;
+    }
+    const dates = data.map(d => d.date), closes = data.map(d => parseFloat(d.close));
+    const up = closes[closes.length - 1] >= closes[0];
+    const color = up ? (TF_COLORS[tf] || '#00A86B') : '#E5484D';
+    const rgb = parseInt(color.slice(1), 16);
+    const areaColor = `rgba(${(rgb >> 16) & 255},${(rgb >> 8) & 255},${rgb & 255},0.12)`;
+
+    // Per-point change vs the previous point, for the hover tooltip
+    const changes = closes.map((c, i) => {
+      if (i === 0 || !closes[i - 1]) return null;
+      const chg = ((c - closes[i - 1]) / closes[i - 1]) * 100;
+      return `${chg >= 0 ? '▲ +' : '▼ '}${chg.toFixed(2)}% vs prev`;
+    });
+
+    // Baseline anchored just below the visible minimum so the fill isn't a solid block
+    const yFloor = Math.min(...closes) * 0.995;
+    const baseline = dates.map(() => yFloor);
+
+    // Diamond marker on the latest point
+    const lastTrace = {
+      x: [dates[dates.length - 1]], y: [closes[closes.length - 1]],
+      type: 'scatter', mode: 'markers',
+      marker: { symbol: 'diamond', size: 11, color, line: { width: 2, color: '#fff' } },
+      hovertemplate: `<b>Latest</b><br>₹%{y:,.2f}<extra></extra>`,
+      showlegend: false
+    };
+
+    const traces = [baselineTrace(dates, baseline), {
+      x: dates, y: closes,
+      customdata: changes,
+      type: 'scatter', mode: 'lines',
+      line: { color, width: 2 },
+      fill: 'tonexty', fillcolor: areaColor,
+      hovertemplate: '<b>%{x|%d %b %Y}</b><br>₹%{y:,.2f}<br>%{customdata}<extra></extra>',
+      showlegend: false
+    }, lastTrace];
+
+    Plotly.purge('nifty-chart');
+    Plotly.newPlot('nifty-chart', traces, {
+      margin: { t: 8, r: 8, b: 30, l: 60 }, autosize: true,
+      paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+      xaxis: { showgrid: false, tickfont: { size: 10, color: '#64748b' } },
+      yaxis: { showgrid: true, gridcolor: 'rgba(0,0,0,0.06)', tickfont: { size: 10, color: '#64748b' }, tickformat: ',.0f', range: [yFloor, Math.max(...closes) * 1.005] },
+      hovermode: 'x',
+      showlegend: false
+    }, { responsive: true, displayModeBar: false });
+
+    function baselineTrace(d, b) {
+      return { x: d, y: b, type: 'scatter', mode: 'lines', line: { color: 'transparent', width: 0 }, hoverinfo: 'skip', showlegend: false };
+    }
+  }
+
+  function setChartTf(tf) {
+    _chartTf = tf;
+    document.querySelectorAll('.chart-tf-btn').forEach(b => {
+      const active = b.dataset.tf === tf;
+      b.classList.toggle('bg-surface-card', active);
+      b.classList.toggle('text-primary', active);
+      b.classList.toggle('font-semibold', active);
+      b.classList.toggle('shadow-sm', active);
+      b.classList.toggle('text-text-secondary', !active);
+    });
+    renderNiftyChart(tf);
+  }
+
+  document.querySelectorAll('.chart-tf-btn').forEach(b => b.addEventListener('click', () => setChartTf(b.dataset.tf)));
+
+async function loadDashboard() {
+  try {
+    const res = await fetch(`${API_BASE}/nifty50`);
+    const data = await res.json();
+    console.log("API /nifty50 response:", JSON.stringify(data, null, 2));
+
+    // NIFTY trend chart from the same payload
+    if (data.chart_series) {
+      _chartSeries = data.chart_series;
+      setChartTf(_chartTf);
+    }
+    
+    // NIFTY Index
+    document.getElementById('nifty-price').textContent = `₹${data.nifty_price.toFixed(2)}`;
+    const changeSign = data.nifty_change >= 0 ? '+' : '';
+    document.getElementById('nifty-change').innerHTML = `<span class="material-symbols-outlined text-[14px]">${data.nifty_change >= 0 ? 'arrow_drop_up' : 'arrow_drop_down'}</span>${changeSign}${data.nifty_change.toFixed(2)}%`;
+    document.getElementById('nifty-range').textContent = `${Math.min(data.day_high, data.day_low).toFixed(2)} — ${Math.max(data.day_high, data.day_low).toFixed(2)}`;
+    document.getElementById('nifty-prev').textContent = `₹${data.prev_close.toFixed(2)}`;
+
+    // Indicators
+    document.getElementById('ind-advancing').textContent = data.advancing_stocks;
+    document.getElementById('ind-adv-bar').style.width = `${(data.advancing_stocks / 50) * 100}%`;
+    document.getElementById('ind-declining').textContent = data.declining_stocks;
+    document.getElementById('ind-dec-bar').style.width = `${(data.declining_stocks / 50) * 100}%`;
+    document.getElementById('ind-ad-ratio').textContent = data.ad_ratio.toFixed(2);
+    document.getElementById('ind-ad-status').textContent = data.ad_ratio > 1 ? 'Bullish' : 'Bearish';
+    document.getElementById('ind-breadth').textContent = `${(((data.advancing_stocks - data.declining_stocks) / 50) * 100).toFixed(1)}%`;
+    document.getElementById('ind-avg-return').textContent = `${data.avg_return.toFixed(2)}%`;
+    document.getElementById('ind-turnover').textContent = `₹${(data.total_turnover / 100).toFixed(0)}Cr`;
+
+    // Gainers/Losers - inspect field names from data
+    console.log("Top gainers sample:", data.top_gainers[0]);
+    console.log("Top losers sample:", data.top_losers[0]);
+    const gainersHtml = data.top_gainers.slice(0, 3).map(s => {
+      const symbol = s.symbol || s.ticker || s.name || 'N/A';
+      return `<div class="font-code-numeral text-gain-green font-semibold">${symbol} +${s.change.toFixed(2)}%</div>`;
+    }).join('');
+    const losersHtml = data.top_losers.slice(0, 3).map(s => {
+      const symbol = s.symbol || s.ticker || s.name || 'N/A';
+      return `<div class="font-code-numeral text-loss-red font-semibold">${symbol} ${s.change.toFixed(2)}%</div>`;
+    }).join('');
+    document.getElementById('gainers-list').innerHTML = gainersHtml;
+    document.getElementById('losers-list').innerHTML = losersHtml;
+
+    // Stock News (market-wide, Google News RSS)
+    const marketNews = data.market_news || [];
+    document.getElementById('market-news').innerHTML = marketNews.length ? marketNews.map(n => `
+      <div class="p-2 rounded hover:bg-surface-page transition-colors">
+        ${n.url ? `<a href="${n.url}" target="_blank" rel="noopener" class="text-body-sm font-semibold text-text-primary hover:text-primary hover:underline">${n.headline}</a>`
+               : `<span class="text-body-sm font-semibold">${n.headline}</span>`}
+        <div class="text-[11px] text-text-tertiary mt-0.5">${n.source || 'Google News'}</div>
+      </div>`).join('')
+      : '<p class="text-body-sm text-text-tertiary">No market news available right now.</p>';
+
+    // Sectors
+    document.getElementById('sector-list').innerHTML = (data.sector_performance || []).map(s => `
+      <div class="flex items-center gap-2"><span class="w-24 text-text-secondary font-medium">${s.name}</span>
+      <div class="flex-1 h-2 bg-surface-container-low rounded overflow-hidden"><div class="h-full ${s.change >= 0 ? 'bg-gain-green' : 'bg-loss-red'}" style="width:${Math.abs(s.change) * 10}%"></div></div>
+      <span class="font-code-numeral ${s.change >= 0 ? 'text-gain-green' : 'text-loss-red'} font-semibold">${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%</span></div>
+    `).join('');
+
+    // Companies table - inspect field names
+    console.log("Company sample:", data.companies[0]);
+    const tbody = document.getElementById('companies-tbody');
+    tbody.innerHTML = (data.companies || []).map(c => {
+      const symbol = c.symbol || c.ticker || 'N/A';
+      const name = c.name || c.company_name || symbol;
+      const predicted = c.predicted_price ? `₹${c.predicted_price.toFixed(0)}` : '--';
+      
+      return `
+      <tr class="border-b border-border-subtle hover:bg-surface-page transition-colors">
+        <td class="px-space-md py-3 font-bold text-text-primary">${symbol}</td>
+        <td class="px-space-md py-3 text-text-secondary">${name}</td>
+        <td class="px-space-md py-3 text-right font-code-numeral font-semibold">₹${c.price.toFixed(2)}</td>
+        <td class="px-space-md py-3 text-right"><span class="px-2 py-1 rounded-full ${c.change >= 0 ? 'bg-gain-green-subtle text-gain-green' : 'bg-loss-red-subtle text-loss-red'} font-code-numeral font-semibold">${c.change >= 0 ? '▲ +' : '▼ '}${c.change.toFixed(2)}%</span></td>
+        <td class="px-space-md py-3 text-right font-code-numeral text-text-secondary">${c.pe_ratio || '--'}</td>
+        <td class="px-space-md py-3 text-right font-code-numeral font-semibold">${predicted}</td>
+        <td class="px-space-md py-3 text-center"><button onclick="goToCompany('${symbol}')" class="px-3 py-1 rounded bg-primary text-on-primary font-body-sm font-semibold hover:bg-primary-container transition-colors">Analyze</button></td>
+      </tr>
+    `;
+    }).join('');
+
+    // Search filter
+    document.getElementById('search-input').addEventListener('input', e => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('#companies-tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+      });
+    });
+
+  } catch (err) {
+    console.error('Dashboard load failed:', err);
+  }
+}
+
+function goToCompany(symbol) {
+  // Relative URL works both when opened from disk (file://) and served by the backend
+  window.location.href = `company.html?symbol=${encodeURIComponent(symbol)}&tab=overview`;
+}
+
+function switchTheme() {
+  document.documentElement.classList.toggle('dark');
+}
+
+loadDashboard();
+setInterval(loadDashboard, 30000); // Refresh every 30s
+</script>
+</body>
+</html>

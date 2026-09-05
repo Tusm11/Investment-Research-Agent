@@ -3,10 +3,16 @@
 import json
 import logging
 import re
+import time as _time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from difflib import SequenceMatcher
 from typing import Optional
 
 from agent_1.tools.nifty50 import NIFTY50
+from agent_1.data_fetcher import fetch_all_data
+from agent_2.agent import run_agent2
+from agent_3.agent import run_agent3
+from agent_4.agent import run_agent4
 
 def classify_intent(query: str) -> dict:
     """Return default classification - Agent 4 handles its own intent routing."""
@@ -17,7 +23,21 @@ def classify_intent(query: str) -> dict:
 
 logger = logging.getLogger(__name__)
 
-CACHE = {}
+CACHE: dict = {}          # {key: {"data": {...}, "ts": float}}
+CACHE_TTL = 600           # 10 minutes
+
+def _get_cached(key: str):
+    """Retrieve cached data if still valid."""
+    entry = CACHE.get(key)
+    if entry and _time.time() - entry["ts"] < CACHE_TTL:
+        logger.info(f"Cache HIT for {key}")
+        return entry["data"]
+    return {}
+
+def _set_cached(key: str, data: dict):
+    """Store data in cache with timestamp."""
+    CACHE[key] = {"data": data, "ts": _time.time()}
+    logger.info(f"Cache SET for {key}")
 
 NIFTY50_MAP = {ticker.split(".")[0]: ticker for ticker, _ in NIFTY50}
 
@@ -89,9 +109,22 @@ def cache_key(entities):
 
 
 def run_pipeline(question: str, ticker: Optional[str] = None, days: int = 180, news_limit: int = 12):
-    entities = [ticker] if ticker else extract_companies(question)
-    if not entities:
-        entities = ["RELIANCE.NS"]
+    """
+    Orchestrate agents with optimized caching and parallel execution.
+    
+    Optimization:
+    - Full pipeline is cached for 10 minutes per company
+    - Agent 2 and 3 run in parallel after Agent 1 completes
+    - Agent 4 synthesis runs sequentially after both complete
+    - Cache prevents redundant API calls within TTL window
+    """
+    # If ticker provided, use it directly (bypass extraction)
+    if ticker:
+        entities = [ticker]
+    else:
+        entities = extract_companies(question)
+        if not entities:
+            entities = ["RELIANCE.NS"]
 
     primary_ticker = entities[0]
     routing = classify_intent(question)
@@ -106,14 +139,16 @@ def run_pipeline(question: str, ticker: Optional[str] = None, days: int = 180, n
         agents.insert(0, "agent1")
     
     key = cache_key(entities)
-    cached = CACHE.get(key, {})
+    cached = _get_cached(key)
 
     agent1_output = cached.get("agent1")
     if "agent1" in agents and not agent1_output:
         try:
+            logger.info(f"Fetching Agent 1 data for {primary_ticker}...")
             agent1_output = fetch_all_data(primary_ticker, days=days, news_limit=news_limit)
             agent1_output["entities"] = entities
             cached["agent1"] = agent1_output
+            _set_cached(key, cached)
         except Exception as e:
             logger.error("Agent1 failed: %s", e)
             return {
@@ -128,26 +163,43 @@ def run_pipeline(question: str, ticker: Optional[str] = None, days: int = 180, n
                 "error": str(e),
             }
 
+    # OPTIMIZATION: Run Agent 2 and 3 in parallel
     agent2_output = cached.get("agent2")
-    if "agent2" in agents and not agent2_output:
-        try:
-            agent2_output = run_agent2(agent1_output, question)
-            cached["agent2"] = agent2_output
-        except Exception as e:
-            logger.warning("Agent2 failed: %s", e)
-            agent2_output = {}
-
     agent3_output = cached.get("agent3")
-    if "agent3" in agents and not agent3_output:
-        try:
-            agent3_output = run_agent3(agent1_output, question)
-            cached["agent3"] = agent3_output
-        except Exception as e:
-            logger.warning("Agent3 failed: %s", e)
-            agent3_output = {}
-
-    CACHE[key] = cached
     
+    if ("agent2" in agents and not agent2_output) or ("agent3" in agents and not agent3_output):
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = {}
+            
+            if "agent2" in agents and not agent2_output:
+                logger.info("Submitting Agent 2 (analysis)...")
+                futures["agent2"] = executor.submit(run_agent2, agent1_output, question)
+            
+            if "agent3" in agents and not agent3_output:
+                logger.info("Submitting Agent 3 (market intelligence)...")
+                futures["agent3"] = executor.submit(run_agent3, agent1_output, question)
+            
+            # Wait for both to complete
+            for agent_name, future in futures.items():
+                try:
+                    logger.info(f"Waiting for {agent_name}...")
+                    result = future.result(timeout=60)
+                    if agent_name == "agent2":
+                        agent2_output = result or {}
+                        cached["agent2"] = agent2_output
+                    elif agent_name == "agent3":
+                        agent3_output = result or {}
+                        cached["agent3"] = agent3_output
+                except Exception as e:
+                    logger.warning(f"{agent_name} failed: {e}")
+                    if agent_name == "agent2":
+                        agent2_output = {}
+                    elif agent_name == "agent3":
+                        agent3_output = {}
+    
+    _set_cached(key, cached)
+    
+    # Agent 4 synthesis (sequential after Agent 2+3)
     agent4_output = run_agent4(question, agent1_output or {}, agent2_output or {}, agent3_output or {})
 
     return {

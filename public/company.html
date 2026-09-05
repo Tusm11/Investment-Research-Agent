@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = {
+    darkMode: "class", theme: {
+      extend: {
+        colors: {
+          "gain-green": "#00A86B", "gain-green-subtle": "#E8F8F1", "loss-red": "#E5484D", "loss-red-subtle": "#FEECEE", "amber-warn": "#B45309", "amber-subtle": "#FEF3C7",
+          "text-primary": "#0F172A", "text-secondary": "#334155", "text-tertiary": "#64748B", "text-muted": "#94A3B8",
+          "surface-card": "#FFFFFF", "surface-page": "#F8FAFC", "surface-container": "#e5eeff", "surface-container-low": "#eff4ff",
+          "surface-secondary": "#F1F5F9", "border-subtle": "#E2E8F0", "border-strong": "#CBD5E1", "primary": "#003ec8", "on-primary": "#ffffff", "primary-container": "#1854f7"
+        },
+        borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        spacing: { "space-2xs": "2px", "space-xs": "4px", "space-sm": "8px", "space-md": "12px", "space-base": "16px", "space-lg": "20px", "space-xl": "24px", "space-2xl": "32px" },
+        fontFamily: { "body-sm": ["Inter"], "body-base": ["Inter"], "body-lg": ["Inter"], "headline-sm": ["Inter"], "headline-lg": ["Inter"], "headline-xl": ["Inter"], "code-numeral": ["JetBrains Mono"], "tag-label": ["Inter"], "metric-display": ["Inter"] },
+        fontSize: { "body-sm": ["12px", { lineHeight: "16px", fontWeight: "400" }], "body-base": ["13px", { lineHeight: "18px", fontWeight: "400" }], "body-lg": ["15px", { lineHeight: "22px", fontWeight: "400" }],
+          "headline-sm": ["18px", { lineHeight: "24px", letterSpacing: "-0.01em", fontWeight: "600" }], "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }], "headline-xl": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "code-numeral": ["12px", { lineHeight: "16px", letterSpacing: "-0.01em", fontWeight: "500" }], "tag-label": ["11px", { lineHeight: "14px", fontWeight: "500" }], "metric-display": ["22px", { lineHeight: "28px", letterSpacing: "-0.02em", fontWeight: "600" }] }
+      }
+    }
+  };</script>
+  <style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}}::-webkit-scrollbar{display:none;}</style>
+  <title>Company Research</title>
+</head>
+<body class="bg-surface-page font-body-base text-text-primary antialiased min-h-screen">
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface-card border-b border-border-subtle shadow-sm h-16 px-space-lg flex items-center justify-between">
+  <div class="flex items-center gap-space-lg"><a href="dashboard.html" class="font-headline-lg text-headline-lg font-bold hover:text-primary">◄ Investment Research Agent</a></div>
+  <div class="flex items-center gap-space-sm"><button class="p-2 rounded hover:bg-surface-container-low" onclick="switchTheme()"><span class="material-symbols-outlined">light_mode</span></button></div>
+</header>
+
+<main class="w-full pt-20 px-space-lg pb-space-lg bg-surface-page min-h-screen">
+  <div class="max-w-[1200px] mx-auto space-y-space-lg">
+
+    <!-- HEADER: COMPANY NAME & QUICK STATS -->
+    <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-space-lg">
+        <div class="space-y-space-base">
+          <div class="flex flex-wrap items-center gap-space-sm">
+            <h1 class="font-headline-xl text-headline-xl font-bold text-text-primary" id="company-name">--</h1>
+            <span class="px-2 py-1 rounded bg-surface-container text-primary font-code-numeral text-code-numeral font-semibold" id="company-ticker">--</span>
+          </div>
+          <div class="flex items-baseline gap-space-lg">
+            <span class="font-headline-lg text-headline-lg font-bold text-text-primary tabular-nums" id="company-price">₹--</span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gain-green-subtle text-gain-green font-code-numeral text-code-numeral font-semibold" id="company-change">--</span>
+          </div>
+        </div>
+        <div class="flex gap-space-sm">
+          <button onclick="downloadReport()" id="btn-download-report" class="px-4 py-2 rounded-lg border border-primary text-primary font-body-sm font-semibold hover:bg-primary hover:text-on-primary transition-colors">Download Full Report</button>
+          <button onclick="goToDashboard()" class="px-4 py-2 rounded-lg bg-primary text-on-primary font-body-sm font-semibold hover:bg-primary-container transition-colors">Back to Dashboard</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="bg-surface-card rounded-xl shadow-sm border border-border-subtle px-space-md py-space-xs flex gap-space-xs overflow-x-auto sticky top-[72px] z-40">
+      <button class="company-tab-btn px-4 py-2 rounded-lg font-body-sm font-semibold whitespace-nowrap transition-colors" data-tab="overview" onclick="showTab('overview')">Overview</button>
+      <button class="company-tab-btn px-4 py-2 rounded-lg font-body-sm font-semibold whitespace-nowrap transition-colors" data-tab="financials" onclick="showTab('financials')">Financials</button>
+      <button class="company-tab-btn px-4 py-2 rounded-lg font-body-sm font-semibold whitespace-nowrap transition-colors" data-tab="peers" onclick="showTab('peers')">Peers</button>
+      <button class="company-tab-btn px-4 py-2 rounded-lg font-body-sm font-semibold whitespace-nowrap transition-colors" data-tab="peoples" onclick="showTab('peoples')">People's Perspective</button>
+    </div>
+
+    <div id="tab-overview" class="company-tab space-y-space-lg">
+    <!-- 6-STAT STRIP -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-space-md">
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">Market Cap</div>
+        <div class="font-metric-display text-metric-display font-bold text-text-primary tabular-nums" id="stat-mcap">--</div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">P/E Ratio</div>
+        <div class="font-metric-display text-metric-display font-bold text-text-primary tabular-nums" id="stat-pe">--</div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">ROE</div>
+        <div class="font-metric-display text-metric-display font-bold text-gain-green tabular-nums" id="stat-roe">--</div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">Div Yield</div>
+        <div class="font-metric-display text-metric-display font-bold text-text-primary tabular-nums" id="stat-div">--</div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">52W High</div>
+        <div class="font-metric-display text-metric-display font-bold text-gain-green tabular-nums" id="stat-high52">--</div>
+      </div>
+      <div class="bg-surface-card p-space-md rounded-xl shadow-sm border border-border-subtle space-y-2">
+        <div class="text-tag-label text-tag-label uppercase tracking-wide text-text-tertiary font-semibold">52W Low</div>
+        <div class="font-metric-display text-metric-display font-bold text-loss-red tabular-nums" id="stat-low52">--</div>
+      </div>
+    </div>
+
+    <!-- FUNDAMENTALS & INTELLIGENCE (2 COLS) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle space-y-space-lg">
+        <div>
+          <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-base">Business Summary</h2>
+          <p class="font-body-base text-text-secondary leading-relaxed" id="company-summary">Loading...</p>
+        </div>
+        <div>
+          <h3 class="font-body-base font-semibold text-text-primary mb-2">Sector</h3>
+          <span class="inline-block px-3 py-1 rounded-full bg-surface-secondary text-text-secondary font-body-sm" id="company-sector">--</span>
+        </div>
+      </div>
+
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle border-l-4 border-l-primary-container space-y-space-lg">
+        <div>
+          <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-base">Market Intelligence</h2>
+          <p class="font-body-base text-text-secondary leading-relaxed" id="company-intel">Loading...</p>
+        </div>
+        <div>
+          <h3 class="font-body-base font-semibold text-text-primary mb-2 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px] text-primary">bolt</span>Recent Catalysts
+          </h3>
+          <div class="space-y-2 text-body-sm" id="company-catalysts">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SENTIMENT & RISK (2 COLS) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">trending_up</span>Sentiment & Outlook
+        </h2>
+        <div class="space-y-3">
+          <div class="p-3 rounded-lg bg-surface-page space-y-2">
+            <div class="font-body-base font-semibold text-text-primary flex items-center justify-between">Overall Sentiment <span class="px-2 py-1 rounded-full bg-gain-green-subtle text-gain-green font-code-numeral text-code-numeral font-bold text-[12px]" id="sentiment-score">--</span></div>
+          </div>
+          <div class="space-y-2">
+            <div class="font-body-base font-semibold text-gain-green flex items-center gap-1">✓ Positive Factors</div>
+            <ul class="text-body-sm text-text-secondary space-y-1" id="sentiment-positive">Loading...</ul>
+          </div>
+          <div class="space-y-2">
+            <div class="font-body-base font-semibold text-loss-red flex items-center gap-1">! Areas to Watch</div>
+            <ul class="text-body-sm text-text-secondary space-y-1" id="sentiment-risks">Loading...</ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">shield</span>Risk Analysis
+        </h2>
+        <div class="p-3 rounded-lg bg-surface-secondary space-y-3">
+          <div class="flex items-center gap-4">
+            <svg class="w-20 h-20" viewBox="0 0 120 70">
+              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="#E2E8F0" stroke-width="10"/>
+              <path d="M10 60 A50 50 0 0 1 45 22" fill="none" stroke="#00A86B" stroke-width="10"/>
+              <path d="M45 22 A50 50 0 0 1 75 22" fill="none" stroke="#F59E0B" stroke-width="10"/>
+              <path d="M75 22 A50 50 0 0 1 110 60" fill="none" stroke="#E5484D" stroke-width="10"/>
+              <polygon fill="#0F172A" points="60,60 56,22 64,22"/>
+              <circle cx="60" cy="60" fill="#0F172A" r="5"/>
+            </svg>
+            <div><div class="font-code-numeral text-code-numeral font-bold text-text-primary text-[16px]" id="risk-score">--</div><div class="text-body-sm text-text-tertiary uppercase">Risk Level</div></div>
+          </div>
+          <div class="text-body-sm text-text-secondary leading-relaxed" id="risk-detail">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICE CHART WITH TIMEFRAMES -->
+    <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+      <div class="flex items-center justify-between mb-space-lg">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary">Price Trend</h2>
+        <div class="flex items-center gap-2 bg-surface-secondary p-1 rounded-lg">
+          <button class="company-chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="1d">1D</button>
+          <button class="company-chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="1w">1W</button>
+          <button class="company-chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="1m">1M</button>
+          <button class="company-chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="6m">6M</button>
+          <button class="company-chart-tf-btn px-3 py-1 bg-surface-card text-primary font-semibold text-tag-label rounded shadow-sm" data-tf="1y">1Y</button>
+          <button class="company-chart-tf-btn px-3 py-1 text-text-secondary hover:text-text-primary text-tag-label font-medium rounded" data-tf="5y">5Y</button>
+        </div>
+      </div>
+      <div id="company-price-chart" style="height:320px;width:100%"><div class="text-center p-8 text-text-tertiary text-body-sm">Loading chart...</div></div>
+    </div>
+
+    <!-- PEER COMPARISON & FORECAST (2 COLS) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg">Peer Comparison</h2>
+        <div class="space-y-2 text-body-sm" id="peer-table">Loading...</div>
+      </div>
+
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">auto_awesome</span>12M Price Forecast
+        </h2>
+        <div class="p-3 rounded-lg bg-surface-secondary space-y-3">
+          <div class="flex items-center justify-between">
+            <div><div class="text-tag-label text-tag-label uppercase text-text-tertiary">Current</div><div class="font-metric-display text-metric-display font-bold text-text-primary" id="forecast-current">--</div></div>
+            <div class="flex items-center gap-2">
+              <div class="h-0.5 flex-1 bg-gradient-to-r from-primary to-gain-green" style="width:80px"></div>
+              <span class="material-symbols-outlined text-gain-green text-[20px]" id="forecast-arrow">arrow_forward</span>
+            </div>
+            <div class="text-right"><div class="text-tag-label text-tag-label uppercase text-text-tertiary">Target</div><div class="font-metric-display text-metric-display font-bold text-gain-green" id="forecast-target">--</div></div>
+          </div>
+          <div class="text-body-base font-metric-display font-bold" id="forecast-return">--</div>
+          <div class="text-body-sm text-text-secondary" id="forecast-explanation">Loading forecast...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA SOURCES & FRESHNESS -->
+    <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+      <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">info</span>Data Sources & Freshness
+      </h2>
+      <div class="space-y-3">
+        <div class="text-body-sm text-text-tertiary mb-space-lg">
+          Last updated: <span class="font-semibold text-text-primary" id="fetch-time">--</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+          <div class="p-3 rounded-lg bg-surface-page space-y-1">
+            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Price Data</div>
+            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">yfinance</span></div>
+            <div class="text-body-sm" id="price-status">–</div>
+          </div>
+          <div class="p-3 rounded-lg bg-surface-page space-y-1">
+            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">News & Events</div>
+            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">Google News RSS</span></div>
+            <div class="text-body-sm" id="news-status">–</div>
+          </div>
+          <div class="p-3 rounded-lg bg-surface-page space-y-1">
+            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Analyst Consensus</div>
+            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">yfinance targets</span></div>
+            <div class="text-body-sm" id="analyst-status">–</div>
+          </div>
+          <div class="p-3 rounded-lg bg-surface-page space-y-1">
+            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Fundamentals</div>
+            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">yfinance + AI</span></div>
+            <div class="text-body-sm" id="fundamentals-status">–</div>
+          </div>
+          <div class="p-3 rounded-lg bg-surface-page space-y-1">
+            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Sentiment</div>
+            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">Groq LLM</span></div>
+            <div class="text-body-sm" id="sentiment-status">–</div>
+          </div>
+          <div class="p-3 rounded-lg bg-surface-page space-y-1">
+            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Risk Model</div>
+            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">Isolation Forest</span></div>
+            <div class="text-body-sm" id="risk-model-status">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /tab-overview -->
+
+    <!-- FINANCIALS TAB -->
+    <div id="tab-financials" class="company-tab space-y-space-lg hidden">
+      <div class="bg-surface-card rounded-xl shadow-sm border border-border-subtle px-space-md py-space-xs flex gap-space-xs sticky top-[140px] z-30">
+        <button class="fin-sub-btn px-4 py-2 rounded-lg font-body-sm font-semibold whitespace-nowrap transition-colors" data-subtab="pl" onclick="showFinSubTab('pl')">P&L</button>
+        <button class="fin-sub-btn px-4 py-2 rounded-lg font-body-sm font-semibold whitespace-nowrap transition-colors" data-subtab="bs" onclick="showFinSubTab('bs')">Balance Sheet</button>
+        <button class="fin-sub-btn px-4 py-2 rounded-lg font-body-sm font-semibold whitespace-nowrap transition-colors" data-subtab="cf" onclick="showFinSubTab('cf')">Cash Flow</button>
+        <button class="fin-sub-btn px-4 py-2 rounded-lg font-body-sm font-semibold whitespace-nowrap transition-colors" data-subtab="ratios" onclick="showFinSubTab('ratios')">Ratios</button>
+      </div>
+      <div id="fin-pl" class="fin-sub-tab hidden">
+        <div id="fin-pl-content" class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">Loading P&L...</div>
+      </div>
+      <div id="fin-bs" class="fin-sub-tab hidden">
+        <div id="fin-bs-content" class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">Loading Balance Sheet...</div>
+      </div>
+      <div id="fin-cf" class="fin-sub-tab hidden">
+        <div id="fin-cf-content" class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">Loading Cash Flow...</div>
+      </div>
+      <div id="fin-ratios" class="fin-sub-tab hidden">
+        <div id="fin-ratios-content" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-md">Loading Ratios...</div>
+      </div>
+    </div>
+
+    <!-- PEERS TAB -->
+    <div id="tab-peers" class="company-tab space-y-space-lg hidden">
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg">Peer Comparison</h2>
+        <div id="peers-tab-table" class="space-y-2 text-body-sm">Loading...</div>
+      </div>
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg">How this company ranks vs sector</h2>
+        <div id="peers-metrics" class="space-y-2 text-body-sm">Loading...</div>
+      </div>
+    </div>
+
+    <!-- PEOPLE'S PERSPECTIVE TAB -->
+    <div id="tab-peoples" class="company-tab space-y-space-lg hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
+        <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+          <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg">Market Sentiment</h2>
+          <div id="pp-sentiment" class="space-y-3">Loading...</div>
+        </div>
+        <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+          <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg">Analyst Consensus</h2>
+          <div id="pp-analyst" class="space-y-3">Loading...</div>
+        </div>
+      </div>
+      <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg">What people are reading</h2>
+        <div id="pp-news" class="space-y-3">Loading...</div>
+      </div>
+    </div>
+
+    <!-- AI CHAT PANEL -->
+    <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle flex flex-col h-96">
+      <div class="flex items-center justify-between pb-space-base border-b border-border-subtle mb-space-lg">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">smart_toy</span>AI Research Assistant
+        </h2>
+      </div>
+      <div class="flex-1 overflow-y-auto mb-space-base space-y-3" id="chat-history">
+        <div class="text-body-sm text-text-tertiary">Ask me anything about this company...</div>
+      </div>
+      <div class="flex gap-2">
+        <input type="text" id="chat-input" placeholder="Ask a question..." class="flex-1 px-3 py-2 border border-border-subtle rounded-lg bg-surface-page font-body-sm" />
+        <button onclick="sendChat()" class="px-4 py-2 rounded-lg bg-primary text-on-primary font-body-sm font-semibold hover:bg-primary-container transition-colors">Send</button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="metrics_formatter.js"></script>
+<script>
+const API_BASE = 'http://localhost:8502/api';
+const _pathParts = window.location.pathname.split('/').filter(Boolean);
+let symbol = null, initialTab = 'overview';
+// Path-based URL: /company/{symbol}/{tab} — served by the backend
+if (_pathParts[0] === 'company') {
+  symbol = decodeURIComponent(_pathParts[1] || '');
+  initialTab = _pathParts[2] || 'overview';
+}
+if (!symbol) {
+  const params = new URLSearchParams(window.location.search);
+  symbol = params.get('symbol') || 'RELIANCE';
+  initialTab = params.get('tab') || 'overview';
+}
+let currentCompanyTicker = symbol;
+let currentTab = 'overview';
+let _tabContexts = {};  // per-tab digest of on-screen data, fed to the AI assistant
+
+// Utility: Safe path getter
+const safeGet = (obj, path, def = null) => {
+  const keys = path.split('.');
+  let val = obj;
+  for (let k of keys) val = val?.[k];
+  return val !== null && val !== undefined ? val : def;
+};
+
+// Utility: Format N/A for missing values
+const formatMetric = (value, formatter = null) => {
+  if (value === null || value === undefined || isNaN(value)) return 'N/A';
+  return formatter ? formatter(value) : value;
+};
+
+// Utility: Show data quality indicator
+const getQualityIndicator = (flag, label) => {
+  const icon = flag ? '✓' : '–';
+  const color = flag ? 'text-gain-green' : 'text-text-muted';
+  return `<span class="${color} text-[12px] font-semibold">${icon} ${label}</span>`;
+};
+
+// Render sector-aware metrics
+const renderSectorMetrics = (sectorMetrics, agentData) => {
+  if (!sectorMetrics) return '';
+  
+  const primaryMetrics = sectorMetrics.primary_metrics || [];
+  const watchMetrics = sectorMetrics.watch_metrics || [];
+  
+  const allMetrics = [...primaryMetrics, ...watchMetrics];
+  
+  if (!allMetrics.length) return '<p class="text-text-muted">No sector-specific metrics available</p>';
+  
+  return allMetrics.slice(0, 6).map(m => `
+    <div class="flex justify-between items-center p-2 rounded hover:bg-surface-page">
+      <span class="text-body-sm text-text-secondary font-semibold">${m}</span>
+      <span class="font-code-numeral text-text-tertiary">–</span>
+    </div>
+  `).join('');
+};
+
+// Utility: Format timestamp for display
+const formatTimestamp = (isoString) => {
+  if (!isoString) return 'not available';
+  try {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMinutes = Math.floor((now - date) / 60000);
+    
+    if (diffMinutes < 1) return 'just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString();
+  } catch (e) {
+    return isoString.substring(0, 10);
+  }
+};
+
+// Utility: Get status badge
+const getStatusBadge = (available, timestamp) => {
+  const indicator = available ? 
+    '<span class="text-gain-green font-semibold">✓</span>' : 
+    '<span class="text-text-muted font-semibold">–</span>';
+  
+  const timeStr = formatTimestamp(timestamp);
+  return `${indicator} ${available ? 'Available' : 'Unavailable'} (${timeStr})`;
+};
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+const TAB_NAMES = { overview: 'Overview', financials: 'Financials', peers: 'Peers', peoples: "People's Perspective", shareholding: 'Shareholding' };
+
+function showTab(tab, push = true) {
+  if (!document.getElementById('tab-' + tab)) tab = 'overview';
+  currentTab = tab;
+  document.querySelectorAll('.company-tab').forEach(el => el.classList.toggle('hidden', el.id !== 'tab-' + tab));
+  document.querySelectorAll('.company-tab-btn').forEach(btn => {
+    const active = btn.dataset.tab === tab;
+    btn.classList.toggle('bg-primary', active);
+    btn.classList.toggle('text-on-primary', active);
+    btn.classList.toggle('text-text-secondary', !active);
+    btn.classList.toggle('hover:bg-surface-page', !active);
+  });
+  if (push && _pathParts[0] === 'company') {
+    history.pushState({}, '', `/company/${encodeURIComponent(symbol)}/${tab}`);
+  }
+  document.title = `${currentCompanyTicker || symbol} · ${TAB_NAMES[tab] || 'Research'}`;
+}
+window.addEventListener('popstate', () => {
+  const p = window.location.pathname.split('/').filter(Boolean);
+  if (p[0] === 'company') showTab(p[2] || 'overview', false);
+});
+
+function extractTextLocal(item) {
+  if (typeof item === 'string') return item;
+  if (item && typeof item === 'object') return item.explanation || item.description || item.metric || JSON.stringify(item).slice(0, 120);
+  return String(item);
+}
+
+function renderFinancialsTab(data) {
+  // Lazy-load financials from API when tab is clicked
+  window._currentFinancialsData = data;
+  showFinSubTab('pl');
+}
+
+function showFinSubTab(subtab) {
+  const buttons = document.querySelectorAll('.fin-sub-btn');
+  buttons.forEach(b => b.classList.remove('bg-primary', 'text-on-primary'));
+  buttons.forEach(b => b.classList.add('bg-surface-secondary', 'text-text-primary'));
+  document.querySelector(`[data-subtab="${subtab}"]`).classList.add('bg-primary', 'text-on-primary');
+  document.querySelector(`[data-subtab="${subtab}"]`).classList.remove('bg-surface-secondary', 'text-text-primary');
+  
+  document.querySelectorAll('.fin-sub-tab').forEach(t => t.classList.add('hidden'));
+  document.getElementById(`fin-${subtab}`).classList.remove('hidden');
+  
+  // Fetch if not cached
+  if (!window._financialsCache) {
+    const sym = currentCompanyTicker;
+    fetch(`${API_BASE}/company/${sym}/financials`)
+      .then(r => r.json())
+      .then(d => {
+        window._financialsCache = d;
+        renderFinSubTab(subtab, d);
+      })
+      .catch(e => {
+        document.getElementById(`fin-${subtab}-content`).innerHTML = `<p class="text-loss-red">Error: ${e.message}</p>`;
+      });
+  } else {
+    renderFinSubTab(subtab, window._financialsCache);
+  }
+}
+
+function renderFinSubTab(subtab, data) {
+  const stmtTable = (title, d) => {
+    if (!d || !d.periods || !Object.keys(d.rows || {}).length) return '';
+    const head = `<tr class="border-b border-border-subtle"><th class="text-left px-3 py-2 text-text-tertiary font-semibold text-body-sm">₹ Cr</th>${d.periods.map(p => `<th class="text-right px-3 py-2 text-text-tertiary font-semibold text-body-sm">${p}</th>`).join('')}</tr>`;
+    const rows = Object.entries(d.rows).map(([label, vals]) => `<tr class="border-b border-border-subtle hover:bg-surface-page"><td class="px-3 py-2 font-semibold text-body-sm">${label}</td>${vals.map(v => `<td class="px-3 py-2 text-right font-code-numeral tabular-nums text-body-sm">${v != null ? Number(v).toLocaleString('en-IN') : '--'}</td>`).join('')}</tr>`).join('');
+    return `<div><h3 class="font-headline-sm font-bold mb-space-md mt-space-lg first:mt-0">${title}</h3><table class="w-full text-body-sm">${head}${rows}</table></div>`;
+  };
+  
+  const ratioCard = (label, value, unit, note) => `
+    <div class="bg-surface-page p-space-md rounded-lg space-y-1">
+      <div class="text-tag-label uppercase text-text-tertiary font-semibold">${label}</div>
+      <div class="font-metric-display font-bold text-primary">${value != null ? value + unit : '--'}</div>
+      ${note ? `<div class="text-body-sm text-text-tertiary">${note}</div>` : ''}
+    </div>
+  `;
+  
+  if (subtab === 'pl') {
+    document.getElementById('fin-pl-content').innerHTML = stmtTable('Profit & Loss', data.p_l);
+    // Build context for P&L tab
+    const plRows = data.p_l?.rows || {};
+    const plPeriods = data.p_l?.periods || [];
+    const plContext = plPeriods.map((yr, idx) => 
+      Object.entries(plRows).map(([label, vals]) => `${label} (${yr}): ₹${vals[idx]} Cr`).join('; ')
+    ).join(' | ');
+    _tabContexts.financials = `Financials > P&L Sub-tab (Active). Data shown:\n${plContext}`;
+  } else if (subtab === 'bs') {
+    document.getElementById('fin-bs-content').innerHTML = stmtTable('Balance Sheet', data.balance_sheet);
+    // Build context for Balance Sheet tab
+    const bsRows = data.balance_sheet?.rows || {};
+    const bsPeriods = data.balance_sheet?.periods || [];
+    const bsContext = bsPeriods.map((yr, idx) => 
+      Object.entries(bsRows).map(([label, vals]) => `${label} (${yr}): ₹${vals[idx]} Cr`).join('; ')
+    ).join(' | ');
+    _tabContexts.financials = `Financials > Balance Sheet Sub-tab (Active). Data shown:\n${bsContext}`;
+  } else if (subtab === 'cf') {
+    document.getElementById('fin-cf-content').innerHTML = stmtTable('Cash Flow', data.cash_flow);
+    // Build context for Cash Flow tab
+    const cfRows = data.cash_flow?.rows || {};
+    const cfPeriods = data.cash_flow?.periods || [];
+    const cfContext = cfPeriods.map((yr, idx) => 
+      Object.entries(cfRows).map(([label, vals]) => `${label} (${yr}): ₹${vals[idx]} Cr`).join('; ')
+    ).join(' | ');
+    _tabContexts.financials = `Financials > Cash Flow Sub-tab (Active). Data shown:\n${cfContext}`;
+  } else if (subtab === 'ratios') {
+    const r = data.ratios || {};
+    const ratios = [
+      ['Net Margin', r.net_profit_margin, '%', 'Profit as % of revenue'],
+      ['Operating Margin', r.operating_margin, '%', 'Operating profit as % of revenue'],
+      ['ROE', r.roe, '%', 'Return on shareholder equity'],
+      ['ROCE', r.roce, '%', 'Return on capital employed'],
+      ['Debt/Equity', r.debt_to_equity, 'x', 'Leverage ratio'],
+      ['Current Ratio', r.current_ratio, 'x', 'Short-term liquidity'],
+    ];
+    document.getElementById('fin-ratios-content').innerHTML = ratios.map(([l, v, u, n]) => ratioCard(l, v, u, n)).join('');
+    // Build context for Ratios tab
+    const ratioContext = ratios.map(([l, v, u, n]) => `${l}: ${v != null ? v + u : 'N/A'}`).join(', ');
+    _tabContexts.financials = `Financials > Ratios Sub-tab (Active). Data shown: ${ratioContext}`;
+  }
+}
+
+function renderPeersTab(data) {
+  const peers = data.peers || [];
+  document.getElementById('peers-tab-table').innerHTML = peers.length ? peers.map(p => `
+    <div class="flex justify-between items-center p-2 rounded hover:bg-surface-page">
+      <span class="font-semibold">${p.name || p.ticker || 'N/A'}</span>
+      <span class="font-code-numeral">${p.price != null ? '₹' + Number(p.price).toLocaleString('en-IN') : '--'} · P/E ${p.pe != null ? parseFloat(p.pe).toFixed(1) + 'x' : '--'}</span>
+    </div>`).join('') : '<span class="text-text-muted">No peer data available</span>';
+  const pm = data.peer_metrics || {};
+  const fmtMetric = v => {
+    if (v == null) return '--';
+    if (Math.abs(v) >= 1e7) return '₹' + (v / 1e7).toLocaleString('en-IN', { maximumFractionDigits: 0 }) + ' Cr';
+    if (Math.abs(v) >= 1000) return Number(v).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    return Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  };
+  // Skip metrics where neither the company nor the sector average exists
+  const rows = Object.entries(pm)
+    .filter(([m, v]) => v.company != null || v.sector_average != null)
+    .map(([m, v]) => {
+      const label = m.replace(/_z$/, '').replace(/_/g, ' ');
+      const hasCompany = v.company != null;
+      const pct = hasCompany ? v.percentile : null;
+      return `<div class="flex items-center gap-3 p-2 rounded hover:bg-surface-page">
+      <span class="w-44 font-semibold capitalize">${label}</span>
+      <div class="flex-1 h-2 bg-surface-secondary rounded overflow-hidden"><div class="h-full ${hasCompany ? 'bg-primary' : 'bg-text-muted'}" style="width:${pct != null ? pct : (hasCompany ? 0 : 100)}%"></div></div>
+      <span class="font-code-numeral w-56 text-right">Co: ${fmtMetric(v.company)} · Sector: ${fmtMetric(v.sector_average)}</span>
+      <span class="font-code-numeral w-14 text-right font-semibold">${pct != null ? pct + 'th' : 'N/A'}</span>
+    </div>`;
+    }).join('');
+  document.getElementById('peers-metrics').innerHTML = rows || '<span class="text-text-muted">No sector percentile data available</span>';
+  _tabContexts.peers = 'Peers: ' + (peers.map(p => `${p.name} (P/E ${p.pe != null ? parseFloat(p.pe).toFixed(1) : 'N/A'}x, price ₹${p.price != null ? p.price : 'N/A'})`).join('; ') || 'none')
+    + '. Sector percentiles: ' + Object.entries(pm).map(([m, v]) => `${m}=${v.percentile}th (company ${v.company} vs sector avg ${v.sector_average})`).join(', ');
+}
+
+function renderPeoplesTab(data) {
+  const s = data.sentiment_score;
+  const pos = data.positive_factors || [];
+  const risks = data.risk_factors || [];
+  document.getElementById('pp-sentiment').innerHTML = `
+    <div class="flex items-center justify-between"><span class="font-semibold">Overall sentiment</span>
+      <span class="px-2 py-1 rounded-full font-code-numeral font-semibold ${s != null && s >= 60 ? 'bg-gain-green-subtle text-gain-green' : s != null && s <= 40 ? 'bg-loss-red-subtle text-loss-red' : 'bg-surface-secondary text-text-secondary'}">${s != null ? s + '/100' : 'AI mood'}</span></div>
+    <div><div class="text-[11px] uppercase font-semibold text-text-tertiary">Positive signals</div>
+      <ul class="mt-1 space-y-1">${pos.length ? pos.map(f => `<li class="flex gap-1.5"><span class="text-gain-green">•</span><span>${extractTextLocal(f)}</span></li>`).join('') : '<li class="text-text-muted">None identified</li>'}</ul></div>
+    <div><div class="text-[11px] uppercase font-semibold text-text-tertiary">Concerns</div>
+      <ul class="mt-1 space-y-1">${risks.length ? risks.map(f => `<li class="flex gap-1.5"><span class="text-loss-red">!</span><span>${extractTextLocal(f)}</span></li>`).join('') : '<li class="text-text-muted">None identified</li>'}</ul></div>`;
+  // ── Analyst Consensus card ──
+  const ab = data.analyst_breakdown || {};
+  const rawRec = (ab.recommendation || data.analyst_rating || '').toString().toLowerCase().replace(/_/g, ' ').trim();
+  const recKey = /strong buy|buy|overweight|outperform|accumulate/.test(rawRec) ? 'buy'
+    : /strong sell|sell|underweight|underperform|reduce/.test(rawRec) ? 'sell'
+    : /hold|neutral/.test(rawRec) ? 'hold' : null;
+  const consensusLabel = recKey ? recKey.charAt(0).toUpperCase() + recKey.slice(1) : (data.analyst_rating || null);
+  const recBadgeClass = recKey === 'buy' ? 'bg-gain-green-subtle text-gain-green'
+    : recKey === 'sell' ? 'bg-loss-red-subtle text-loss-red'
+    : recKey === 'hold' ? 'bg-amber-subtle text-amber-warn' : 'bg-surface-secondary text-text-secondary';
+
+  const nAnalysts = ab.analyst_count != null && Number(ab.analyst_count) > 0 ? Number(ab.analyst_count) : null;
+  const counts = { buy: Number(ab.buy), hold: Number(ab.hold), sell: Number(ab.sell) };
+  const totalRecs = counts.buy + counts.hold + counts.sell;
+  const hasBreakdown = [counts.buy, counts.hold, counts.sell].every(c => Number.isFinite(c)) && totalRecs > 0;
+
+  const fmtINR = v => '₹' + Math.round(v).toLocaleString('en-IN');
+  const tgtRaw = ab.target != null && Number.isFinite(Number(ab.target)) ? Number(ab.target) : (data.target_price != null && Number.isFinite(Number(data.target_price)) ? Number(data.target_price) : null);
+  const targetPrice = tgtRaw != null ? Math.round(tgtRaw) : null;
+  const currentPrice = data.current_price != null && Number.isFinite(Number(data.current_price)) ? Number(data.current_price) : null;
+  let upside = data.expected_return;
+  if (!(typeof upside === 'number' && isFinite(upside)) && targetPrice != null && currentPrice) {
+    upside = (targetPrice - currentPrice) / currentPrice * 100;
+  }
+  upside = (typeof upside === 'number' && isFinite(upside)) ? upside : null;
+
+  const seg = (n, cls) => n > 0 ? `<div class="${cls}" style="width:${(n / totalRecs * 100).toFixed(1)}%"></div>` : '';
+  const breakdownBar = hasBreakdown ? `
+    <div>
+      <div class="flex h-2.5 rounded-full overflow-hidden bg-surface-secondary">
+        ${seg(counts.buy, 'bg-gain-green')}${seg(counts.hold, 'bg-amber-400')}${seg(counts.sell, 'bg-loss-red')}
+      </div>
+      <div class="mt-1.5 text-body-sm text-text-secondary font-code-numeral">
+        <span class="text-gain-green font-semibold">${counts.buy} Buy</span> ·
+        <span class="text-amber-warn font-semibold">${counts.hold} Hold</span> ·
+        <span class="text-loss-red font-semibold">${counts.sell} Sell</span>
+      </div>
+    </div>` : '';
+
+  document.getElementById('pp-analyst').innerHTML = `
+    ${nAnalysts ? `<p class="text-body-sm text-text-tertiary -mt-space-sm">Based on ${nAnalysts} analysts covering this stock</p>` : ''}
+    ${consensusLabel ? `
+    <div class="flex items-center gap-3">
+      <span class="px-4 py-1.5 rounded-full font-semibold text-metric-display ${recBadgeClass}">${consensusLabel}</span>
+    </div>` : ''}
+    ${breakdownBar}
+    ${(targetPrice != null || currentPrice != null) ? `
+    <div class="p-3 rounded-lg bg-surface-page">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        ${currentPrice != null ? `<div><div class="text-[11px] uppercase font-semibold text-text-tertiary">Current Price</div><div class="font-code-numeral text-body-lg font-semibold">${fmtINR(currentPrice)}</div></div>` : ''}
+        ${currentPrice != null && targetPrice != null ? `<span class="text-text-muted text-body-lg">→</span>` : ''}
+        ${targetPrice != null ? `<div><div class="text-[11px] uppercase font-semibold text-text-tertiary">Avg Target</div><div class="font-code-numeral text-body-lg font-semibold">${fmtINR(targetPrice)}</div></div>` : ''}
+        ${upside != null ? `<span class="px-2 py-0.5 rounded-full font-code-numeral text-body-sm font-semibold ${upside >= 0 ? 'bg-gain-green-subtle text-gain-green' : 'bg-loss-red-subtle text-loss-red'}">${upside >= 0 ? '+' : ''}${upside.toFixed(1)}%</span>` : ''}
+      </div>
+    </div>` : ''}
+    <p class="text-body-sm text-text-secondary">${data.market_intelligence || 'No analyst summary available.'}</p>`;
+  const news = data.news_articles || [];
+  const nsc = data.news_sentiment_counts || {};
+  const sentimentLine = `What people are thinking: <b class="text-gain-green">${nsc.positive ?? 0} positive</b> · <b class="text-loss-red">${nsc.negative ?? 0} negative</b> · <b>${nsc.neutral ?? 0} neutral</b> articles`;
+  document.getElementById('pp-news').innerHTML = `
+    <p class="text-body-sm text-text-secondary mb-2">${sentimentLine}</p>
+    ${news.length ? news.map(a => `
+    <div class="p-3 rounded-lg bg-surface-page">
+      <div class="text-[11px] text-text-tertiary mb-1">${a.source || 'News'}${a.date ? ' · ' + a.date : ''}</div>
+      ${a.url ? `<a href="${a.url}" target="_blank" rel="noopener" class="font-semibold hover:text-primary hover:underline">${a.headline}</a>` : `<span class="font-semibold">${a.headline}</span>`}
+      ${a.summary ? `<p class="text-[12px] text-text-secondary mt-1">${a.summary}</p>` : ''}
+    </div>`).join('') : '<p class="text-text-muted">No news articles available.</p>'}`;
+  _tabContexts.peoples = `Sentiment: ${s != null ? s + '/100' : 'AI-derived from news'}. Positive signals: ${pos.map(extractTextLocal).join('; ') || 'none'}. Concerns: ${risks.map(extractTextLocal).join('; ') || 'none'}. Analyst consensus: ${consensusLabel || 'unavailable'}${hasBreakdown ? ` (${counts.buy} buy / ${counts.hold} hold / ${counts.sell} sell of ${totalRecs})` : ''}${nAnalysts ? `, ${nAnalysts} analysts` : ''}${targetPrice != null ? `, avg target ₹${targetPrice}` : ''}${upside != null ? ` (${upside >= 0 ? '+' : ''}${upside.toFixed(1)}%)` : ''}. Article sentiment: ${nsc.positive ?? 0} positive, ${nsc.negative ?? 0} negative, ${nsc.neutral ?? 0} neutral. Top headlines: ${news.slice(0, 5).map(a => a.headline).join(' | ') || 'none'}`;
+}
+
+// ─── Download Full Report (compiled server-side from the same live tab data) ──
+async function downloadReport() {
+  const btn = document.getElementById('btn-download-report');
+  btn.disabled = true; const old = btn.textContent; btn.textContent = 'Generating Report...';
+  try {
+    const res = await fetch(`${API_BASE}/download-report`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: document.getElementById('company-name').textContent || symbol, ticker: symbol })
+    });
+    const ct = res.headers.get('content-type') || '';
+    if (!res.ok || ct.includes('application/json')) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Report generation failed');
+    }
+    const blob = await res.blob();
+    const fname = `${symbol.split('.')[0]}_research_report_${new Date().toISOString().slice(0, 10)}.html`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  } catch (err) {
+    alert('Report download failed: ' + err.message);
+  } finally { btn.disabled = false; btn.textContent = 'Download Full Report'; }
+}
+
+async function loadCompany() {
+  try {
+    // Show loading state
+    document.getElementById('company-name').textContent = 'Loading...';
+    
+    const res = await fetch(`${API_BASE}/company/${symbol}`);
+    const data = await res.json();
+    console.log("API Response:", data);
+
+    // CRITICAL: Check for error response
+    if (!data || data.error) {
+      const errorMsg = data.error || 'Unknown error';
+      console.error("API Error:", errorMsg);
+      document.getElementById('company-name').innerHTML = `
+        <span class="text-loss-red flex items-center gap-2">
+          <span class="material-symbols-outlined">error_outline</span>
+          Error: ${errorMsg}
+        </span>
+      `;
+      return;
+    }
+
+    // Extract data with proper None/undefined handling
+    const name = safeGet(data, 'name', symbol);
+    const price = safeGet(data, 'price', null);
+    const priceChange = safeGet(data, 'price_change', 0);
+    const marketCap = safeGet(data, 'market_cap', null);
+    const peRatio = safeGet(data, 'pe_ratio', null);
+    const roe = safeGet(data, 'roe', null);
+    const divYield = safeGet(data, 'dividend_yield', null);
+    const high52 = safeGet(data, 'high_52w', null);
+    const low52 = safeGet(data, 'low_52w', null);
+    const sector = safeGet(data, 'sector', 'Unknown');
+    const sentiment = safeGet(data, 'sentiment_score', null);
+    const dataQuality = safeGet(data, '_data_quality', {});
+    const dataSources = safeGet(data, '_data_sources', {});
+    const sectorMetrics = safeGet(data, 'sector_metrics', {});
+
+    // Update data sources section
+    if (dataSources.fetched_at) {
+      document.getElementById('fetch-time').textContent = formatTimestamp(dataSources.fetched_at);
+    }
+    
+    const renderSource = (elId, src) => {
+      const badge = getStatusBadge(src.available, src.timestamp);
+      const detail = src.detail ? `<div class="text-[12px] text-text-secondary mt-1 leading-snug">${src.detail}</div>` : '';
+      document.getElementById(elId).innerHTML = badge + detail;
+    };
+
+    renderSource('price-status', safeGet(dataSources, 'price_data', {}));
+    renderSource('news-status', safeGet(dataSources, 'news', {}));
+    renderSource('analyst-status', safeGet(dataSources, 'analyst_consensus', {}));
+    renderSource('fundamentals-status', safeGet(dataSources, 'fundamentals', {}));
+    renderSource('sentiment-status', safeGet(dataSources, 'sentiment', {}));
+    renderSource('risk-model-status', safeGet(dataSources, 'risk_model', {}));
+
+    // Update header
+    document.getElementById('company-name').textContent = name;
+    document.getElementById('company-ticker').textContent = symbol;
+    
+    // Price with explicit N/A handling
+    if (price !== null) {
+      document.getElementById('company-price').textContent = `₹${parseFloat(price).toFixed(2)}`;
+      if (priceChange === null || isNaN(parseFloat(priceChange))) {
+        document.getElementById('company-change').textContent = 'No data';
+      } else {
+      const changeSign = priceChange >= 0 ? '+' : '';
+      const changeColor = priceChange >= 0 ? 'text-gain-green' : 'text-loss-red';
+      document.getElementById('company-change').innerHTML = `
+        <span class="material-symbols-outlined text-[14px] ${changeColor}">
+          ${priceChange >= 0 ? 'arrow_drop_up' : 'arrow_drop_down'}
+        </span>
+        <span class="${changeColor}">${changeSign}${parseFloat(priceChange).toFixed(2)}%</span>
+      `;
+      }
+    } else {
+      document.getElementById('company-price').textContent = 'N/A';
+      document.getElementById('company-change').textContent = 'No data';
+    }
+
+    // 6-Stat Strip with formatters
+    document.getElementById('stat-mcap').textContent = formatMetric(marketCap, formatMarketCap);
+    document.getElementById('stat-pe').textContent = formatMetric(peRatio, (v) => `${parseFloat(v).toFixed(1)}x`);
+    document.getElementById('stat-roe').textContent = formatMetric(roe, (v) => `${parseFloat(v).toFixed(1)}%`);
+    document.getElementById('stat-div').textContent = formatMetric(divYield, (v) => `${parseFloat(v).toFixed(2)}%`);
+    document.getElementById('stat-high52').textContent = formatMetric(high52, (v) => `₹${parseFloat(v).toFixed(0)}`);
+    document.getElementById('stat-low52').textContent = formatMetric(low52, (v) => `₹${parseFloat(v).toFixed(0)}`);
+
+    // Business Summary & Sector
+    document.getElementById('company-summary').textContent = safeGet(data, 'business_summary', 'No summary available');
+    document.getElementById('company-sector').textContent = sector;
+
+    // Market Intelligence
+    const intel = safeGet(data, 'market_intelligence', null);
+    if (intel) {
+      document.getElementById('company-intel').textContent = intel;
+    } else {
+      document.getElementById('company-intel').innerHTML = '<span class="text-text-muted italic">No market intelligence available</span>';
+    }
+    
+    // Catalysts (linked news items with descriptions)
+    const catalysts = safeGet(data, 'catalysts', []) || [];
+    document.getElementById('company-catalysts').innerHTML =
+      Array.isArray(catalysts) && catalysts.length > 0
+        ? catalysts.map(c => {
+            if (typeof c === 'string') {
+              return `<div class="flex items-start gap-2"><span class="text-gain-green">→</span><span class="text-body-sm">${c}</span></div>`;
+            }
+            const titleHtml = c.url
+              ? `<a href="${c.url}" target="_blank" rel="noopener" class="text-body-sm text-text-primary hover:text-primary hover:underline">${c.title}</a>`
+              : `<span class="text-body-sm">${c.title}</span>`;
+            const srcHtml = c.source ? `<span class="text-text-muted text-[11px]"> — ${c.source}</span>` : '';
+            const descHtml = c.summary ? `<p class="text-text-muted text-[12px] mt-1 leading-snug">${c.summary}</p>` : '';
+            return `<div class="flex items-start gap-2"><span class="text-gain-green mt-0.5">→</span><div>${titleHtml}${srcHtml}${descHtml}</div></div>`;
+          }).join('')
+        : '<span class="text-text-muted">No recent catalysts identified</span>';
+
+    // Sentiment with explicit N/A
+    if (sentiment !== null && !isNaN(sentiment)) {
+      document.getElementById('sentiment-score').innerHTML = `
+        <span class="px-2 py-1 rounded-full bg-gain-green-subtle text-gain-green font-code-numeral text-code-numeral font-bold">
+          ${sentiment}/100
+        </span>
+      `;
+    } else {
+      document.getElementById('sentiment-score').innerHTML = `
+        <span class="px-2 py-1 rounded-full bg-surface-secondary text-text-muted font-code-numeral text-code-numeral">
+          Unavailable
+        </span>
+      `;
+    }
+
+    // Positive & Risk Factors
+    const posFactors = safeGet(data, 'positive_factors', []) || [];
+    document.getElementById('sentiment-positive').innerHTML = 
+      Array.isArray(posFactors) && posFactors.length > 0
+        ? posFactors.map(f => `<li class="text-body-sm">• ${f}</li>`).join('')
+        : '<li class="text-text-muted italic">No positive factors identified</li>';
+    
+    const riskFactors = safeGet(data, 'risk_factors', []) || [];
+    document.getElementById('sentiment-risks').innerHTML = 
+      Array.isArray(riskFactors) && riskFactors.length > 0
+        ? riskFactors.map(r => `<li class="text-body-sm">• ${r}</li>`).join('')
+        : '<li class="text-text-muted italic">No risk factors identified</li>';
+
+    // Risk Analysis
+    const riskLevel = safeGet(data, 'risk_level', 'Unknown');
+    const riskDetail = safeGet(data, 'risk_detail', null);
+    document.getElementById('risk-score').textContent = riskLevel;
+    document.getElementById('risk-detail').textContent = riskDetail || 'No risk analysis available';
+
+    // Peers with sector-awareness
+    const peers = safeGet(data, 'peers', []) || [];
+    document.getElementById('peer-table').innerHTML = 
+      Array.isArray(peers) && peers.length > 0
+        ? peers.map(p => `
+          <div class="flex justify-between items-center p-2 rounded hover:bg-surface-page">
+            <span class="text-body-sm font-semibold text-text-primary">${safeGet(p, 'name', 'N/A')}</span>
+            <span class="font-code-numeral text-body-sm text-text-secondary">P/E: ${formatMetric(safeGet(p, 'pe', null), (v) => parseFloat(v).toFixed(1) + 'x')}</span>
+          </div>
+        `).join('')
+        : '<span class="text-text-muted">Peer data unavailable or not found</span>';
+
+    // Price Forecast
+    const currentP = safeGet(data, 'current_price', null);
+    const targetP = safeGet(data, 'target_price', null);
+    const expectedRet = safeGet(data, 'expected_return', null);
+    
+    if (currentP !== null) {
+      document.getElementById('forecast-current').textContent = `₹${parseFloat(currentP).toFixed(0)}`;
+    } else {
+      document.getElementById('forecast-current').textContent = 'N/A';
+    }
+    
+    if (targetP !== null) {
+      document.getElementById('forecast-target').textContent = `₹${parseFloat(targetP).toFixed(0)}`;
+    } else {
+      document.getElementById('forecast-target').textContent = 'N/A';
+    }
+    
+    if (expectedRet !== null && !isNaN(expectedRet)) {
+      const returnColor = expectedRet >= 0 ? 'text-gain-green' : 'text-loss-red';
+      const returnArrow = expectedRet >= 0 ? 'arrow_drop_up' : 'arrow_drop_down';
+      document.getElementById('forecast-arrow').className = `material-symbols-outlined text-[20px] ${returnColor}`;
+      document.getElementById('forecast-arrow').textContent = returnArrow;
+      document.getElementById('forecast-return').className = `text-body-base font-metric-display font-bold ${returnColor}`;
+      document.getElementById('forecast-return').textContent = `${expectedRet >= 0 ? '+' : ''}${parseFloat(expectedRet).toFixed(1)}%`;
+    } else {
+      document.getElementById('forecast-arrow').className = 'material-symbols-outlined text-[20px] text-text-muted';
+      document.getElementById('forecast-arrow').textContent = '–';
+      document.getElementById('forecast-return').className = 'text-body-base font-metric-display font-bold text-text-muted';
+      document.getElementById('forecast-return').textContent = 'Forecast unavailable';
+    }
+    
+    const analyst = safeGet(data, 'analyst_rating', 'Hold');
+    const fx = safeGet(data, 'forecast_explanation', null);
+    const fxEl = document.getElementById('forecast-explanation');
+    if (fx && fx.summary) {
+      const confBadge = fx.confidence
+        ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${fx.confidence === 'High' ? 'bg-gain-green-subtle text-gain-green' : fx.confidence === 'Low' ? 'bg-loss-red-subtle text-loss-red' : 'bg-surface-secondary text-text-secondary'}">${fx.confidence} confidence</span>`
+        : '';
+      const bulletList = (items, marker, color) => items.map(t =>
+        `<li class="flex gap-1.5"><span class="${color} shrink-0">${marker}</span><span>${t}</span></li>`).join('');
+      fxEl.innerHTML = `
+        <p class="text-text-primary">${fx.summary}</p>
+        ${(fx.drivers || []).length ? `<div class="mt-2"><div class="text-[11px] uppercase tracking-wide text-text-tertiary font-semibold">Why this target</div><ul class="mt-1 space-y-1">${bulletList(fx.drivers, '•', 'text-gain-green')}</ul></div>` : ''}
+        ${(fx.assumptions || []).length ? `<div class="mt-2"><div class="text-[11px] uppercase tracking-wide text-text-tertiary font-semibold">Assumptions</div><ul class="mt-1 space-y-1">${bulletList(fx.assumptions, '–', 'text-text-muted')}</ul></div>` : ''}
+        ${(fx.risks_to_forecast || []).length ? `<div class="mt-2"><div class="text-[11px] uppercase tracking-wide text-text-tertiary font-semibold">What could break it</div><ul class="mt-1 space-y-1">${bulletList(fx.risks_to_forecast, '!', 'text-loss-red')}</ul></div>` : ''}
+        <div class="mt-2 flex items-center gap-2">${confBadge}<span class="text-[11px] text-text-muted">${fx.basis || ''}</span></div>
+      `;
+    } else {
+      fxEl.textContent = `Based on fundamental health analysis. Consensus: ${analyst}`;
+    }
+
+    // Build Overview tab context with key metrics
+    const overviewMetrics = [
+      `Price: ₹${price || 'N/A'}`,
+      `P/E: ${peRatio || 'N/A'}`,
+      `ROE: ${roe || 'N/A'}%`,
+      `Market Cap: ${marketCap || 'N/A'}`,
+      `52W High: ₹${high52 || 'N/A'}`,
+      `52W Low: ₹${low52 || 'N/A'}`,
+      `Dividend Yield: ${divYield || 'N/A'}%`,
+      `Sector: ${sector}`,
+      `Sentiment: ${sentiment || 'N/A'}/100`,
+    ].filter(m => m);
+    _tabContexts.overview = `Overview tab (Active). Key metrics shown: ${overviewMetrics.join('; ')}. Business: ${safeGet(data, 'business_summary', 'N/A').substring(0, 200)}...`;
+
+    // Render the other tabs from the same live payload
+    renderFinancialsTab(data);
+    renderPeersTab(data);
+    renderPeoplesTab(data);
+    showTab(initialTab, false);
+
+  } catch (err) {
+    console.error('Company load failed:', err);
+    document.getElementById('company-name').innerHTML = `
+      <span class="text-loss-red flex items-center gap-2">
+        <span class="material-symbols-outlined">error_outline</span>
+        Error: ${err.message}
+      </span>
+    `;
+  }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const query = input.value.trim();
+  if (!query) return;
+
+  const history = document.getElementById('chat-history');
+  history.innerHTML += `<div class="text-body-sm text-right text-primary">You: ${query}</div>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        symbol: currentCompanyTicker,
+        question: query,
+        tab: currentTab,
+        context: _tabContexts[currentTab] || ''
+      })
+    });
+    const data = await res.json();
+    const answer = safeGet(data, 'answer', 'No response generated');
+    history.innerHTML += `<div class="text-body-sm text-text-secondary bg-surface-page p-2 rounded">Assistant: ${answer}</div>`;
+    history.scrollTop = history.scrollHeight;
+  } catch (err) {
+    history.innerHTML += `<div class="text-body-sm text-loss-red">Error: ${err.message}</div>`;
+  }
+
+  input.value = '';
+}
+
+function goToDashboard() {
+  window.location.href = 'dashboard.html';
+}
+
+function switchTheme() {
+  document.documentElement.classList.toggle('dark');
+}
+
+// ─── COMPANY PRICE CHART (similar to dashboard) ──
+let _companyChartTf = '1y';
+let _companyChartSeries = { history: [], intraday: [] };
+
+const COMPANY_TF_COLORS = { '1d': '#14b8a6', '1w': '#3b82f6', '1m': '#8b5cf6', '6m': '#06b6d4', '1y': '#00A86B', '5y': '#06b6d4' };
+
+function _filterCompanySeries(tf) {
+  const daily = _companyChartSeries.history || [];
+  const intraday = _companyChartSeries.intraday || [];
+
+  if (tf === '1d') {
+    const last = intraday.slice(-75);
+    return last.map(p => ({ x: new Date(p.date), y: parseFloat(p.close) }));
+  }
+  
+  const daysMap = { '1w': 5, '1m': 20, '6m': 126, '1y': 252, '5y': 1260 };
+  const days = daysMap[tf] || 252;
+  const filtered = daily.slice(-days);
+  return filtered.map(p => ({ x: new Date(p.date), y: parseFloat(p.close) }));
+}
+
+function renderCompanyChart(tf) {
+  const el = document.getElementById('company-price-chart');
+  if (!el) return;
+  
+  Plotly.purge('company-price-chart');
+  const data = _filterCompanySeries(tf);
+  
+  if (!data.length) {
+    el.innerHTML = '<p class="text-center p-8 text-text-tertiary text-body-sm">No chart data available</p>';
+    return;
+  }
+
+  const color = COMPANY_TF_COLORS[tf] || '#00A86B';
+  const lastPrice = data[data.length - 1]?.y;
+  const firstPrice = data[0]?.y;
+  const isUp = lastPrice >= firstPrice;
+
+  const trace = {
+    x: data.map(p => p.x),
+    y: data.map(p => p.y),
+    type: 'scatter',
+    mode: 'lines',
+    name: symbol,
+    line: { color: color, width: 2 },
+    fill: 'tozeroy',
+    fillcolor: color + '1a',
+    hovertemplate: '<b>%{x|%b %d, %Y}</b><br>₹%{y:.2f}<extra></extra>'
+  };
+
+  const lastTrace = {
+    x: [data[data.length - 1].x],
+    y: [data[data.length - 1].y],
+    type: 'scatter',
+    mode: 'markers',
+    name: 'Current',
+    marker: { size: 8, color: color },
+    hovertemplate: '<b>Current Price</b><br>₹%{y:.2f}<extra></extra>'
+  };
+
+  Plotly.newPlot('company-price-chart', [trace, lastTrace], {
+    title: `${symbol} • ${tf.toUpperCase()}`,
+    margin: { t: 8, r: 8, b: 30, l: 60 }, autosize: true,
+    paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+    xaxis: { showgrid: true, gridcolor: '#E2E8F0', zeroline: false },
+    yaxis: { showgrid: true, gridcolor: '#E2E8F0', zeroline: false },
+    hovermode: 'x unified', showlegend: false
+  }, { responsive: true, displayModeBar: false });
+}
+
+function setCompanyChartTf(tf) {
+  _companyChartTf = tf;
+  document.querySelectorAll('.company-chart-tf-btn').forEach(b => {
+    const active = b.dataset.tf === tf;
+    b.classList.toggle('bg-surface-card', active);
+    b.classList.toggle('text-primary', active);
+    b.classList.toggle('font-semibold', active);
+    b.classList.toggle('shadow-sm', active);
+    b.classList.toggle('text-text-secondary', !active);
+    b.classList.toggle('hover:text-text-primary', !active);
+  });
+  renderCompanyChart(tf);
+}
+
+document.querySelectorAll('.company-chart-tf-btn').forEach(b => 
+  b.addEventListener('click', () => setCompanyChartTf(b.dataset.tf))
+);
+
+async function loadCompanyChart() {
+  try {
+    const res = await fetch(`${API_BASE}/company/${symbol}/price-history`);
+    if (!res.ok) {
+      console.warn('Price history endpoint not available, chart will not render');
+      return;
+    }
+    const data = await res.json();
+    if (data.chart_series) {
+      _companyChartSeries = data.chart_series;
+      setCompanyChartTf(_companyChartTf);
+    }
+  } catch (err) {
+    console.warn('Failed to load company price chart:', err.message);
+  }
+}
+
+// Activate the tab from the URL immediately (works even before/if data loads)
+showTab(initialTab, false);
+loadCompany();
+loadCompanyChart();
+</script>
+</body>
+</html>

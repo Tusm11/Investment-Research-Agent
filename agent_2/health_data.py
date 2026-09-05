@@ -34,6 +34,9 @@ def build_health_features(ticker_symbol):
         "Accounts Receivable":       bs_latest.get("Accounts Receivable") or bs_latest.get("Receivables"),
         "Inventory":                 bs_latest.get("Inventory"),
         "Cost of Revenue":           is_latest.get("Cost Of Revenue") or is_latest.get("Cost of Revenue") or is_latest.get("Reconciled Cost Of Revenue"),
+        "Stockholders Equity":       bs_latest.get("Stockholders Equity"),
+        "Long Term Debt":            bs_latest.get("Long Term Debt"),
+        "Total Capitalization":      bs_latest.get("Total Capitalization"),
     }
 
     feature_vector = {}
@@ -47,8 +50,19 @@ def build_health_features(ticker_symbol):
         except Exception:
             feature_vector[key] = None
 
-    set_val("ROCE", raw["EBIT"] / (raw["Total Assets"] - raw["Current Liabilities"]) * 100
-            if raw["EBIT"] and raw["Total Assets"] and raw["Current Liabilities"] else None)
+    # ROCE = EBIT / Capital Employed * 100
+    # Capital Employed = Total Assets - Current Liabilities OR Shareholders Equity + Long Term Debt
+    # Using Total Capitalization if available (most accurate for diversified conglomerates)
+    capital_employed = None
+    if raw.get("Total Capitalization"):
+        capital_employed = raw["Total Capitalization"]
+    elif raw["Total Assets"] and raw["Current Liabilities"]:
+        capital_employed = raw["Total Assets"] - raw["Current Liabilities"]
+    elif raw.get("Stockholders Equity") and raw.get("Long Term Debt"):
+        capital_employed = raw["Stockholders Equity"] + raw["Long Term Debt"]
+    
+    set_val("ROCE", raw["EBIT"] / capital_employed * 100
+            if raw["EBIT"] and capital_employed else None)
 
     set_val("Debt", raw["Debt"])
     set_val("Sales", raw["Sales"])

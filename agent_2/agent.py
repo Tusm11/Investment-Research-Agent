@@ -4,7 +4,7 @@ from agent_2.red_flags import detect_red_flags, assess_isolation_forest
 from agent_2.peer_comparison import compare_peers
 from agent_2.final_agent2_router import route_query
 from agent_2.health_data import build_health_features
-
+#main function for Agent 2, which processes the output from Agent 1 to analyze the fundamentals of a given stock ticker. It detects red flags, assesses the stock using an isolation forest model, compares it with peers, and builds a fundamental profile. The function returns a structured dictionary containing financial facts, red flags, model assessment, peer comparison, fundamental profile, and signals indicating strengths and weaknesses.
 
 def run_agent2(agent1_payload, question=""):
     ticker = agent1_payload.get("ticker")
@@ -14,16 +14,17 @@ def run_agent2(agent1_payload, question=""):
     financial_facts = {}
 
     route = route_query(question, ticker)
-    run_fundamentals = "fundamentals" in route.get("modules", []) or True
-
-    if "red_flags" in route.get("modules", []) or run_fundamentals:
+    
+    # Run red flags detection
+    if "red_flags" in route.get("modules", []) or "fundamentals" in route.get("modules", []):
         try:
             red_flags = detect_red_flags(ticker)
             model_assessment = assess_isolation_forest(ticker)
         except Exception as e:
             print(f"Agent2 red flags failed: {e}")
 
-    if "peer_comparison" in route.get("modules", []) or "fundamentals" in route.get("modules", []) or run_fundamentals:
+    # Run peer comparison
+    if "peer_comparison" in route.get("modules", []) or "fundamentals" in route.get("modules", []):
         try:
             company_features = build_health_features(ticker)["feature_vector"]
             peer_comparison = compare_peers(ticker, company_features)

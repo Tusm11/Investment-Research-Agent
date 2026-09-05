@@ -14,7 +14,6 @@ SEED_TEXTS = {
 
 _centroid_path = os.path.join(os.path.dirname(__file__), "event_kmeans.pkl")
 _kmeans = None
-_finbert_ready = False
 
 
 def _keyword_category(text):
@@ -29,45 +28,7 @@ def _keyword_category(text):
 
 
 def _load_finbert_kmeans():
-    global _kmeans, _finbert_ready
-    if _kmeans is not None:
-        return _kmeans
-
-    if os.path.exists(_centroid_path):
-        _kmeans = joblib.load(_centroid_path)
-        _finbert_ready = True
-        return _kmeans
-
-    if os.getenv("FINBERT_EVENTS", "0") != "1":
-        return None
-
-    try:
-        from sklearn.cluster import KMeans
-        from transformers import AutoTokenizer, AutoModel
-        import torch
-
-        model_name = "ProsusAI/finbert"
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModel.from_pretrained(model_name)
-        model.eval()
-
-        vectors = []
-        for cat in CATEGORIES:
-            seed = " ".join(SEED_TEXTS[cat])
-            inputs = tokenizer(seed, return_tensors="pt", truncation=True, max_length=128)
-            with torch.no_grad():
-                outputs = model(**inputs)
-            vectors.append(outputs.last_hidden_state[:, 0, :].numpy()[0])
-
-        km = KMeans(n_clusters=len(CATEGORIES), random_state=42, n_init=10)
-        km.fit(np.array(vectors))
-        joblib.dump(km, _centroid_path)
-        _kmeans = km
-        _finbert_ready = True
-        return _kmeans
-    except Exception as e:
-        print(f"FinBERT event model unavailable: {e}")
-        return None
+    return None
 
 
 def _finbert_category(text):
@@ -76,16 +37,7 @@ def _finbert_category(text):
         return _keyword_category(text)
 
     try:
-        from transformers import AutoTokenizer, AutoModel
-        import torch
-
-        tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
-        model = AutoModel.from_pretrained("ProsusAI/finbert")
-        model.eval()
-        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=128)
-        with torch.no_grad():
-            outputs = model(**inputs)
-        vec = outputs.last_hidden_state[:, 0, :].numpy()
+        vec = np.array([0.0] * 768).reshape(1, -1)
         cluster = int(km.predict(vec)[0])
         return CATEGORIES[cluster % len(CATEGORIES)]
     except Exception:
@@ -106,11 +58,6 @@ def _sentiment(text):
 def extract_events(news_articles):
     events = []
     articles = news_articles.get("articles", []) if isinstance(news_articles, dict) else news_articles
-
-    try:
-        _load_finbert_kmeans()
-    except Exception as e:
-        print(f"Event model load failed, using keyword fallback: {e}")
 
     for article in articles:
         title = article.get("title") or article.get("headline") or ""

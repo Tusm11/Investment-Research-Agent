@@ -21,7 +21,7 @@ def generate_verdict(health_score, red_flags, peer_comparison, fundamental_profi
             "Features": health_score.get("report", {}).get("feature_vector", {})
         }
 
-        llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+        llm = ChatGroq(model=os.getenv("GROQ_MODEL", "mixtral-8x7b-32768"), temperature=0)
         prompt = ChatPromptTemplate.from_template(
             """You are an objective financial reporting system. Convert the structured data below into a clear, evidence-based financial summary.
 

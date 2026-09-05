@@ -74,10 +74,10 @@ def create_price_chart(ticker, price_data, events=None, output_dir="charts"):
     for i in range(1, len(closes)):
         if closes[i - 1]:
             returns.append((closes[i] - closes[i - 1]) / closes[i - 1])
-
+    #volatality = round((sum(r ** 2 for r in returns) / len(returns)) ** 0.5 * 100, 2) if returns else None
     volatility = round((sum(r ** 2 for r in returns) / len(returns)) ** 0.5 * 100, 2) if returns else None
     stats = _price_stats(ohlcv)
-
+    #volatility is calculated as the standard deviation of daily returns, expressed as a percentage. It provides a measure of how much the stock price fluctuates over time, with higher values indicating greater risk and variability in price movements.
     return {
         "period": f"{len(ohlcv)}_days",
         **stats,

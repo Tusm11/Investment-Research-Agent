@@ -1,24 +1,25 @@
 """Agent 4 - Reasoning Agent with four internal stages."""
 
 from __future__ import annotations
-import json, ast, operator as op, os, re
+import json, os, re, time
 from math import prod
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", "agent_1", ".env"))
+# Cache for LLM classification results (valid for 60 seconds)
+_classification_cache = {}
+_CACHE_TTL = 60
+
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY", "")
 
 try:
     from agent_1.data_fetcher import fetch_company_website_context
-except:
+except Exception:
     fetch_company_website_context = None
 
-
-# ============================================================================
 # STAGE 1: Question Classifier
-# ============================================================================
 
 def classify_question(query, memory=None):
     """
@@ -31,6 +32,13 @@ def classify_question(query, memory=None):
         "tools": list,           # tools to use (financial, market, chart, math, education, comparison)
     }
     """
+    # Check cache first
+    cache_key = query.strip()
+    if cache_key in _classification_cache:
+        cached_result, cached_time = _classification_cache[cache_key]
+        if time.time() - cached_time < _CACHE_TTL:
+            return cached_result
+    
     system_prompt = """You are a Question Classifier for an investment research assistant.
     
 Your job is to analyze the user's question and determine:
@@ -47,11 +55,19 @@ Intents to recognize:
 - education: Teaching concepts (What is ROCE?, Why is debt important?)
 - comparison: Comparing two or more companies
 - calculation: Mathematical queries (CAGR, future value, returns)
+- historical_performance: Historical price changes over specific periods (e.g., "performance in last 5 years", "return over 6 months", "gain in past year")
+- sector_ranking: Finding best/worst performers in a sector
+- investment_simulator: Calculate returns from historical investments
 - market_intelligence: News, sentiment, analyst views, sector trends
 - price_analysis: Price movements, support/resistance, volatility
 - investment_summary: Long-term investment suitability
 - news: Recent events, news summaries
 - unsupported: Questions about future price predictions
+
+RULES:
+1. If the question asks about company performance, return, gain, loss over time - it's HISTORICAL_PERFORMANCE
+2. If the question asks "What is X?" where X is a financial concept (ROCE, P/E ratio, etc.) - it's EDUCATION
+3. Do NOT confuse company performance with explaining concepts
 
 Entities: Extract company names or ticker symbols.
 Needs: List of required memory sections from: company_info, financial_metrics, financial_facts, peer_comparison, price_data, chart_metrics, risk_metrics, news_articles, events, analyst_data, market_facts, market_intelligence, opportunities, risks.
@@ -63,6 +79,22 @@ Example output for "Why is Reliance's debt high?":
     "entities": ["Reliance"],
     "needs": ["company_info", "financial_metrics", "peer_comparison"],
     "tools": ["financial", "market"]
+}
+
+Example output for "What is the performance of Reliance in last 5 years?":
+{
+    "intent": "historical_performance",
+    "entities": ["Reliance"],
+    "needs": ["price_data", "chart_metrics"],
+    "tools": ["historical"]
+}
+
+Example output for "What is ROCE?":
+{
+    "intent": "education",
+    "entities": [],
+    "needs": [],
+    "tools": ["education"]
 }
 
 Example output for "Compare TCS and Infosys":
@@ -92,19 +124,26 @@ Example output for "Will Reliance reach ₹5000 next year?":
 
     prompt = ChatPromptTemplate.from_messages([("system", system_prompt), ("human", "{question}")])
     
-    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    llm = ChatGroq(model=os.getenv("GROQ_MODEL", "mixtral-8x7b-32768"), temperature=0)
     
     try:
         response = (prompt | llm).invoke({"question": query.strip()}).content.strip()
         response = re.sub(r"^```(?:json)?|```$", "", response, flags=re.IGNORECASE | re.MULTILINE).strip()
         result = json.loads(response)
+        result["_query"] = query
         return _normalize_classification(result)
     except json.JSONDecodeError:
         # LLM returned invalid JSON, use fallback
-        return _fallback_classification(query)
+        result = _fallback_classification(query)
     except Exception as e:
         # Fallback classification
-        return _fallback_classification(query)
+        result = _fallback_classification(query)
+    else:
+        result = _normalize_classification(result)
+    
+    # Cache the result
+    _classification_cache[query.strip()] = (result.copy(), time.time())
+    return result
 
 
 def _normalize_classification(data):
@@ -117,24 +156,45 @@ def _normalize_classification(data):
     needs = list(set(str(n) for n in (data.get("needs") or []) if n))
     tools = list(set(str(t) for t in (data.get("tools") or []) if t))
     
-    return {
+    result = {
         "intent": intent,
         "entities": entities,
         "needs": needs,
         "tools": tools,
     }
+    
+    # Post-processing: Override education intent if question is about historical performance
+    query_lower = data.get("_query", "").lower()
+    if intent == "education" and any(k in query_lower for k in ["performance", "return", "gain", "loss"]):
+        return _fallback_classification(data.get("_query", ""))
+    
+    return result
 
 
 def _fallback_classification(query):
     """Fallback classification when LLM fails."""
     text = (query or "").lower()
     
-    # Detect intent
-    if any(k in text for k in ["compare", "vs", "versus"]):
+    # New: Historical performance detection - check FIRST to override "what is" and "explain"
+    if any(k in text for k in ["performance", "return", "increase", "decrease", "gain", "loss", "growth", "last", "ago", "past", "years"]):
+        intent = "historical_performance"
+        tools = ["historical"]
+        needs = ["price_data", "chart_metrics"]
+    # New: Sector ranking detection
+    elif any(k in text for k in ["best", "top", "worst", "leader", "perform", "rank"]):
+        intent = "sector_ranking"
+        tools = ["sector_ranking"]
+        needs = ["company_info", "financial_metrics", "price_data", "chart_metrics"]
+    # New: Investment simulator detection
+    elif any(k in text for k in ["invest", "bought", "purchased", "years ago"]):
+        intent = "investment_simulator"
+        tools = ["investment_simulator", "math"]
+        needs = ["price_data"]
+    elif any(k in text for k in ["compare", "vs", "versus"]):
         intent = "comparison"
         tools = ["comparison"]
         needs = ["financial_metrics", "price_data"]
-    elif any(k in text for k in ["cagr", "future value", "returns", "₹.*lakh", "₹.*crore"]):
+    elif any(k in text for k in ["cagr", "future value", "returns", "₹.*lakh", "₹.*crore", "invest.*ago"]):
         intent = "calculation"
         tools = ["math"]
         needs = ["price_data"]
@@ -170,10 +230,7 @@ def _fallback_classification(query):
         "tools": tools,
     }
 
-
-# ============================================================================
 # STAGE 2: Context Retriever
-# ============================================================================
 
 def retrieve_context(memory, required_sections):
     """Retrieve only the required sections from memory."""
@@ -183,10 +240,7 @@ def retrieve_context(memory, required_sections):
             context[section] = memory[section]
     return context
 
-
-# ============================================================================
 # STAGE 3 & 4: Reasoning and Answer Generation
-# ============================================================================
 
 def answer_with_reasoning(query, memory, context, plan):
     """
@@ -194,6 +248,39 @@ def answer_with_reasoning(query, memory, context, plan):
     """
     intent = plan["intent"]
     tools = plan["tools"]
+    
+    # Check if dashboard insights exist and can answer the question directly
+    dashboard = memory.get("dashboard", {})
+    
+    # For financial_health questions, check business_fundamentals first
+    if intent == "financial_health" and dashboard.get("business_fundamentals"):
+        business = dashboard["business_fundamentals"]
+        debt = context.get("company_info", {}).get("debt_to_equity")
+        roce = context.get("company_info", {}).get("return_on_equity") or context.get("financial_metrics", {}).get("roce")
+        
+        # If query is about debt, use debt-specific answer
+        if "debt" in query.lower() and debt is not None:
+            return {
+                "response": _generate_dashboard_answer(query, business, "Debt Position", debt),
+                "sections_used": list(context.keys())
+            }
+        # If query is about ROCE/returns, use ROCE-specific answer
+        elif ("roce" in query.lower() or "returns" in query.lower() or "capital" in query.lower()) and roce is not None:
+            return {
+                "response": _generate_dashboard_answer(query, business, "ROCE Position", roce),
+                "sections_used": list(context.keys())
+            }
+        # Use debt answer if available
+        elif debt is not None:
+            return {
+                "response": _generate_dashboard_answer(query, business, "Debt Position", debt),
+                "sections_used": list(context.keys())
+            }
+        elif roce is not None:
+            return {
+                "response": _generate_dashboard_answer(query, business, "ROCE Position", roce),
+                "sections_used": list(context.keys())
+            }
     
     # Build the reasoning prompt based on intent
     if intent == "comparison":
@@ -204,9 +291,38 @@ def answer_with_reasoning(query, memory, context, plan):
         return _generate_education_answer(query, context)
     elif intent == "unsupported":
         return _generate_unsupported_answer(query, intent)
+    elif intent == "historical_performance":
+        return _generate_historical_performance_answer(query, context)
+    elif intent == "sector_ranking":
+        return _generate_sector_ranking_answer(query, memory)
+    elif intent == "investment_simulator":
+        return _generate_investment_simulator_answer(query, context)
     else:
         # Default: general financial reasoning
         return _generate_general_answer(query, context, memory)
+
+
+def _generate_dashboard_answer(query, dashboard_section, key, value):
+    """Generate answer using dashboard insights."""
+    # Extract relevant insight from dashboard
+    strengths = dashboard_section.get("strengths", [])
+    watch_items = dashboard_section.get("watch_items", [])
+    summary = dashboard_section.get("summary", "")
+    
+    # Build answer based on the specific insight
+    if "debt" in query.lower():
+        debt_reasons = []
+        for item in watch_items:
+            if "debt" in item.lower() or "high" in item.lower() or "elevated" in item.lower():
+                debt_reasons.append(item)
+        
+        if debt_reasons:
+            explanation = "; ".join(debt_reasons)
+            return f"Debt is elevated because: {explanation}. {summary}"
+        else:
+            return f"Debt levels are within acceptable range. {summary}"
+    
+    return f"Based on the dashboard analysis: {summary}"
 
 
 def _build_reasoning_prompt(query, context, intent):
@@ -220,6 +336,16 @@ def _build_reasoning_prompt(query, context, intent):
     elif intent == "explanation":
         parts.append("You are explaining financial concepts to a beginner investor.")
         parts.append("Be clear, use simple language, and relate to the company's actual data.")
+    elif intent == "historical_performance":
+        parts.append("You are analyzing historical stock performance.")
+        parts.append("Focus on price changes, returns over time, and trend analysis.")
+        parts.append("Use bold formatting for the return percentage as it's what users notice first.")
+    elif intent == "sector_ranking":
+        parts.append("You are ranking companies within a sector based on performance.")
+        parts.append("Provide clear rankings and explain the top performer.")
+    elif intent == "investment_simulator":
+        parts.append("You are calculating investment returns based on historical data.")
+        parts.append("Show initial investment, current value, profit, and percentage return.")
     elif intent == "market_intelligence":
         parts.append("You are a market analyst explaining sentiment and news impact.")
         parts.append("Focus on analyst views, news sentiment, and sector trends.")
@@ -240,23 +366,37 @@ def _build_reasoning_prompt(query, context, intent):
     parts.append("User Question: " + query)
     parts.append("")
     
-    # Provide context
+    # Provide context - simplified format for better LLM parsing
     if context:
-        parts.append("Available Data:")
+        parts.append("### DATA FOR ANALYSIS ###")
         for section, data in context.items():
             if isinstance(data, dict):
-                parts.append(f"  {section}: {json.dumps(data, indent=2)}")
-            else:
-                parts.append(f"  {section}: {data}")
+                parts.append(f"### {section.upper().replace('_', ' ')} ###")
+                for k, v in list(data.items())[:30]:
+                    val = str(v)[:500] if v is not None else "N/A"
+                    parts.append(f"{k}: {val}")
+                parts.append("")
+        parts.append("### END DATA ###")
         parts.append("")
+        parts.append("IMPORTANT: Use ONLY the data above to answer. If data says 'N/A', state 'Data not provided' not 'data not available'.")
     
     # Provide reasoning instructions
     if intent == "financial_health":
+        # Add debt info if available
+        debt_info = ""
+        if context.get("company_info", {}).get("debt_to_equity"):
+            debt_info = f" Debt-to-Equity Ratio: {context['company_info']['debt_to_equity']}"
+        if context.get("financial_metrics", {}).get("debt_to_equity"):
+            debt_info = f" Debt-to-Equity Ratio: {context['financial_metrics']['debt_to_equity']}"
+        
+        parts.append("IMPORTANT: Use the Available Data above to answer the question. Do not say data is unavailable if it appears in the Available Data section.")
         parts.append("Answer by:")
         parts.append("1. Assessing current financial metrics")
-        parts.append("2. Comparing with sector norms where available")
-        parts.append("3. Identifying strengths and concerns")
+        parts.append("2. Explaining why debt levels are what they are based on the data")
+        parts.append("3. Identifying strengths and concerns related to debt")
         parts.append("4. Providing a balanced conclusion")
+        if debt_info:
+            parts.append(f"Key debt metric: {debt_info.strip()}")
     elif intent == "explanation":
         parts.append("Answer by:")
         parts.append("1. Defining the term clearly")
@@ -273,15 +413,18 @@ def _build_reasoning_prompt(query, context, intent):
     
     return "\n".join(parts)
 
-
-# ============================================================================
 # Tool-Specific Answer Generation
-# ============================================================================
 
 def _generate_general_answer(query, context, memory):
     """Generate answer for general queries."""
+    
+    # Check if this is a math question
+    text = query.lower()
+    if "cagr" in text or "future value" in text or "returns" in text or "lakh" in text or "crore" in text or "%" in text and ("invest" in text or "years" in text):
+        return _generate_math_answer(query, context)
+    
     prompt = _build_reasoning_prompt(query, context, "general")
-    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    llm = ChatGroq(model=os.getenv("GROQ_MODEL", "mixtral-8x7b-32768"), temperature=0)
     
     try:
         response = (ChatPromptTemplate.from_template(prompt) | llm).invoke({}).content
@@ -290,12 +433,55 @@ def _generate_general_answer(query, context, memory):
         return {"response": f"Error generating response: {str(e)}", "sections_used": []}
 
 
+def _build_comparison_table(context, info1, second_company):
+    """Build a comparison table for two companies."""
+    table_data = []
+    
+    # First company metrics
+    if info1:
+        table_data.append(("Company", info1.get("company_name", info1.get("name", "Unknown"))))
+        table_data.append(("Sector", info1.get("sector", "N/A")))
+        table_data.append(("Market Cap", info1.get("marketCap", "N/A")))
+    
+    if context.get("financial_metrics"):
+        fm = context["financial_metrics"]
+        table_data.append(("ROCE", fm.get("roce", "N/A")))
+        table_data.append(("Debt/Equity", fm.get("debt_to_equity", "N/A")))
+        table_data.append(("Operating Margin", fm.get("operating_margin", "N/A")))
+        table_data.append(("Revenue Growth", info1.get("revenueGrowth", "N/A")))
+    
+    if context.get("price_data"):
+        pd = context["price_data"]
+        table_data.append(("Current Price", pd.get("current", "N/A")))
+        table_data.append(("52W High", pd.get("high_52w", "N/A")))
+        table_data.append(("52W Low", pd.get("low_52w", "N/A")))
+    
+    return table_data
+
+
 def _generate_comparison_answer(query, context, memory):
     """Generate answer for company comparison queries."""
     info1 = (memory or {}).get("company_info", {})
     info2 = (memory or {}).get("company_info_2", {})
     
-    # Get second company if available
+    # Extract entities (company names) from the query
+    text = query.lower()
+    companies_in_query = []
+    for name, ticker in [("reliance", "RELIANCE"), ("tcs", "TCS"), ("infosys", "INFY"), ("hdfc", "HDFCBANK"), 
+                          ("icici", "ICICIBANK"), ("sbi", "SBIN"), ("btc", "BHARTIARTL"), ("lt", "LT"),
+                          ("itc", "ITC"), ("wipro", "WIPRO"), ("hindu", "HINDUNILVR"), ("maruti", "MARUTI"),
+                          ("ongc", "ONGC"), ("bpcl", "BPCL"), ("coal", "COALINDIA")]:
+        if name in text:
+            companies_in_query.append(ticker)
+    
+    # Check if companies are in the same sector
+    sector1 = info1.get("sector", "")
+    sector2 = info2.get("sector", "") if info2 else ""
+    
+    # Check if this is a same-sector comparison
+    same_sector = sector1 and sector2 and sector1 == sector2
+    
+    # Get second company info if available
     second_company = None
     if info2:
         second_company = {
@@ -347,7 +533,7 @@ def _generate_comparison_answer(query, context, memory):
     prompt_parts.append("")
     prompt_parts.append("Compare these companies and provide a balanced analysis.")
     
-    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    llm = ChatGroq(model=os.getenv("GROQ_MODEL", "mixtral-8x7b-32768"), temperature=0)
     
     try:
         response = (ChatPromptTemplate.from_template("\n".join(prompt_parts)) | llm).invoke({}).content
@@ -454,9 +640,272 @@ def _generate_unsupported_answer(query, intent):
     }
 
 
-# ============================================================================
+# New Intent Handlers
+
+def _generate_historical_performance_answer(query, context):
+    """Generate answer for historical performance questions with table format for years."""
+    price_data = context.get("price_data", {})
+    chart_metrics = context.get("chart_metrics", {})
+    
+    current = price_data.get("current")
+    ohlcv = price_data.get("ohlcv", [])
+    
+    # Get returns from chart metrics (for standard periods)
+    returns = chart_metrics.get("returns", {}) or {}
+    
+    # Parse time period from query
+    text = query.lower()
+    
+    months = None
+    years = None
+    
+    # Check for months
+    months_match = re.search(r"(\d+)\s*months?", text)
+    if months_match:
+        months = int(months_match.group(1))
+    # Check for years
+    years_match = re.search(r"(\d+)\s*years?", text)
+    if years_match:
+        years = int(years_match.group(1))
+    
+    # If months specified, calculate dynamically and show simple response
+    if months:
+        if ohlcv and len(ohlcv) >= 2:
+            days_back = months * 30  # Approximate
+            if days_back < len(ohlcv):
+                price_now = ohlcv[-1].get("close")
+                price_then = ohlcv[-days_back].get("close")
+                if price_now and price_then and price_then > 0:
+                    return_pct = ((price_now - price_then) / price_then) * 100
+                    company_name = _extract_company_name_from_query(query, context)
+                    return {
+                        "response": f"Over the last {months} months, {company_name} returned **{return_pct:.1f}%** ({'gain' if return_pct >= 0 else 'decline'}).",
+                        "sections_used": ["price_data"]
+                    }
+    
+    # If years specified, show table with year-by-year returns
+    if years:
+        if ohlcv and len(ohlcv) >= 2:
+            current_price = ohlcv[-1].get("close")
+            company_name = _extract_company_name_from_query(query, context)
+            
+            # Build year-by-year table using available data
+            table_rows = []
+            for y in range(1, years + 1):
+                # Use available data - get price from (y) years ago or earliest available
+                # For simplicity, use fixed intervals based on available data length
+                if len(ohlcv) >= 365 * y:
+                    days_back = y * 365
+                else:
+                    # Use available data - go back proportionally
+                    days_back = int((y / years) * (len(ohlcv) - 1) * 365 / 365)
+                    if days_back < 1:
+                        days_back = 1
+                
+                if len(ohlcv) > days_back:
+                    price_then = ohlcv[-days_back].get("close")
+                    if price_then and price_then > 0:
+                        return_pct = ((current_price - price_then) / price_then) * 100
+                        arrow = "📈" if return_pct >= 0 else "📉"
+                        table_rows.append(f"{y}Y ago|{return_pct:+.1f}%|{arrow}")
+            
+            if table_rows:
+                # Build markdown table
+                table_md = f"### {company_name} Historical Performance (Year-by-Year)\n\n| Period | Return |\n|--------|--------|\n"
+                for row in table_rows:
+                    parts = row.split("|")
+                    table_md += f"| {parts[0]} | {parts[1]} {parts[2]} |\n"
+                return {
+                    "response": table_md,
+                    "sections_used": ["price_data"]
+                }
+            
+            # If table is empty, calculate total return from available period
+            if len(ohlcv) >= 2:
+                price_then = ohlcv[0].get("close")
+                if price_then and price_then > 0:
+                    total_return = ((current_price - price_then) / price_then) * 100
+                    arrow = "📈" if total_return >= 0 else "📉"
+                    return {
+                        "response": f"### {company_name} Historical Performance\n\n| Period | Return |\n|--------|--------|\n| Last {len(ohlcv)} days | {total_return:+.1f}% {arrow} |\n",
+                        "sections_used": ["price_data"]
+                    }
+    
+    # Try to infer from available data (standard periods)
+    for p in ["1M", "6M", "1Y", "5Y"]:
+        if returns.get(p) is not None:
+            return_pct = returns.get(p)
+            period_label = p
+            break
+    
+    if return_pct is not None and period_label:
+        company_name = _extract_company_name_from_query(query, context)
+        return {
+            "response": f"Over the last {period_label}, {company_name} returned **{return_pct:.1f}%** ({'gain' if return_pct >= 0 else 'decline'}).",
+            "sections_used": ["price_data", "chart_metrics"]
+        }
+    
+    return {
+        "response": "I don't have sufficient historical price data to calculate the return for the specified period. Please ask about a different time frame (e.g., 'last 6 months', 'past year').",
+        "sections_used": []
+    }
+
+
+def _extract_company_name_from_query(query, context):
+    """Extract company name from query or memory."""
+    # Try to get from entities in context
+    if context:
+        info = context.get("company_info", {})
+        if info:
+            return info.get("company_name", info.get("name", "the company"))
+    
+    # Try to extract from query - simple substring match
+    text = query.lower()
+    from agent_1.tools.nifty50 import NIFTY50
+    
+    for ticker, _ in NIFTY50:  # NIFTY50 format is (ticker, sector)
+        ticker_name = ticker.split(".")[0]  # Get TCS from TCS.NS
+        ticker_name_lower = ticker_name.lower()
+        
+        # Simple substring check - if ticker name appears in query
+        if ticker_name_lower in text:
+            return ticker_name
+    
+    # Default fallback
+    return "the company"
+
+
+def _generate_sector_ranking_answer(query, memory):
+    """Generate answer for sector ranking questions (e.g., which Energy company performed best over 5 years?)."""
+    from agent_1.tools.nifty50 import NIFTY50
+    
+    sector_keywords = ["energy", "banking", "it", "financial", "consumer", "pharma", "auto", "metal", "infra"]
+    text = query.lower()
+    
+    # Extract sector
+    sector = None
+    for kw in sector_keywords:
+        if kw in text:
+            sector = kw.title()
+            break
+    
+    if not sector:
+        # Try to get sector from query
+        sector_match = re.search(r"(\w+)\s+sector", text)
+        if sector_match:
+            sector = sector_match.group(1).title()
+    
+    if not sector:
+        return {
+            "response": "I need to know which sector you want to analyze. Please specify (e.g., Energy, Banking, IT).",
+            "sections_used": []
+        }
+    
+    # Find companies in this sector
+    sector_companies = [(t, s) for t, s in NIFTY50 if s.lower() == sector.lower()]
+    
+    if not sector_companies:
+        return {
+            "response": f"No NIFTY50 companies found in the {sector} sector.",
+            "sections_used": []
+        }
+    
+    # For each company, get 5Y return from chart metrics
+    company_returns = []
+    for ticker, _ in sector_companies:
+        try:
+            company_memory = memory  # In a real scenario, we'd fetch each company's data
+            chart = (company_memory or {}).get("chart_metrics", {})
+            returns = chart.get("returns", {}) or {}
+            
+            five_y_return = returns.get("5Y") or returns.get("3Y") or returns.get("1Y")
+            if five_y_return is not None:
+                company_returns.append({
+                    "ticker": ticker,
+                    "name": ticker.split(".")[0],
+                    "return": five_y_return
+                })
+        except Exception:
+            continue
+    
+    if not company_returns:
+        return {
+            "response": f"I don't have return data for any companies in the {sector} sector.",
+            "sections_used": []
+        }
+    
+    # Sort by return
+    company_returns.sort(key=lambda x: x["return"], reverse=True)
+    
+    # Generate response
+    top_performer = company_returns[0]
+    top_return = top_performer["return"]
+    
+    response = f"In the {sector} sector, **{top_performer['name']}** has delivered the strongest performance with a return of **{top_return:.1f}%** over the available period."
+    
+    if len(company_returns) > 1:
+        response += f" The sector average return is {sum(c['return'] for c in company_returns) / len(company_returns):.1f}%."
+    
+    return {
+        "response": response,
+        "sections_used": ["chart_metrics"]
+    }
+
+
+def _generate_investment_simulator_answer(query, context):
+    """Generate answer for investment simulator questions (e.g., if I invested ₹2 lakh in Reliance 5 years ago?)."""
+    price_data = context.get("price_data", {})
+    
+    current = price_data.get("current")
+    price_history = price_data.get("history", [])
+    
+    # Parse investment amount
+    text = query.lower()
+    amount_match = re.search(r"(₹?\s*[\d,.]+)\s*(lakh|crore)?", text, re.IGNORECASE)
+    
+    if not amount_match:
+        return {
+            "response": "I need to know the investment amount. Please specify (e.g., ₹2 lakh, ₹50,000).",
+            "sections_used": []
+        }
+    
+    amt_str = amount_match.group(1).replace("₹", "").replace(",", "").strip()
+    amount = float(amt_str)
+    unit = (amount_match.group(2) or "").lower()
+    amount *= {"crore": 1e7, "lakh": 1e5}.get(unit, 1)
+    
+    # Parse time period
+    years_match = re.search(r"(\d+)\s*years?", text)
+    if not years_match:
+        return {
+            "response": "I need to know how many years ago you made the investment.",
+            "sections_used": []
+        }
+    
+    years = int(years_match.group(1))
+    
+    # Get historical price
+    if price_history and len(price_history) >= 2:
+        # Get price from years ago (approximate: look at oldest price in history)
+        oldest_price = price_history[0].get("close")
+        if oldest_price and oldest_price > 0 and current:
+            # Calculate shares bought
+            shares = amount / oldest_price
+            current_value = shares * current
+            profit = current_value - amount
+            return_pct = (profit / amount) * 100
+            
+            return {
+                "response": f"An investment of ₹{amount:,.0f} made {years} years ago would now be worth ₹{current_value:,.0f}, generating a profit of ₹{profit:,.0f} (**{return_pct:.0f}%**).",
+                "sections_used": ["price_data"]
+            }
+    
+    return {
+        "response": "I don't have sufficient historical price data to calculate the investment return. Please check the price chart for more details.",
+        "sections_used": []
+    }
+
 # Main Entry Point
-# ============================================================================
 
 def run_agent4(query, agent1_output, agent2_output=None, agent3_output=None):
     """Main entry point for Agent 4 - Four-stage reasoning process."""
@@ -664,10 +1113,10 @@ def explain_market(memory):
     )
 
     if bullish > bearish:
-        mood = "🟢 Positive"
+        mood = "👍 Positive"
         label = "Positive"
     elif bearish > bullish:
-        mood = "🔴 Negative"
+        mood = "👎 Negative"
         label = "Negative"
     else:
         mood = "🟡 Mixed"
@@ -685,7 +1134,6 @@ def explain_market(memory):
     return {
         "mood": mood,
         "label": label,
-        "confidence": min(0.9, 0.5 + abs(bullish - bearish) * 0.1),
         "consensus": " ".join(parts) if parts else "The market view is mixed and should be read alongside the fundamentals.",
         "explanation": " ".join(parts) if parts else "No strong single signal dominated the available data.",
     }
@@ -732,3 +1180,259 @@ def price_story_summary(memory):
     parts.append(trend_text)
     
     return ". ".join(parts) + "."
+
+
+def top_news_summary(memory):
+    """Generate top news summary for the UI."""
+    articles = (memory or {}).get("news_articles", []) or []
+    if not articles:
+        return []
+    
+    summary = []
+    for art in articles[:3]:
+        headline = art.get("headline", "")
+        sentiment = art.get("sentiment", "neutral")
+        if headline:
+            emoji = {"positive": "✅", "negative": "⚠", "neutral": "•"}.get(sentiment, "•")
+            summary.append(f"{emoji} {headline[:80]}")
+    return summary
+
+
+def explain_market(memory):
+    """Interpret overall market sentiment."""
+    market = (memory or {}).get("market_intelligence", {}) or {}
+    analyst = (memory or {}).get("analyst_data", {}) or {}
+    news = (memory or {}).get("news_articles", []) or []
+    chart = (memory or {}).get("chart_metrics", {}) or {}
+    
+    bullish = 0
+    bearish = 0
+    
+    rec = analyst.get("recommendation")
+    if rec and rec.lower() in ("buy", "strong_buy", "outperform"):
+        bullish += 2
+    elif rec and rec.lower() in ("sell", "underperform"):
+        bearish += 2
+    
+    for art in news[:5]:
+        sent = (art.get("sentiment") or "neutral").lower()
+        if sent == "positive":
+            bullish += 1
+        elif sent == "negative":
+            bearish += 1
+    
+    trend = chart.get("trend")
+    if trend == "up":
+        bullish += 1
+    elif trend == "down":
+        bearish += 1
+    
+    if bullish > bearish + 1:
+        label = "Positive"
+    elif bearish > bullish + 1:
+        label = "Negative"
+    elif abs(bullish - bearish) <= 1:
+        label = "Mixed"
+    else:
+        label = "Cautiously Positive"
+    
+    parts = []
+    if rec:
+        parts.append(f"Analyst consensus is {rec}")
+    if chart.get("trend"):
+        parts.append(f"Price trend is {chart['trend']}")
+    
+    return {
+        "mood": "constructive" if bullish > bearish else "cautious",
+        "label": label,
+        "confidence": min(0.9, 0.5 + abs(bullish - bearish) * 0.1),
+        "consensus": " ".join(parts) if parts else "The market view is mixed.",
+        "explanation": " ".join(parts) if parts else "No strong single signal.",
+    }
+
+
+def explain_business_snapshot(memory):
+    """Generate business snapshot explanation."""
+    info = (memory or {}).get("company_info", {}) or {}
+    metrics = (memory or {}).get("financial_metrics", {}) or {}
+    sector = info.get("sector", "")
+    roce = metrics.get("roce")
+    
+    return {
+        "sector": sector,
+        "roce": roce,
+        "summary": f"{info.get('name', 'This company')} operates in the {sector} sector" + 
+                   (f" with ROCE of {roce}%" if roce else "") + ".",
+    }
+
+
+def answer_business_description(company_name, memory):
+    """Answer what the company does."""
+    info = (memory or {}).get("company_info", {}) or {}
+    summary = info.get("summary", "") or info.get("business_model", "")
+    peers = info.get("peers", [])
+    
+    prompt = f"""What does {company_name} do?
+    
+Company Summary: {summary[:500] if summary else 'No description available'}
+
+Peers: {', '.join(peers[:3]) if peers else 'Not available'}
+
+Answer in 2-3 sentences what this company does."""
+    
+    llm = ChatGroq(model=os.getenv("GROQ_MODEL", "mixtral-8x7b-32768"), temperature=0)
+    try:
+        response = (ChatPromptTemplate.from_template(prompt) | llm).invoke({}).content
+        return {"response": response, "sections_used": ["company_info"]}
+    except Exception:
+        return {"response": summary[:200] if summary else "Company information not available.", "sections_used": []}
+
+
+def build_investment_thesis(memory, years):
+    """Build investment thesis for N years."""
+    info = (memory or {}).get("company_info", {}) or {}
+    metrics = (memory or {}).get("financial_metrics", {}) or {}
+    chart = (memory or {}).get("chart_metrics", {}) or {}
+    opportunities = (memory or {}).get("opportunities", []) or []
+    risks = (memory or {}).get("risks", []) or []
+    
+    roce = metrics.get("roce")
+    trend = chart.get("trend")
+    
+    thesis = {
+        "investor_fit": ["long-term compounding"] if roce and roce >= 15 else ["value", "income"],
+        "holding_period": f"{years} years",
+        "summary": "Investment suitability depends on financial health and market conditions.",
+    }
+    
+    if roce and roce >= 15:
+        thesis["summary"] = f"Strong ROCE of {roce}% supports long-term compounding potential."
+    elif roce and roce < 10:
+        thesis["summary"] = "Lower ROCE suggests caution for long-term holding."
+    
+    return thesis
+
+
+def price_story_summary(memory):
+    """Generate one-line price story."""
+    chart = memory.get("chart_metrics", {})
+    price = memory.get("price_data", {})
+    current = price.get("current")
+    high_52w = price.get("high_52w")
+    trend = chart.get("trend", "sideways")
+    
+    parts = []
+    if isinstance(current, (int, float)) and isinstance(high_52w, (int, float)) and high_52w != 0:
+        below = ((high_52w - current) / high_52w) * 100
+        parts.append(f"₹{current:,.2f} is {below:.1f}% below 52-week high")
+    else:
+        parts.append("Current price context is limited")
+    
+    trend_text = {"up": "Momentum is constructive", "down": "Momentum is weak"}.get(trend, "Price consolidating")
+    parts.append(trend_text)
+    
+    return ". ".join(parts) + "."
+
+
+def explain_forecast(memory, current_price, target_price, expected_return, analyst_rating="Hold"):
+    """Explain the 12M price forecast: LLM-generated when available, deterministic fallback otherwise.
+
+    Returns dict: {summary, drivers, assumptions, risks_to_forecast, confidence, basis}
+    """
+    info = (memory or {}).get("company_info", {}) or {}
+    financial = (memory or {}).get("financial_metrics", {}) or {}
+    peer = (memory or {}).get("peer_comparison", {}) or {}
+    analyst = (memory or {}).get("analyst_data", {}) or {}
+    mood = ((memory or {}).get("dashboard", {}) or {}).get("market_mood", {}) or {}
+    risks = (memory or {}).get("risks", []) or []
+    opportunities = (memory or {}).get("opportunities", []) or []
+
+    company = info.get("name", "this company")
+    sector = info.get("sector") or peer.get("sector") or ""
+    metrics = peer.get("metrics", {}) or {}
+    pe = metrics.get("pe_ratio", metrics.get("P/E", {})) or {}
+    analyst_target = analyst.get("target_mean_price") or analyst.get("price_target")
+    analyst_count = analyst.get("number_of_analysts") or analyst.get("analysts_count")
+
+    def _fmt(v, suffix=""):
+        return f"{v}{suffix}" if isinstance(v, (int, float)) else "N/A"
+
+    data_digest = {
+        "company": company,
+        "sector": sector,
+        "current_price": current_price,
+        "model_target": target_price,
+        "expected_return_pct": round(expected_return, 1) if isinstance(expected_return, (int, float)) else None,
+        "analyst_rating": analyst_rating,
+        "analyst_target": analyst_target,
+        "analyst_count": analyst_count,
+        "pe_ratio": pe.get("company") if isinstance(pe, dict) else None,
+        "pe_sector_average": pe.get("sector_average") if isinstance(pe, dict) else None,
+        "pe_percentile": pe.get("percentile") if isinstance(pe, dict) else None,
+        "roe": financial.get("roe") or financial.get("return_on_equity"),
+        "roce": financial.get("roce"),
+        "debt_to_equity": financial.get("debt_to_equity"),
+        "profit_margin": financial.get("net_margin") or financial.get("profit_margin"),
+        "revenue_growth": financial.get("revenue_growth"),
+        "market_sentiment": mood.get("overall_sentiment"),
+        "top_opportunities": [str(o.get("explanation", o) if isinstance(o, dict) else o) for o in opportunities[:3]],
+        "top_risks": [str(r.get("explanation", r) if isinstance(r, dict) else r) for r in risks[:3]],
+    }
+
+    # ── LLM explanation (best effort) ──
+    try:
+        prompt = f"""You are an equity research analyst. Explain the 12-month price forecast below to a retail investor.
+Be specific: reference the actual numbers provided. Explain WHY the target is what it is (valuation, profitability, analyst views, sentiment) and what could prove it wrong.
+Return ONLY valid JSON with keys: summary (2-3 sentences), drivers (3-4 short bullets), assumptions (2-3 bullets), risks_to_forecast (2-3 bullets), confidence ("Low"|"Moderate"|"High").
+
+Forecast data:
+{json.dumps(data_digest, indent=2)}"""
+
+        # max_tokens headroom: reasoning models spend tokens on the <think> block
+        llm = ChatGroq(model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"), temperature=0, max_tokens=4096)
+        # Plain-string invoke: a prompt template would treat the JSON braces as variables
+        response = llm.invoke(prompt).content.strip()
+        # Strip reasoning-model <think> blocks and code fences
+        if "<think>" in response:
+            response = response.split("</think>")[-1].strip()
+        if response.startswith("```"):
+            response = response.split("```")[1].lstrip("json").strip()
+        # Parse the first JSON object, ignoring any prose before/after it
+        start = response.find("{")
+        if start == -1:
+            raise ValueError("no JSON object in LLM response")
+        parsed, _ = json.JSONDecoder().raw_decode(response[start:])
+        if isinstance(parsed, dict) and parsed.get("summary"):
+            parsed.setdefault("drivers", [])
+            parsed.setdefault("assumptions", [])
+            parsed.setdefault("risks_to_forecast", [])
+            parsed.setdefault("confidence", "Moderate")
+            parsed["basis"] = "Fundamental health analysis + analyst consensus + LLM synthesis"
+            return parsed
+    except Exception as e:
+        print(f"Forecast explanation LLM failed, using fallback: {e}")
+
+    # ── Deterministic fallback ──
+    drivers, assumptions = [], []
+    if isinstance(expected_return, (int, float)):
+        drivers.append(f"Target implies {_fmt(round(expected_return, 1), '%')} {'upside' if expected_return >= 0 else 'downside'} from the current price of ₹{_fmt(current_price)}.")
+    if analyst_target:
+        drivers.append(f"Aligned with analyst consensus target of ₹{_fmt(round(analyst_target, 2))}" + (f" from {analyst_count} analysts." if analyst_count else "."))
+    if isinstance(pe, dict) and pe.get("company") and pe.get("sector_average"):
+        pos = "in line with" if abs(pe["company"] - pe["sector_average"]) / pe["sector_average"] < 0.2 else ("below" if pe["company"] < pe["sector_average"] else "above")
+        drivers.append(f"Trailing P/E of {round(pe['company'], 1)}x is {pos} the sector average of {round(pe['sector_average'], 1)}x.")
+    if financial.get("roce") is not None:
+        drivers.append(f"ROCE of {_fmt(round(financial['roce'], 1), '%')} indicates capital efficiency.")
+    assumptions.append(f"Analyst consensus remains '{analyst_rating}' over the next 12 months.")
+    if mood.get("overall_sentiment"):
+        assumptions.append(f"Market sentiment stays {str(mood['overall_sentiment']).lower()}.")
+    risks = [str(r.get("explanation", r) if isinstance(r, dict) else r) for r in risks[:3]] or ["Sector or macro headwinds could delay re-rating."]
+
+    return {
+        "summary": f"The 12M target of ₹{_fmt(round(target_price, 2) if target_price else 'N/A')} for {company} is derived from fundamental health analysis cross-checked with analyst consensus.",
+        "drivers": drivers or ["Fundamental health score and analyst targets."],
+        "assumptions": assumptions,
+        "risks_to_forecast": risks,
+        "confidence": "Moderate" if analyst_rating in ("Hold",) else "Low",
+        "basis": "Fundamental health analysis + analyst consensus (deterministic)",
+    }

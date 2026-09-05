@@ -26,16 +26,16 @@ EXPECTED_FEATURES = [
 
 if_model = None
 
-
+#safe ratio function calculates the ratio of two numbers, handling cases where the denominator is zero or None. It returns None instead of 0 for missing data so missing metrics don't appear as 0%.
 def _safe_ratio(numerator, denominator):
     if numerator is None or denominator in (None, 0):
-        return 0
+        return None  # ← Return None, not 0, for missing data
     try:
         return numerator / denominator
     except TypeError:
-        return 0
+        return None
 
-
+#first present function retrieves the first non-None value from a mapping (like a dictionary) for a given set of keys. It returns None if none of the keys are present or if all values are None.
 def _first_present(mapping, *keys):
     for key in keys:
         value = mapping.get(key)
@@ -58,7 +58,7 @@ def _get_model():
     
     raise FileNotFoundError(f"Isolation Forest model not found at {MODEL_PATH}.")
 
-
+#use the trained Isolation Forest model to assess the financial health of a given stock ticker. It builds a feature vector based on key financial ratios and metrics, then predicts whether the company is an anomaly compared to its peers. The function returns a structured assessment including the prediction, decision function value, anomaly score, and whether the company is flagged as an anomaly.
 def assess_isolation_forest(ticker):
     """Run the trained Isolation Forest and return a structured assessment."""
     model = _get_model()
@@ -146,10 +146,20 @@ def detect_red_flags(ticker):
         revenue = info.get("totalRevenue") or 0
         net_income = info.get("netIncomeToCommon") or 0
         operating_income = info.get("operatingIncome") or 0
-        debt = bs.get("Total Debt") or info.get("totalDebt") or 0
-        equity = bs.get("Stockholders Equity") or info.get("totalStockholderEquity") or 1
+        debt = bs.get("Total Debt") or info.get("totalDebt")
+        equity = bs.get("Stockholders Equity") or info.get("totalStockholderEquity")
         
-        debt_to_equity = debt / equity if equity else 0
+        # Check if critical data is missing
+        if not revenue or not equity:
+            flags.append({
+                "metric": "Incomplete Financial Data",
+                "value": "N/A",
+                "severity": "high",
+                "explanation": "Missing key financial metrics (revenue or equity) - cannot calculate ratios."
+            })
+            return flags  # Cannot calculate other ratios without base data
+        
+        debt_to_equity = debt / equity if debt and equity else 0
         
         if debt_to_equity > 5:
             flags.append({
@@ -158,9 +168,16 @@ def detect_red_flags(ticker):
                 "severity": "high",
                 "explanation": "Company has high debt relative to equity, which increases financial risk."
             })
+        elif debt is None:
+            flags.append({
+                "metric": "Debt Data Unavailable",
+                "value": "N/A",
+                "severity": "medium",
+                "explanation": "Debt information not available - unable to assess leverage."
+            })
         
         profit_margin = net_income / revenue if revenue else 0
-        if profit_margin < 0.10:
+        if profit_margin < 0.10 and revenue:
             flags.append({
                 "metric": "Low Profit Margin",
                 "value": f"{profit_margin*100:.1f}%",
@@ -168,17 +185,24 @@ def detect_red_flags(ticker):
                 "explanation": "Profit margin is below 10%, indicating weaker profitability."
             })
         
-        roe = info.get("returnOnEquity") or 0
-        if roe < 0.15:
+        roe = info.get("returnOnEquity")
+        if roe and roe < 0.15:
             flags.append({
                 "metric": "Low ROE",
                 "value": f"{roe*100:.1f}%",
                 "severity": "low",
                 "explanation": "Return on equity is below 15%, below industry best practices."
             })
+        elif roe is None:
+            flags.append({
+                "metric": "ROE Unavailable",
+                "value": "N/A",
+                "severity": "low",
+                "explanation": "Return on equity data not available from data sources."
+            })
         
-        revenue_growth = info.get("revenueGrowth") or 0
-        if revenue_growth < 0.08:
+        revenue_growth = info.get("revenueGrowth")
+        if revenue_growth and revenue_growth < 0.08:
             flags.append({
                 "metric": "Slow Revenue Growth",
                 "value": f"{revenue_growth*100:.1f}%",
@@ -187,20 +211,26 @@ def detect_red_flags(ticker):
             })
         
         assessment = assess_isolation_forest(ticker)
-        anomaly_score = assessment["anomaly_score"]
+        anomaly_score = assessment.get("anomaly_score", 0)
 
-        if assessment["is_anomaly"] or anomaly_score >= 0.7:
+        if assessment.get("is_anomaly") or anomaly_score >= 0.7:
             flags.append({
                 "metric": "Financial Statements",
                 "value": f"Risk Score: {anomaly_score:.2f}",
-                "severity": "high" if anomaly_score >= 0.85 or assessment["is_anomaly"] else "medium",
+                "severity": "high" if anomaly_score >= 0.85 or assessment.get("is_anomaly") else "medium",
                 "explanation": (
-                    f"Isolation Forest flagged this company as {'anomalous' if assessment['is_anomaly'] else 'elevated risk'} "
-                    f"(decision: {assessment['decision_function']:.2f}, score: {anomaly_score:.2f})."
+                    f"Statistical analysis flagged this company as {'anomalous' if assessment.get('is_anomaly') else 'elevated risk'} "
+                    f"(score: {anomaly_score:.2f})."
                 ),
             })
             
     except Exception as e:
-        print(f"Red flag detection error: {e}")
+        logger.error(f"Red flag detection error: {e}")
+        flags.append({
+            "metric": "Analysis Failed",
+            "value": "N/A",
+            "severity": "high",
+            "explanation": f"Red flag analysis could not complete: {str(e)}"
+        })
         
     return flags

@@ -1,5 +1,5 @@
 import yfinance as yf
-
+#gets analyst consensus data for a given stock ticker using the yfinance library. It retrieves recommendation, number of analysts, price target, current price, and calculates the upside potential. It also fetches the latest buy/hold/sell recommendations from analysts and returns this information in a structured dictionary format.
 def get_analyst_consensus(ticker):
     try:
         t = yf.Ticker(ticker)

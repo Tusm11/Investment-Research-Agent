@@ -4,7 +4,7 @@ import logging
 
 from pipeline import run_pipeline
 
-
+#the main function sets up the command-line interface for the investment research pipeline, parses the input arguments, runs the pipeline with the provided question, ticker, and lookback days, and formats the output as a JSON object for display.
 def main():
     parser = argparse.ArgumentParser(description="Run the investment research pipeline")
     parser.add_argument("question", help="Research question, for example: Is RELIANCE healthy?")

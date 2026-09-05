@@ -15,8 +15,8 @@
     "employees": 404501,
     "debt_to_equity": 36.653,
     "current_ratio": 1.098,
-    "market_cap": 17815499177984,
-    "pe_ratio": 22.048233,
+    "market_cap": 17705887334400,
+    "pe_ratio": 21.934618,
     "dividend_yield": 0.46,
     "peers": [
       "ONGC.NS",
@@ -29,7 +29,7 @@
     "free_cashflow": null
   },
   "financial_metrics": {
-    "roce": 8.99,
+    "roce": 12.53,
     "operating_margin": 11.48,
     "net_margin": 807750000000.0,
     "debt_to_equity": 3980000000000.0,
@@ -38,7 +38,7 @@
     "sales": 10572190000000.0
   },
   "financial_facts": {
-    "ROCE": 8.9938,
+    "ROCE": 12.5315,
     "OperatingMargin": 11.4808,
     "Debt": 3980000000000.0,
     "CurrentRatio": null,
@@ -57,8 +57,8 @@
     ],
     "metrics": {
       "ROCE": {
-        "company": 8.99,
-        "sector_average": 19.7,
+        "company": 12.53,
+        "sector_average": 27.26,
         "percentile": 0
       },
       "Debt": {
@@ -121,7 +121,7 @@
   "anomaly_detection": {
     "anomaly_score": 0.0043,
     "model_assessment": {
-      "model_path": "D:\\Mini project\\agent_2\\isolation_forest_model.pkl",
+      "model_path": "D:\\Investment-agent\\agent_2\\isolation_forest_model.pkl",
       "model_loaded": true,
       "prediction": -1,
       "decision_function": -0.0043,
@@ -168,39 +168,15 @@
     ]
   },
   "price_data": {
-    "current": 1318.1,
-    "open": 1318.0,
-    "day_high": 1328.0,
-    "day_low": 1314.6,
+    "current": 1308.3,
+    "open": 1298.9,
+    "day_high": 1312.2,
+    "day_low": 1296.5,
     "high_52w": 1611.8,
     "low_52w": 1253.2,
-    "avg_volume": 16196047,
-    "ohlcv_count": 29,
+    "avg_volume": 15197380,
+    "ohlcv_count": 30,
     "ohlcv": [
-      {
-        "date": "2026-05-18",
-        "open": 1327.86,
-        "high": 1335.82,
-        "low": 1312.63,
-        "close": 1329.75,
-        "volume": 13022473
-      },
-      {
-        "date": "2026-05-19",
-        "open": 1332.54,
-        "high": 1337.81,
-        "low": 1312.33,
-        "close": 1316.61,
-        "volume": 21665501
-      },
-      {
-        "date": "2026-05-20",
-        "open": 1312.63,
-        "high": 1356.63,
-        "low": 1306.56,
-        "close": 1353.44,
-        "volume": 13248515
-      },
       {
         "date": "2026-05-21",
         "open": 1360.91,
@@ -408,20 +384,53 @@
         "low": 1314.6,
         "close": 1318.1,
         "volume": 12694362
+      },
+      {
+        "date": "2026-06-26",
+        "open": 1318.1,
+        "high": 1318.1,
+        "low": 1318.1,
+        "close": 1318.1,
+        "volume": 0
+      },
+      {
+        "date": "2026-06-29",
+        "open": 1308.0,
+        "high": 1313.7,
+        "low": 1292.6,
+        "close": 1301.0,
+        "volume": 13757656
+      },
+      {
+        "date": "2026-06-30",
+        "open": 1306.9,
+        "high": 1306.9,
+        "low": 1290.0,
+        "close": 1293.9,
+        "volume": 15695263
+      },
+      {
+        "date": "2026-07-01",
+        "open": 1298.9,
+        "high": 1312.2,
+        "low": 1296.5,
+        "close": 1308.3,
+        "volume": 4719599
       }
     ]
   },
   "chart_metrics": {
     "returns": {
-      "1D": 0.34,
-      "1M": -1.95,
+      "1D": 1.11,
+      "1M": -0.02,
       "6M": null,
       "1Y": null,
-      "5Y": null
+      "5Y": null,
+      "MAX": -2.61
     },
-    "volatility": 1.18,
-    "distance_from_52w_high": 3.13,
-    "distance_from_52w_low": 4.71,
+    "volatility": 1.06,
+    "distance_from_52w_high": 3.85,
+    "distance_from_52w_low": 3.93,
     "trend": "sideways",
     "moving_averages": {
       "50dma": null,
@@ -433,20 +442,253 @@
       "resistance_1": 1360.71,
       "resistance_2": 1387.92
     },
-    "current_price": 1318.1
+    "current_price": 1308.3,
+    "ohlcv_full": [
+      {
+        "date": "2026-05-21",
+        "open": 1360.91,
+        "high": 1364.59,
+        "low": 1339.01,
+        "close": 1343.39,
+        "volume": 17150630
+      },
+      {
+        "date": "2026-05-22",
+        "open": 1343.79,
+        "high": 1361.11,
+        "low": 1342.89,
+        "close": 1348.27,
+        "volume": 7105813
+      },
+      {
+        "date": "2026-05-25",
+        "open": 1360.51,
+        "high": 1364.79,
+        "low": 1350.75,
+        "close": 1360.71,
+        "volume": 6750071
+      },
+      {
+        "date": "2026-05-26",
+        "open": 1353.84,
+        "high": 1362.2,
+        "low": 1346.18,
+        "close": 1350.06,
+        "volume": 13769747
+      },
+      {
+        "date": "2026-05-27",
+        "open": 1346.77,
+        "high": 1354.74,
+        "low": 1342.39,
+        "close": 1344.28,
+        "volume": 13215138
+      },
+      {
+        "date": "2026-05-28",
+        "open": 1344.28,
+        "high": 1344.28,
+        "low": 1344.28,
+        "close": 1344.28,
+        "volume": 0
+      },
+      {
+        "date": "2026-05-29",
+        "open": 1357.72,
+        "high": 1362.7,
+        "low": 1310.94,
+        "close": 1315.12,
+        "volume": 42634247
+      },
+      {
+        "date": "2026-06-01",
+        "open": 1326.37,
+        "high": 1329.35,
+        "low": 1312.43,
+        "close": 1313.92,
+        "volume": 10700603
+      },
+      {
+        "date": "2026-06-02",
+        "open": 1301.68,
+        "high": 1321.69,
+        "low": 1294.32,
+        "close": 1308.55,
+        "volume": 23302785
+      },
+      {
+        "date": "2026-06-03",
+        "open": 1308.95,
+        "high": 1317.91,
+        "low": 1295.01,
+        "close": 1307.16,
+        "volume": 20012293
+      },
+      {
+        "date": "2026-06-04",
+        "open": 1295.01,
+        "high": 1305.17,
+        "low": 1287.15,
+        "close": 1297.7,
+        "volume": 23474327
+      },
+      {
+        "date": "2026-06-05",
+        "open": 1304.5,
+        "high": 1306.0,
+        "low": 1288.0,
+        "close": 1291.0,
+        "volume": 17785223
+      },
+      {
+        "date": "2026-06-08",
+        "open": 1277.0,
+        "high": 1282.6,
+        "low": 1259.2,
+        "close": 1263.3,
+        "volume": 16494759
+      },
+      {
+        "date": "2026-06-09",
+        "open": 1269.0,
+        "high": 1274.2,
+        "low": 1257.5,
+        "close": 1269.2,
+        "volume": 23620214
+      },
+      {
+        "date": "2026-06-10",
+        "open": 1275.0,
+        "high": 1300.5,
+        "low": 1254.4,
+        "close": 1258.8,
+        "volume": 21012796
+      },
+      {
+        "date": "2026-06-11",
+        "open": 1258.0,
+        "high": 1276.0,
+        "low": 1253.2,
+        "close": 1263.0,
+        "volume": 13117486
+      },
+      {
+        "date": "2026-06-12",
+        "open": 1277.0,
+        "high": 1297.0,
+        "low": 1262.5,
+        "close": 1293.0,
+        "volume": 11988785
+      },
+      {
+        "date": "2026-06-15",
+        "open": 1315.3,
+        "high": 1325.0,
+        "low": 1303.3,
+        "close": 1307.0,
+        "volume": 18633321
+      },
+      {
+        "date": "2026-06-16",
+        "open": 1313.4,
+        "high": 1333.4,
+        "low": 1306.4,
+        "close": 1328.8,
+        "volume": 18513223
+      },
+      {
+        "date": "2026-06-17",
+        "open": 1333.0,
+        "high": 1334.0,
+        "low": 1317.0,
+        "close": 1332.7,
+        "volume": 10029170
+      },
+      {
+        "date": "2026-06-18",
+        "open": 1330.0,
+        "high": 1333.9,
+        "low": 1322.0,
+        "close": 1328.1,
+        "volume": 15494549
+      },
+      {
+        "date": "2026-06-19",
+        "open": 1328.0,
+        "high": 1338.2,
+        "low": 1305.3,
+        "close": 1309.5,
+        "volume": 24887034
+      },
+      {
+        "date": "2026-06-22",
+        "open": 1316.7,
+        "high": 1344.9,
+        "low": 1314.1,
+        "close": 1326.5,
+        "volume": 12931213
+      },
+      {
+        "date": "2026-06-23",
+        "open": 1328.9,
+        "high": 1333.0,
+        "low": 1304.0,
+        "close": 1309.5,
+        "volume": 15400184
+      },
+      {
+        "date": "2026-06-24",
+        "open": 1305.7,
+        "high": 1322.0,
+        "low": 1297.5,
+        "close": 1313.6,
+        "volume": 11030917
+      },
+      {
+        "date": "2026-06-25",
+        "open": 1318.0,
+        "high": 1328.0,
+        "low": 1314.6,
+        "close": 1318.1,
+        "volume": 12694362
+      },
+      {
+        "date": "2026-06-26",
+        "open": 1318.1,
+        "high": 1318.1,
+        "low": 1318.1,
+        "close": 1318.1,
+        "volume": 0
+      },
+      {
+        "date": "2026-06-29",
+        "open": 1308.0,
+        "high": 1313.7,
+        "low": 1292.6,
+        "close": 1301.0,
+        "volume": 13757656
+      },
+      {
+        "date": "2026-06-30",
+        "open": 1306.9,
+        "high": 1306.9,
+        "low": 1290.0,
+        "close": 1293.9,
+        "volume": 15695263
+      },
+      {
+        "date": "2026-07-01",
+        "open": 1298.9,
+        "high": 1312.2,
+        "low": 1296.5,
+        "close": 1308.3,
+        "volume": 4719599
+      }
+    ]
   },
   "market_stats": {
-    "market_cap": 17815499177984,
-    "pe_ratio": 22.048233,
-    "dividend_yield": 0.46,
-    "beta": 0.182,
-    "target_price": 1694.3871,
-    "recommendation": "strong_buy",
-    "analyst_count": 31
-  },
-  "market_metrics": {
-    "market_cap": 17815499177984,
-    "pe_ratio": 22.048233,
+    "market_cap": 17705887334400,
+    "pe_ratio": 21.934618,
     "dividend_yield": 0.46,
     "beta": 0.182,
     "target_price": 1694.3871,
@@ -458,23 +700,23 @@
     "sector": "Energy",
     "company": "RELIANCE",
     "macro": {
-      "nifty50_return_1mo": 0.6,
-      "nifty50_return_3mo": 5.42,
-      "banknifty_return_1mo": 5.6,
-      "banknifty_return_3mo": 11.29,
-      "usd_inr": 94.3,
-      "gold": 4078.7,
-      "crude": 69.23,
-      "silver": 59.22,
-      "10y_treasury": 4.45
+      "nifty50_return_1mo": 2.74,
+      "nifty50_return_3mo": 5.93,
+      "banknifty_return_1mo": 8.07,
+      "banknifty_return_3mo": 12.68,
+      "usd_inr": 94.86,
+      "gold": 3976.6,
+      "crude": 69.58,
+      "silver": 57.87,
+      "10y_treasury": 4.37
     },
     "sector_performance": {
       "peer_count": 3,
-      "sector_return_1mo": -7.4,
+      "sector_return_1mo": -5.66,
       "peer_sample_returns_1mo": [
-        -18.92,
-        -4.97,
-        1.69
+        -10.86,
+        -8.19,
+        2.07
       ]
     },
     "earnings": {
@@ -514,13 +756,13 @@
     },
     "promoter_activity": {
       "held_percent_insiders": 0.51181,
-      "held_percent_institutions": 0.29005,
+      "held_percent_institutions": 0.29014,
       "major_holders": {
         "Value": {
           "insidersPercentHeld": 0.51181,
-          "institutionsPercentHeld": 0.29005,
-          "institutionsFloatPercentHeld": 0.59414,
-          "institutionsCount": 393.0
+          "institutionsPercentHeld": 0.29014,
+          "institutionsFloatPercentHeld": 0.59433,
+          "institutionsCount": 395.0
         }
       },
       "institutional_holders": []
@@ -528,108 +770,34 @@
   },
   "website_context": {},
   "risk_metrics": {
-    "annualized_volatility": 18.76,
+    "annualized_volatility": 16.8,
     "max_drawdown": 7.49,
-    "sharpe_ratio": -0.68,
+    "sharpe_ratio": -1.67,
     "beta": null
   },
   "news_articles": [
     {
-      "headline": "Reliance Industries share price to be in focus on Thursday. Here's why - Mint",
-      "summary": "The milestone marks an important step towards expanding access to high-quality cervical cancer screening and follow-up care.\nReliance Industries, in its regulatory filing, said cervical cancer prevention is often limited not only by access to screeni",
+      "headline": "Reliance Power shares surge 18% on foraying into AI, allied new-age technologies - Moneycontrol.com",
+      "summary": "Reliance Power shares rise in trade.\nRP RP NSE/BSE Select NSE LIVE BSE LIVE Day HighDay LowVolume (NSE) More \u00d7Reliance Power shares climbed more than 18 percent in early trade on Wednesday after the company announced its foray into artificial intelli",
       "source": "web",
-      "url": "https://www.livemint.com/market/stock-market-news/reliance-industries-share-price-to-be-in-focus-on-thursday-heres-why-11782313951944.html",
-      "date": "2026-06-27",
+      "url": "https://www.moneycontrol.com/news/business/markets/reliance-power-shares-up-18-on-foraying-into-ai-allied-new-age-technologies-13963035.html",
+      "date": "2026-07-01",
       "sentiment": "neutral"
     },
     {
-      "headline": "Reliance Industries stock jumps 2% after AGM; brokerages see up to 34 percent upside on AI, Jio IPO, new... - Moneycontrol.com",
-      "summary": "Brokerages remained bullish on Reliance Industries shares following the AGM, highlighting multiple growth drivers across telecom, retail, energy and emerging businesses.\nReliance Industries LtdReliance gains over 2% after AGM growth announcementsBrok",
+      "headline": "Reliance Power shares soar 10%, snap 4-day losing streak. What\u2019s triggering the sharp surge? - The Economic Times",
+      "summary": "Reliance Power Q4 snapshotLive Eventsas a Reliable and Trusted News Source Addas a Reliable and Trusted News Source Add Now!\nThe rally also snapped the stock's four-session losing streak.In a regulatory filing, the company said it has undertaken enab",
       "source": "web",
-      "url": "https://www.moneycontrol.com/news/business/markets/reliance-industries-stock-jumps-2-after-agm-brokerages-see-up-to-34-percent-upside-on-ai-jio-ipo-new-energy-13955348.html",
-      "date": "2026-06-27",
+      "url": "https://m.economictimes.com/markets/stocks/news/reliance-power-shares-soar-10-snap-4-day-losing-streak-whats-triggering-the-sharp-surge/articleshow/132106363.cms",
+      "date": "2026-07-01",
       "sentiment": "neutral"
     },
     {
-      "headline": "IPO: Reliance Jio announces what may be India's biggest-ever share sale - BBC",
-      "summary": "The IPO comes after a year-long wait for Jio to go public.\nLast year, Ambani had said the company would be listed in the first half of 2026.",
+      "headline": "Reliance Power share price soars 18% as AI push sparks rally; stock snaps 4-day losing streak - Mint",
+      "summary": "<br><br> Her core areas of coverage include stock markets, leading listed companies, currencies, and commodities, with a particular strength in fast-paced, real-time market reporting.\nShe is known for handling breaking market news, earnings-driven st",
       "source": "web",
-      "url": "https://www.bbc.com/news/articles/cx2kerpkynko",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "Reliance Industries shares: Stock slips nearly 2% after Jio update, other announcements; details here - Upstox",
-      "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
-      "source": "web",
-      "url": "https://upstox.com/news/market-news/stocks/reliance-industries-shares-stock-slips-nearly-2-after-jio-update-and-other-announcements-everything-investors-need-to-know/article-195671/",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "Tata leads, Reliance dominates, Adani expands: India's new corporate order, reveals Hurun India 500 - Business Today",
-      "summary": "India's corporate landscape is increasingly being defined by three business giants \u2014 the Tata Group, Reliance Industries and the Adani Group.\nMeanwhile, the Adani Group continued to expand its footprint across sectors, reinforcing its status as one o",
-      "source": "web",
-      "url": "https://www.businesstoday.in/latest/corporate/story/tata-leads-reliance-dominates-adani-expands-indias-new-corporate-order-reveals-hurun-india-500-538994-2026-06-24",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "Jio IPO: Will it unlock value or hurt Reliance stock? - Business Standard",
-      "summary": "Jio IPO: Will it unlock value or hurt Reliance stock? - Business Standard",
-      "source": "web",
-      "url": "https://www.business-standard.com/video-gallery/market/jio-ipo-will-it-unlock-value-or-hurt-reliance-stock-178975.htm",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "Reliance Power - 5 stocks bought by FIIs, MFs and retail investors rally up to 60% in 6 months - The Economic Times",
-      "summary": "In the March \u201926 quarter, a notable trend emerged in the market.\nAround 22 stocks with a market capitalisation above Rs 3,000 crore saw a rare alignment, with FIIs, mutual funds and retail investors all increasing their stakes compared with the previ",
-      "source": "web",
-      "url": "https://m.economictimes.com/markets/stocks/news/5-stocks-bought-by-fiis-mfs-and-retail-investors-rally-up-to-60-in-6-months/reliance-power/slideshow/131961414.cms",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "India's largest telecom and digital service Jio Platforms files for IPO - CNBC",
-      "summary": "Billionaire Mukesh Ambani's Jio Platforms, India's largest wireless operator and digital service provider, filed draft papers for an initial public offering on Friday.\nJio Platforms said in its draft prospectus that funds raised will be used to pare ",
-      "source": "web",
-      "url": "https://www.cnbc.com/2026/06/19/india-jio-platforms-ipo-mukesh-ambani.html",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "RIL shares rise 5% in three sessions ahead of AGM: Here are other triggers - Moneycontrol.com",
-      "summary": "Reliance shares rise ahead of AGM on June 19Meta partners with Reliance for AI data centre in JamnagarSofter oil prices support Reliance stock rally Did our AI summary help?\nRI RI NSE/BSE Select NSE LIVE BSE LIVE Day HighDay LowVolume (NSE) More \u00d7Sha",
-      "source": "web",
-      "url": "https://www.moneycontrol.com/news/business/markets/ril-shares-rise-5-in-three-sessions-ahead-of-agm-here-are-other-triggers-13950748.html",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "Reliance share price jumps nearly 3% as Jio files papers for India\u2019s biggest-ever IPO - Upstox",
-      "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
-      "source": "web",
-      "url": "https://upstox.com/news/market-news/stocks/reliance-share-price-jumps-nearly-3-as-jio-files-papers-for-india-s-biggest-ever-ipo/article-195723/",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    }
-  ],
-  "news": [
-    {
-      "headline": "Reliance Industries share price to be in focus on Thursday. Here's why - Mint",
-      "summary": "The milestone marks an important step towards expanding access to high-quality cervical cancer screening and follow-up care.\nReliance Industries, in its regulatory filing, said cervical cancer prevention is often limited not only by access to screeni",
-      "source": "web",
-      "url": "https://www.livemint.com/market/stock-market-news/reliance-industries-share-price-to-be-in-focus-on-thursday-heres-why-11782313951944.html",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "Reliance Industries stock jumps 2% after AGM; brokerages see up to 34 percent upside on AI, Jio IPO, new... - Moneycontrol.com",
-      "summary": "Brokerages remained bullish on Reliance Industries shares following the AGM, highlighting multiple growth drivers across telecom, retail, energy and emerging businesses.\nReliance Industries LtdReliance gains over 2% after AGM growth announcementsBrok",
-      "source": "web",
-      "url": "https://www.moneycontrol.com/news/business/markets/reliance-industries-stock-jumps-2-after-agm-brokerages-see-up-to-34-percent-upside-on-ai-jio-ipo-new-energy-13955348.html",
-      "date": "2026-06-27",
+      "url": "https://www.livemint.com/market/stock-market-news/reliance-power-share-price-soars-18-as-ai-push-sparks-rally-stock-snaps-4-day-losing-streak-11782885871624.html",
+      "date": "2026-07-01",
       "sentiment": "neutral"
     },
     {
@@ -637,7 +805,31 @@
       "summary": "The IPO comes after a year-long wait for Jio to go public.\nLast year, Ambani had said the company would be listed in the first half of 2026.",
       "source": "web",
       "url": "https://www.bbc.com/news/articles/cx2kerpkynko",
-      "date": "2026-06-27",
+      "date": "2026-07-01",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Reliance Stock Rises 34% YTD: Will the Momentum Continue? - Yahoo Finance",
+      "summary": "The company continues to benefit from strong demand in non-residential construction, driven by public infrastructure, heavy civil construction, data centers, energy infrastructure and manufacturing projects.\nReliance continues to strengthen its growt",
+      "source": "web",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/reliance-stock-rises-34-ytd-120900202.html",
+      "date": "2026-07-01",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Jio IPO: What is Project Jupiter? How Mukesh Ambani\u2019s Reliance worked behind closed doors for India's big - The Times of India",
+      "summary": "Reliance formally set Project Jupiter in motion by October.\n(file photo)Project JupiterJio IPOProject Jupiter - that was the internal name of Reliance Industries \u2019 project to push Jio Platforms Ltd towards its initial public offering - which is all s",
+      "source": "web",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/jio-ipo-what-is-project-jupiter-how-mukesh-ambanis-reliance-worked-behind-closed-doors-for-indias-biggest-offering/articleshow/132086628.cms",
+      "date": "2026-07-01",
+      "sentiment": "neutral"
+    },
+    {
+      "headline": "Reliance Industries shares set for re-rating? Target price, what history suggests - Business Today",
+      "summary": "Equirus said medium-term underperformance, near term positive earnings surprise in O2C and valuation near to post Covid low make risk-reward equation favourable.\nIt upgraded the stock to 'LONG' from 'ADD' with September 2027 target of Rs 1,586, hinti",
+      "source": "web",
+      "url": "https://www.businesstoday.in/markets/stocks/story/reliance-industries-shares-set-for-re-rating-target-price-what-history-suggests-536201-2026-06-11",
+      "date": "2026-07-01",
       "sentiment": "neutral"
     },
     {
@@ -645,55 +837,23 @@
       "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
       "source": "web",
       "url": "https://upstox.com/news/market-news/stocks/reliance-industries-shares-stock-slips-nearly-2-after-jio-update-and-other-announcements-everything-investors-need-to-know/article-195671/",
-      "date": "2026-06-27",
+      "date": "2026-07-01",
       "sentiment": "neutral"
     },
     {
-      "headline": "Tata leads, Reliance dominates, Adani expands: India's new corporate order, reveals Hurun India 500 - Business Today",
-      "summary": "India's corporate landscape is increasingly being defined by three business giants \u2014 the Tata Group, Reliance Industries and the Adani Group.\nMeanwhile, the Adani Group continued to expand its footprint across sectors, reinforcing its status as one o",
+      "headline": "Reliance Industries hits 52-week low, stock down 12% in one month - Business Standard",
+      "summary": "Reliance Industries share priceReliance Industries (RIL) hit a 52-week low of \u20b91,266.90, down 2 per cent on the BSE in Monday\u2019s intra-day trade amid heavy volumes.\nShare price of(RIL) hit a 52-week low of \u20b91,266.90, down 2 per cent on the BSE in Mond",
       "source": "web",
-      "url": "https://www.businesstoday.in/latest/corporate/story/tata-leads-reliance-dominates-adani-expands-indias-new-corporate-order-reveals-hurun-india-500-538994-2026-06-24",
-      "date": "2026-06-27",
+      "url": "https://www.business-standard.com/markets/news/reliance-industries-hits-52-week-low-stock-down-12-in-one-month-126060800575_1.html",
+      "date": "2026-07-01",
       "sentiment": "neutral"
     },
     {
-      "headline": "Jio IPO: Will it unlock value or hurt Reliance stock? - Business Standard",
-      "summary": "Jio IPO: Will it unlock value or hurt Reliance stock? - Business Standard",
+      "headline": "Reliance Industries Q4 Results Updates: FY26 Revenue At All-Time High Rs 1,175,919 Crore, EBITDA Up 13.4% - Goodreturns",
+      "summary": "Reliance Industries, the largest company of India in terms of market cap, has declared its Q4 results for FY26 on April 26.\nReliance Industries reported a 12.55% decline in net profit to Rs 16,971 crore in Q4FY26 compared to PAT of Rs 19,407 crore in",
       "source": "web",
-      "url": "https://www.business-standard.com/video-gallery/market/jio-ipo-will-it-unlock-value-or-hurt-reliance-stock-178975.htm",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "Reliance Power - 5 stocks bought by FIIs, MFs and retail investors rally up to 60% in 6 months - The Economic Times",
-      "summary": "In the March \u201926 quarter, a notable trend emerged in the market.\nAround 22 stocks with a market capitalisation above Rs 3,000 crore saw a rare alignment, with FIIs, mutual funds and retail investors all increasing their stakes compared with the previ",
-      "source": "web",
-      "url": "https://m.economictimes.com/markets/stocks/news/5-stocks-bought-by-fiis-mfs-and-retail-investors-rally-up-to-60-in-6-months/reliance-power/slideshow/131961414.cms",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "India's largest telecom and digital service Jio Platforms files for IPO - CNBC",
-      "summary": "Billionaire Mukesh Ambani's Jio Platforms, India's largest wireless operator and digital service provider, filed draft papers for an initial public offering on Friday.\nJio Platforms said in its draft prospectus that funds raised will be used to pare ",
-      "source": "web",
-      "url": "https://www.cnbc.com/2026/06/19/india-jio-platforms-ipo-mukesh-ambani.html",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "RIL shares rise 5% in three sessions ahead of AGM: Here are other triggers - Moneycontrol.com",
-      "summary": "Reliance shares rise ahead of AGM on June 19Meta partners with Reliance for AI data centre in JamnagarSofter oil prices support Reliance stock rally Did our AI summary help?\nRI RI NSE/BSE Select NSE LIVE BSE LIVE Day HighDay LowVolume (NSE) More \u00d7Sha",
-      "source": "web",
-      "url": "https://www.moneycontrol.com/news/business/markets/ril-shares-rise-5-in-three-sessions-ahead-of-agm-here-are-other-triggers-13950748.html",
-      "date": "2026-06-27",
-      "sentiment": "neutral"
-    },
-    {
-      "headline": "Reliance share price jumps nearly 3% as Jio files papers for India\u2019s biggest-ever IPO - Upstox",
-      "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
-      "source": "web",
-      "url": "https://upstox.com/news/market-news/stocks/reliance-share-price-jumps-nearly-3-as-jio-files-papers-for-india-s-biggest-ever-ipo/article-195723/",
-      "date": "2026-06-27",
+      "url": "https://www.goodreturns.in/news/reliance-industries-q4-results-live-reliance-rjio-reliance-retail-earnings-ril-stock-ril-dividend-1504243.html",
+      "date": "2026-07-01",
       "sentiment": "neutral"
     }
   ],
@@ -711,14 +871,15 @@
     "recommendation_key": "strong_buy",
     "number_of_analysts": 31,
     "target_mean_price": 1694.3871,
-    "current_price": 1316.5,
-    "upside_downside_percent": 28.7
+    "current_price": 1308.4,
+    "upside_downside_percent": 29.5
   },
   "risks": [
-    "Low ROCE at 8.99% suggests weak capital efficiency.",
     "Debt/Equity at 3980000000000.0 points to higher leverage risk."
   ],
   "opportunities": [
+    "Strong ROCE at 12.53% shows efficient capital use.",
+    "Reasonable P/E of 21.934618 may leave room for rerating.",
     "Recent news flow provides fresh catalysts to monitor.",
     "Broader market momentum is positive."
   ],
@@ -740,5 +901,711 @@
     "price_snapshot": "No price data"
   },
   "chart_artifacts": {},
-  "rag_context": ""
+  "rag_context": "",
+  "dashboard": {
+    "business_fundamentals": {
+      "overall": "Moderate",
+      "strengths": [
+        "Acceptable ROCE performance",
+        "Healthy operating margins",
+        "Diversified business model"
+      ],
+      "watch_items": [
+        "High debt levels",
+        "Profit margin is below 10%, indicating weaker profitability.",
+        "Return on equity is below 15%, below industry best practices.",
+        "Isolation Forest flagged this company as anomalous (decision: -0.00, score: 0.00)."
+      ],
+      "summary": "Reliance Industries Limited has acceptable financial fundamentals with some areas to monitor."
+    },
+    "market_mood": {
+      "status": "Positive",
+      "positive_signals": [
+        "Analyst consensus is positive",
+        "Positive price momentum"
+      ],
+      "risks": [],
+      "summary": "Market sentiment is constructive. Analyst target implies 29.5% upside."
+    },
+    "price_story": {
+      "summary": "\u20b91,308.30 is 18.8% below 52-week high. Price trend is up. Support: \u20b91,258.80, Resistance: \u20b91,360.71.",
+      "trend": "up",
+      "support": 1258.8,
+      "resistance": 1360.71,
+      "current_price": 1308.3,
+      "distance_from_52w_high": 18.83
+    },
+    "financial_stability": {
+      "status": "Watch",
+      "summary": "Financial stability requires monitoring",
+      "reasoning": [
+        "High debt levels",
+        "Healthy cash generation",
+        "Profit margin is below 10%, indicating weaker profitability.",
+        "Return on equity is below 15%, below industry best practices."
+      ]
+    }
+  },
+  "_agent1": {
+    "ticker": "RELIANCE.NS",
+    "fetch_timestamp": "2026-07-01T07:26:18.228655+00:00",
+    "news": {
+      "articles": [
+        {
+          "date": "2026-07-01",
+          "title": "Reliance Power shares surge 18% on foraying into AI, allied new-age technologies - Moneycontrol.com",
+          "summary": "Reliance Power shares rise in trade.\nRP RP NSE/BSE Select NSE LIVE BSE LIVE Day HighDay LowVolume (NSE) More \u00d7Reliance Power shares climbed more than 18 percent in early trade on Wednesday after the company announced its foray into artificial intelli",
+          "source": "web",
+          "url": "https://www.moneycontrol.com/news/business/markets/reliance-power-shares-up-18-on-foraying-into-ai-allied-new-age-technologies-13963035.html"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "Reliance Power shares soar 10%, snap 4-day losing streak. What\u2019s triggering the sharp surge? - The Economic Times",
+          "summary": "Reliance Power Q4 snapshotLive Eventsas a Reliable and Trusted News Source Addas a Reliable and Trusted News Source Add Now!\nThe rally also snapped the stock's four-session losing streak.In a regulatory filing, the company said it has undertaken enab",
+          "source": "web",
+          "url": "https://m.economictimes.com/markets/stocks/news/reliance-power-shares-soar-10-snap-4-day-losing-streak-whats-triggering-the-sharp-surge/articleshow/132106363.cms"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "Reliance Power share price soars 18% as AI push sparks rally; stock snaps 4-day losing streak - Mint",
+          "summary": "<br><br> Her core areas of coverage include stock markets, leading listed companies, currencies, and commodities, with a particular strength in fast-paced, real-time market reporting.\nShe is known for handling breaking market news, earnings-driven st",
+          "source": "web",
+          "url": "https://www.livemint.com/market/stock-market-news/reliance-power-share-price-soars-18-as-ai-push-sparks-rally-stock-snaps-4-day-losing-streak-11782885871624.html"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "IPO: Reliance Jio announces what may be India's biggest-ever share sale - BBC",
+          "summary": "The IPO comes after a year-long wait for Jio to go public.\nLast year, Ambani had said the company would be listed in the first half of 2026.",
+          "source": "web",
+          "url": "https://www.bbc.com/news/articles/cx2kerpkynko"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "Reliance Stock Rises 34% YTD: Will the Momentum Continue? - Yahoo Finance",
+          "summary": "The company continues to benefit from strong demand in non-residential construction, driven by public infrastructure, heavy civil construction, data centers, energy infrastructure and manufacturing projects.\nReliance continues to strengthen its growt",
+          "source": "web",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/reliance-stock-rises-34-ytd-120900202.html"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "Jio IPO: What is Project Jupiter? How Mukesh Ambani\u2019s Reliance worked behind closed doors for India's big - The Times of India",
+          "summary": "Reliance formally set Project Jupiter in motion by October.\n(file photo)Project JupiterJio IPOProject Jupiter - that was the internal name of Reliance Industries \u2019 project to push Jio Platforms Ltd towards its initial public offering - which is all s",
+          "source": "web",
+          "url": "https://timesofindia.indiatimes.com/business/india-business/jio-ipo-what-is-project-jupiter-how-mukesh-ambanis-reliance-worked-behind-closed-doors-for-indias-biggest-offering/articleshow/132086628.cms"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "Reliance Industries shares set for re-rating? Target price, what history suggests - Business Today",
+          "summary": "Equirus said medium-term underperformance, near term positive earnings surprise in O2C and valuation near to post Covid low make risk-reward equation favourable.\nIt upgraded the stock to 'LONG' from 'ADD' with September 2027 target of Rs 1,586, hinti",
+          "source": "web",
+          "url": "https://www.businesstoday.in/markets/stocks/story/reliance-industries-shares-set-for-re-rating-target-price-what-history-suggests-536201-2026-06-11"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "Reliance Industries shares: Stock slips nearly 2% after Jio update, other announcements; details here - Upstox",
+          "summary": "Upstox Securities Private Limited is a wholly owned subsidiary of RKSV Securities India Private Limited and RKSV Commodities India Private Limited is an associate of RKSV Securities India Private Limited.\nOn an average, loss makers registered net tra",
+          "source": "web",
+          "url": "https://upstox.com/news/market-news/stocks/reliance-industries-shares-stock-slips-nearly-2-after-jio-update-and-other-announcements-everything-investors-need-to-know/article-195671/"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "Reliance Industries hits 52-week low, stock down 12% in one month - Business Standard",
+          "summary": "Reliance Industries share priceReliance Industries (RIL) hit a 52-week low of \u20b91,266.90, down 2 per cent on the BSE in Monday\u2019s intra-day trade amid heavy volumes.\nShare price of(RIL) hit a 52-week low of \u20b91,266.90, down 2 per cent on the BSE in Mond",
+          "source": "web",
+          "url": "https://www.business-standard.com/markets/news/reliance-industries-hits-52-week-low-stock-down-12-in-one-month-126060800575_1.html"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "Reliance Industries Q4 Results Updates: FY26 Revenue At All-Time High Rs 1,175,919 Crore, EBITDA Up 13.4% - Goodreturns",
+          "summary": "Reliance Industries, the largest company of India in terms of market cap, has declared its Q4 results for FY26 on April 26.\nReliance Industries reported a 12.55% decline in net profit to Rs 16,971 crore in Q4FY26 compared to PAT of Rs 19,407 crore in",
+          "source": "web",
+          "url": "https://www.goodreturns.in/news/reliance-industries-q4-results-live-reliance-rjio-reliance-retail-earnings-ril-stock-ril-dividend-1504243.html"
+        }
+      ],
+      "article_count": 10,
+      "date_range": {
+        "start": "2026-06-01",
+        "end": "2026-07-01"
+      }
+    },
+    "price_history": {
+      "ohlcv": [
+        {
+          "date": "2026-05-21",
+          "open": 1360.91,
+          "high": 1364.59,
+          "low": 1339.01,
+          "close": 1343.39,
+          "volume": 17150630
+        },
+        {
+          "date": "2026-05-22",
+          "open": 1343.79,
+          "high": 1361.11,
+          "low": 1342.89,
+          "close": 1348.27,
+          "volume": 7105813
+        },
+        {
+          "date": "2026-05-25",
+          "open": 1360.51,
+          "high": 1364.79,
+          "low": 1350.75,
+          "close": 1360.71,
+          "volume": 6750071
+        },
+        {
+          "date": "2026-05-26",
+          "open": 1353.84,
+          "high": 1362.2,
+          "low": 1346.18,
+          "close": 1350.06,
+          "volume": 13769747
+        },
+        {
+          "date": "2026-05-27",
+          "open": 1346.77,
+          "high": 1354.74,
+          "low": 1342.39,
+          "close": 1344.28,
+          "volume": 13215138
+        },
+        {
+          "date": "2026-05-28",
+          "open": 1344.28,
+          "high": 1344.28,
+          "low": 1344.28,
+          "close": 1344.28,
+          "volume": 0
+        },
+        {
+          "date": "2026-05-29",
+          "open": 1357.72,
+          "high": 1362.7,
+          "low": 1310.94,
+          "close": 1315.12,
+          "volume": 42634247
+        },
+        {
+          "date": "2026-06-01",
+          "open": 1326.37,
+          "high": 1329.35,
+          "low": 1312.43,
+          "close": 1313.92,
+          "volume": 10700603
+        },
+        {
+          "date": "2026-06-02",
+          "open": 1301.68,
+          "high": 1321.69,
+          "low": 1294.32,
+          "close": 1308.55,
+          "volume": 23302785
+        },
+        {
+          "date": "2026-06-03",
+          "open": 1308.95,
+          "high": 1317.91,
+          "low": 1295.01,
+          "close": 1307.16,
+          "volume": 20012293
+        },
+        {
+          "date": "2026-06-04",
+          "open": 1295.01,
+          "high": 1305.17,
+          "low": 1287.15,
+          "close": 1297.7,
+          "volume": 23474327
+        },
+        {
+          "date": "2026-06-05",
+          "open": 1304.5,
+          "high": 1306.0,
+          "low": 1288.0,
+          "close": 1291.0,
+          "volume": 17785223
+        },
+        {
+          "date": "2026-06-08",
+          "open": 1277.0,
+          "high": 1282.6,
+          "low": 1259.2,
+          "close": 1263.3,
+          "volume": 16494759
+        },
+        {
+          "date": "2026-06-09",
+          "open": 1269.0,
+          "high": 1274.2,
+          "low": 1257.5,
+          "close": 1269.2,
+          "volume": 23620214
+        },
+        {
+          "date": "2026-06-10",
+          "open": 1275.0,
+          "high": 1300.5,
+          "low": 1254.4,
+          "close": 1258.8,
+          "volume": 21012796
+        },
+        {
+          "date": "2026-06-11",
+          "open": 1258.0,
+          "high": 1276.0,
+          "low": 1253.2,
+          "close": 1263.0,
+          "volume": 13117486
+        },
+        {
+          "date": "2026-06-12",
+          "open": 1277.0,
+          "high": 1297.0,
+          "low": 1262.5,
+          "close": 1293.0,
+          "volume": 11988785
+        },
+        {
+          "date": "2026-06-15",
+          "open": 1315.3,
+          "high": 1325.0,
+          "low": 1303.3,
+          "close": 1307.0,
+          "volume": 18633321
+        },
+        {
+          "date": "2026-06-16",
+          "open": 1313.4,
+          "high": 1333.4,
+          "low": 1306.4,
+          "close": 1328.8,
+          "volume": 18513223
+        },
+        {
+          "date": "2026-06-17",
+          "open": 1333.0,
+          "high": 1334.0,
+          "low": 1317.0,
+          "close": 1332.7,
+          "volume": 10029170
+        },
+        {
+          "date": "2026-06-18",
+          "open": 1330.0,
+          "high": 1333.9,
+          "low": 1322.0,
+          "close": 1328.1,
+          "volume": 15494549
+        },
+        {
+          "date": "2026-06-19",
+          "open": 1328.0,
+          "high": 1338.2,
+          "low": 1305.3,
+          "close": 1309.5,
+          "volume": 24887034
+        },
+        {
+          "date": "2026-06-22",
+          "open": 1316.7,
+          "high": 1344.9,
+          "low": 1314.1,
+          "close": 1326.5,
+          "volume": 12931213
+        },
+        {
+          "date": "2026-06-23",
+          "open": 1328.9,
+          "high": 1333.0,
+          "low": 1304.0,
+          "close": 1309.5,
+          "volume": 15400184
+        },
+        {
+          "date": "2026-06-24",
+          "open": 1305.7,
+          "high": 1322.0,
+          "low": 1297.5,
+          "close": 1313.6,
+          "volume": 11030917
+        },
+        {
+          "date": "2026-06-25",
+          "open": 1318.0,
+          "high": 1328.0,
+          "low": 1314.6,
+          "close": 1318.1,
+          "volume": 12694362
+        },
+        {
+          "date": "2026-06-26",
+          "open": 1318.1,
+          "high": 1318.1,
+          "low": 1318.1,
+          "close": 1318.1,
+          "volume": 0
+        },
+        {
+          "date": "2026-06-29",
+          "open": 1308.0,
+          "high": 1313.7,
+          "low": 1292.6,
+          "close": 1301.0,
+          "volume": 13757656
+        },
+        {
+          "date": "2026-06-30",
+          "open": 1306.9,
+          "high": 1306.9,
+          "low": 1290.0,
+          "close": 1293.9,
+          "volume": 15695263
+        },
+        {
+          "date": "2026-07-01",
+          "open": 1298.9,
+          "high": 1312.2,
+          "low": 1296.5,
+          "close": 1308.3,
+          "volume": 4719599
+        }
+      ],
+      "week_52_high": 1604.38,
+      "week_52_low": 1253.2,
+      "average_volume": 15197380,
+      "current_price": 1308.3
+    },
+    "analyst_data": {
+      "recommendation_key": "strong_buy",
+      "number_of_analysts": 31,
+      "target_mean_price": 1694.3871,
+      "current_price": 1308.4,
+      "upside_downside_percent": 29.5
+    },
+    "company_info": {
+      "company_name": "Reliance Industries Limited",
+      "sector": "Energy",
+      "industry": "Oil & Gas Refining & Marketing",
+      "business_summary": "Reliance Industries Limited engages in hydrocarbon exploration and production, petroleum refining and marketing, petrochemicals, advanced materials and composites, renewable, financial services, retail, and digital services worldwide. It operates through the Oil to Chemicals, Oil and Gas, Retail, Digital Services, and Others segments. The company is involved in refining and marketing products, including liquefied petroleum gas, propylene, naphtha, gasoline, jet/aviation turbine fuel, kerosine oil, diesel, sulfur, and petroleum coke. It also provides polymers comprising high-density and low-density polyethylene (PE), linear low-density PE, homopolymer, random and impact copolymer, and polyvinyl chloride; fiber intermediates that include purified terephthalic acid, and ethylene glycols and oxide; aromatics, such as paraxylene, ortho xylene, benzene, and linear alkyl benzene and paraffin; and textiles that consist of fabrics, apparel, and auto furnishings. In addition, the company offers elastomers, such as polybutadiene rubber, styrene butadiene rubber, and butyl rubber; fiber and yarn polyesters; and bioenergy solutions, including compressed biogas, and pellets and briquettes. Further, it engages in oil and gas exploration and production activities; operation of various stores comprising supermarkets, hypermarket, wholesale cash and carry, specialty, and online stores; operation of media and entertainment platforms, and Network18 and television channels; and publishing of magazines. Additionally, the company provides highway hospitality and fleet management services, as well as digital services, such as connectivity, fiber, mobile devices, apps, business, and other digital solutions. Reliance Industries Limited was founded in 1957 and is based in Mumbai, India.",
+      "employees": 404501,
+      "website": "https://www.ril.com",
+      "marketCap": 17705887334400,
+      "currentPrice": 1308.4,
+      "regularMarketPrice": 1308.4,
+      "regularMarketPreviousClose": 1293.9,
+      "previousClose": 1293.9,
+      "trailingPE": 21.934618,
+      "debtToEquity": 36.653,
+      "currentRatio": 1.098,
+      "dividendYield": 0.46,
+      "dayHigh": 1312.2,
+      "dayLow": 1296.5,
+      "open": 1298.9,
+      "fiftyTwoWeekHigh": 1611.8,
+      "fiftyTwoWeekLow": 1253.2,
+      "beta": 0.182,
+      "earningsDate": null,
+      "exDividendDate": 1780617600,
+      "dividendRate": 6.0,
+      "sharesOutstanding": 13532472634,
+      "floatShares": 6638895750,
+      "heldPercentInsiders": 0.51181,
+      "heldPercentInstitutions": 0.29014,
+      "fundFamily": null
+    },
+    "market_drivers": {
+      "ticker": "RELIANCE.NS",
+      "sector": "Energy",
+      "company": "RELIANCE",
+      "macro": {
+        "nifty50_return_1mo": 2.74,
+        "nifty50_return_3mo": 5.93,
+        "banknifty_return_1mo": 8.07,
+        "banknifty_return_3mo": 12.68,
+        "usd_inr": 94.86,
+        "gold": 3976.6,
+        "crude": 69.58,
+        "silver": 57.87,
+        "10y_treasury": 4.37
+      },
+      "sector_performance": {
+        "peer_count": 3,
+        "sector_return_1mo": -5.66,
+        "peer_sample_returns_1mo": [
+          -10.86,
+          -8.19,
+          2.07
+        ]
+      },
+      "earnings": {
+        "calendar": {},
+        "earnings_date": ""
+      },
+      "corporate_actions": {
+        "recent_actions": [
+          {
+            "date": "2023-08-21",
+            "dividends": 4.5,
+            "stock_splits": 0.0
+          },
+          {
+            "date": "2024-08-19",
+            "dividends": 5.0,
+            "stock_splits": 0.0
+          },
+          {
+            "date": "2024-10-28",
+            "dividends": 0.0,
+            "stock_splits": 2.0
+          },
+          {
+            "date": "2025-08-14",
+            "dividends": 5.5,
+            "stock_splits": 0.0
+          },
+          {
+            "date": "2026-06-05",
+            "dividends": 6.0,
+            "stock_splits": 0.0
+          }
+        ],
+        "dividend_rate": 6.0,
+        "ex_dividend_date": "1780617600"
+      },
+      "promoter_activity": {
+        "held_percent_insiders": 0.51181,
+        "held_percent_institutions": 0.29014,
+        "major_holders": {
+          "Value": {
+            "insidersPercentHeld": 0.51181,
+            "institutionsPercentHeld": 0.29014,
+            "institutionsFloatPercentHeld": 0.59433,
+            "institutionsCount": 395.0
+          }
+        },
+        "institutional_holders": []
+      }
+    },
+    "entities": [
+      "RELIANCE.NS"
+    ]
+  },
+  "_agent2": {
+    "ticker": "RELIANCE.NS",
+    "financial_facts": {
+      "ROCE": 12.5315,
+      "OperatingMargin": 11.4808,
+      "Debt": 3980000000000.0,
+      "CurrentRatio": null,
+      "NetProfit": 807750000000.0,
+      "CashFromOperatingActivity": 1921130000000.0,
+      "DebtorDays": 20.1937,
+      "InventoryDays": 77.4423,
+      "WorkingCapitalDays": 18.2963
+    },
+    "red_flags": [
+      {
+        "metric": "Low Profit Margin",
+        "value": "7.6%",
+        "severity": "medium",
+        "explanation": "Profit margin is below 10%, indicating weaker profitability."
+      },
+      {
+        "metric": "Low ROE",
+        "value": "9.1%",
+        "severity": "low",
+        "explanation": "Return on equity is below 15%, below industry best practices."
+      },
+      {
+        "metric": "Financial Statements",
+        "value": "Risk Score: 0.00",
+        "severity": "high",
+        "explanation": "Isolation Forest flagged this company as anomalous (decision: -0.00, score: 0.00)."
+      }
+    ],
+    "model_assessment": {
+      "model_path": "D:\\Investment-agent\\agent_2\\isolation_forest_model.pkl",
+      "model_loaded": true,
+      "prediction": -1,
+      "decision_function": -0.0043,
+      "anomaly_score": 0.0043,
+      "is_anomaly": true,
+      "used_features": [
+        "Debt To Equity_z",
+        "Debt Ratio_z",
+        "Net Debt To Ebitda_z",
+        "Total Debt To Capitalization_z",
+        "Current Ratio_z",
+        "Quick Ratio_z",
+        "Cash Ratio_z",
+        "Net Profit Margin_z",
+        "Operating Profit Margin_z",
+        "ROE_z",
+        "ROIC_z",
+        "Income Quality_z",
+        "Cash Flow To Debt Ratio_z",
+        "Interest Coverage_z",
+        "Asset Turnover_z"
+      ]
+    },
+    "peer_comparison": {
+      "sector": "Energy",
+      "peers": [
+        "ONGC.NS",
+        "COALINDIA.NS",
+        "BPCL.NS"
+      ],
+      "metrics": {
+        "ROCE": {
+          "company": 12.53,
+          "sector_average": 27.26,
+          "percentile": 0
+        },
+        "Debt": {
+          "company": 3980000000000.0,
+          "sector_average": 809376966666.67,
+          "percentile": 100
+        },
+        "Sales": {
+          "company": 10572190000000.0,
+          "sector_average": 4286252133333.33,
+          "percentile": 100
+        },
+        "Operating Profit": {
+          "company": 1213770000000.0,
+          "sector_average": 661739900000.0,
+          "percentile": 67
+        },
+        "OPM %": {
+          "company": 11.48,
+          "sector_average": 15.35,
+          "percentile": 33
+        },
+        "Net Profit": {
+          "company": 807750000000.0,
+          "sector_average": 327873733333.33,
+          "percentile": 100
+        },
+        "Total Assets": {
+          "company": 21781400000000.0,
+          "sector_average": 4420604933333.33,
+          "percentile": 100
+        },
+        "Total Liabilities": {
+          "company": 10922740000000.0,
+          "sector_average": 2317711233333.33,
+          "percentile": 100
+        },
+        "Cash from Operating Activity": {
+          "company": 1921130000000.0,
+          "sector_average": 689009766666.67,
+          "percentile": 100
+        },
+        "Debtor Days": {
+          "company": 20.19,
+          "sector_average": 15.58,
+          "percentile": 67
+        },
+        "Inventory Days": {
+          "company": 77.44,
+          "sector_average": 137.78,
+          "percentile": 67
+        },
+        "Working Capital Days": {
+          "company": 18.3,
+          "sector_average": 31.06,
+          "percentile": 67
+        }
+      }
+    },
+    "fundamental_profile": {
+      "financial_quality": "Moderate",
+      "summary": "The company shows acceptable financial fundamentals with some areas of strength but also notable room for improvement relative to peers.",
+      "strengths": [
+        "Strong net profit generation",
+        "Strong cash generation"
+      ],
+      "weaknesses": [
+        "Higher debt than peers"
+      ]
+    },
+    "fundamental_signals": {
+      "strengths": [
+        "Strong net profit generation",
+        "Strong cash generation"
+      ],
+      "weaknesses": [
+        "Higher debt than peers"
+      ]
+    }
+  },
+  "_agent3": {
+    "ticker": "RELIANCE.NS",
+    "sentiment": "",
+    "market_intelligence_report": {
+      "recent_developments": "No recent events",
+      "market_perception": "No analyst data",
+      "positive_factors": [],
+      "risk_factors": [],
+      "bull_case": "Bull case not requested.",
+      "base_case": "The stock looks stable based on the current inputs.",
+      "bear_case": "Bear case not requested.",
+      "key_catalysts": [],
+      "things_you_should_know": [
+        "Give a full analysis of RELIANCE."
+      ],
+      "price_snapshot": "No price data"
+    },
+    "price_story": {},
+    "market_facts": {
+      "recommendation": null,
+      "target_price": null,
+      "analyst_count": null,
+      "upside_downside_percent": null,
+      "articles_positive": 0,
+      "articles_negative": 0,
+      "articles_neutral": 0
+    },
+    "why_market_thinks_this": [
+      "No analyst data"
+    ],
+    "recent_events": [],
+    "risks": [],
+    "opportunities": [],
+    "catalysts": [],
+    "future_outlook": "The stock looks stable based on the current inputs.",
+    "supporting_articles": [
+      {
+        "title": "Reliance Power shares surge 18% on foraying into AI, allied new-age technologies - Moneycontrol.com",
+        "source": "web",
+        "url": "https://www.moneycontrol.com/news/business/markets/reliance-power-shares-up-18-on-foraying-into-ai-allied-new-age-technologies-13963035.html",
+        "summary": "Reliance Power shares rise in trade.\nRP RP NSE/BSE Select NSE LIVE BSE LIVE Day HighDay LowVolume (NSE) More \u00d7Reliance Power shares climbed more than 18 percent in early trade on Wednesday after the company announced its foray into artificial intelli"
+      },
+      {
+        "title": "Reliance Power shares soar 10%, snap 4-day losing streak. What\u2019s triggering the sharp surge? - The Economic Times",
+        "source": "web",
+        "url": "https://m.economictimes.com/markets/stocks/news/reliance-power-shares-soar-10-snap-4-day-losing-streak-whats-triggering-the-sharp-surge/articleshow/132106363.cms",
+        "summary": "Reliance Power Q4 snapshotLive Eventsas a Reliable and Trusted News Source Addas a Reliable and Trusted News Source Add Now!\nThe rally also snapped the stock's four-session losing streak.In a regulatory filing, the company said it has undertaken enab"
+      },
+      {
+        "title": "Reliance Power share price soars 18% as AI push sparks rally; stock snaps 4-day losing streak - Mint",
+        "source": "web",
+        "url": "https://www.livemint.com/market/stock-market-news/reliance-power-share-price-soars-18-as-ai-push-sparks-rally-stock-snaps-4-day-losing-streak-11782885871624.html",
+        "summary": "<br><br> Her core areas of coverage include stock markets, leading listed companies, currencies, and commodities, with a particular strength in fast-paced, real-time market reporting.\nShe is known for handling breaking market news, earnings-driven st"
+      },
+      {
+        "title": "IPO: Reliance Jio announces what may be India's biggest-ever share sale - BBC",
+        "source": "web",
+        "url": "https://www.bbc.com/news/articles/cx2kerpkynko",
+        "summary": "The IPO comes after a year-long wait for Jio to go public.\nLast year, Ambani had said the company would be listed in the first half of 2026."
+      },
+      {
+        "title": "Reliance Stock Rises 34% YTD: Will the Momentum Continue? - Yahoo Finance",
+        "source": "web",
+        "url": "https://finance.yahoo.com/markets/stocks/articles/reliance-stock-rises-34-ytd-120900202.html",
+        "summary": "The company continues to benefit from strong demand in non-residential construction, driven by public infrastructure, heavy civil construction, data centers, energy infrastructure and manufacturing projects.\nReliance continues to strengthen its growt"
+      }
+    ]
+  }
 }

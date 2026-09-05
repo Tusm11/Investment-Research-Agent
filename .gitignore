@@ -46,12 +46,12 @@ env/
 
 # Git
 .git/
+.gitignore
 
 # Agents folder (contains sensitive configs)
 .agents/
 
 # Models and serialized data
-*.pkl
 *.joblib
 *.h5
 *.hdf5
@@ -97,3 +97,13 @@ output/*
 # Cache directories
 .cache/
 cache/
+
+# Test files and directories
+tests/
+test_*.py
+*_test.py
+test_data/
+
+# Company memory and cache (local dev only)
+company_memory.json
+error.log

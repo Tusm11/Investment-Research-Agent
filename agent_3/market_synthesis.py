@@ -21,7 +21,9 @@ def format_analyst(data):
     """Format analyst data for prompt."""
     if not data:
         return "No analyst data"
-    rec = data.get("recommendation", "hold").upper()
+    rec = (data.get("recommendation") or "hold").upper()
+    if rec in ("NONE", "NULL"):
+        rec = "N/A"
     count = data.get("analysts_count", data.get("analysts", 0))
     target = data.get("price_target") or data.get("target_mean_price")
     current = data.get("current_price")
@@ -32,6 +34,30 @@ def format_analyst(data):
         except Exception:
             upside = "N/A"
     return f"Recommendation: {rec} | Analysts: {count} | Target: {target} | Current: {current} | Upside: {upside}"
+
+
+def describe_analyst(data):
+    """Human-readable analyst stance sentence for UI display (no raw field dump)."""
+    if not data:
+        return None
+    rec = (data.get("recommendation") or "").replace("_", " ").upper()
+    if not rec or rec in ("NONE", "NULL"):
+        return None
+    target = data.get("price_target") or data.get("target_mean_price")
+    current = data.get("current_price")
+    parts = [f"Analysts currently maintain a {rec} stance"]
+    if target:
+        try:
+            parts.append(f"with an average target of ₹{float(target):,.0f}")
+        except Exception:
+            pass
+    if target and current:
+        try:
+            upside = (float(target) - float(current)) / float(current) * 100
+            parts.append(f"about {upside:+.1f}% versus the current price")
+        except Exception:
+            pass
+    return ", ".join(parts) + "."
 
 
 def format_price(data):
@@ -64,7 +90,7 @@ def _build_momentum(ticker):
         if hist.empty:
             return {}
 
-        prices = hist["Close"]
+        prices = hist["Close"].dropna()
         current = float(prices.iloc[-1])
 
         def ret(days):
@@ -93,19 +119,24 @@ def get_momentum(ticker):
 
 
 def synthesize_market(ticker, events, analyst_consensus, price_performance, rag_context, question, need_future):
+    """Synthesize market intelligence from available data sources."""
     momentum = _build_momentum(ticker) if price_performance else {}
     event_titles = [event.get("title") or event.get("headline") for event in events if event]
     event_titles = [title for title in event_titles if title]
 
     analyst = format_analyst(analyst_consensus)
+    analyst_perception = describe_analyst(analyst_consensus)
     price = format_price(momentum)
     developments = format_events(events)
 
     positive_factors = []
     risk_factors = []
 
-    if analyst_consensus.get("upside_downside_percent") not in (None, ""):
-        upside = analyst_consensus.get("upside_downside_percent")
+    upside = analyst_consensus.get("upside_downside_percent")
+    if upside is None:
+        upside = analyst_consensus.get("upside")
+    if upside not in (None, "") and float(upside) == float(upside):  # second check rejects NaN
+        upside = float(upside)
         if upside >= 0:
             positive_factors.append(f"Analyst upside near {upside}%")
         else:
@@ -120,15 +151,14 @@ def synthesize_market(ticker, events, analyst_consensus, price_performance, rag_
     if event_titles:
         positive_factors.append(event_titles[0])
 
-    # Only add placeholders if we have no real data
-    if not positive_factors and not analyst_consensus and not momentum:
-        positive_factors = []
-    if not risk_factors and not analyst_consensus and not momentum:
-        risk_factors = []
-
+    # Track data availability
+    data_available = bool(analyst_consensus or momentum or event_titles)
+    
     report = {
+        "status": "success" if data_available else "no_data",
+        "error_reason": None if data_available else "Insufficient data for market synthesis",
         "recent_developments": developments,
-        "market_perception": analyst,
+        "market_perception": analyst_perception or "No analyst data available",
         "positive_factors": positive_factors[:3] if positive_factors else [],
         "risk_factors": risk_factors[:3] if risk_factors else [],
         "bull_case": "Momentum improves if recent strength continues." if need_future else "Bull case not requested.",

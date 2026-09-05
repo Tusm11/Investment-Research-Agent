@@ -1,7 +1,7 @@
 import re
 from agent_3.market_synthesis import get_momentum
 
-
+#gets a second ticker symbol from the user's query, excluding the primary ticker. It looks for common separators and patterns in the question to identify a potential second ticker for comparison.
 def _find_second_ticker(question, primary):
     # look for common separators
     q = (question or "").upper()

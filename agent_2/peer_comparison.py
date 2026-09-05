@@ -1,4 +1,5 @@
 import numpy as np 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from agent_1.tools.nifty50 import NIFTY50
 from agent_2.health_data import build_health_features
 
@@ -44,15 +45,23 @@ def compare_peers(ticker, company_features):
 
     peer_data = {m: [] for m in TARGET_METRICS}
 
-    for peer in peers:
+    def _fetch_peer(peer):
         try:
-            feats = build_health_features(peer)["feature_vector"]
-            for m in TARGET_METRICS:
-                val = feats.get(m)
-                if val is not None and not np.isnan(val):
-                    peer_data[m].append(val)
+            return peer, build_health_features(peer)["feature_vector"]
         except Exception:
-            pass
+            return peer, {}
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {executor.submit(_fetch_peer, peer): peer for peer in peers}
+        for future in as_completed(futures, timeout=20):
+            try:
+                _, feats = future.result(timeout=5)
+                for m in TARGET_METRICS:
+                    val = feats.get(m)
+                    if val is not None and not np.isnan(val):
+                        peer_data[m].append(val)
+            except Exception:
+                pass
 
     output_metrics = {}
 

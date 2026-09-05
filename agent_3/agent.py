@@ -7,9 +7,9 @@ from agent_3.price_chart import create_price_chart
 from agent_3.market_synthesis import synthesize_market
 from agent_3.comparison import compare_tickers
 
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", "agent_1", ".env"))
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-
+#route_query function analyzes the research question to determine which aspects of market intelligence are relevant, returning a dictionary indicating whether to focus on news, analyst consensus, price performance, risks and opportunities, comparisons, or future outlook.
 def _route_query(question):
     text = (question or "").lower()
     return {
@@ -21,18 +21,22 @@ def _route_query(question):
         "future": any(term in text for term in ("future", "outlook", "forecast", "will it")),
     }
 
-
-def run_agent3(agent1_payload, question="", **_):
+#run_agent3 function processes the output from Agent 1, extracting relevant market intelligence based on the research question. It gathers news events, analyst consensus, price performance, and comparisons, synthesizes this information into a market intelligence report, and formats the output with supporting articles and key insights for further analysis.
+def run_agent3(agent1_payload, question="", **_): # **_ allows for additional unused keyword arguments which can be passed without causing errors
     ticker = agent1_payload.get("ticker")
     news = agent1_payload.get("news", {})
     price_data = agent1_payload.get("price_history", {})
 
     route = _route_query(question)
 
+    # Company-specific analysis must always populate the core intelligence
+    # sections; keyword routing only adds extras like comparison/future outlook.
+    if not any(route.values()):
+        route.update({"news": True, "analyst": True, "price": True})
+
     events = []
     analyst_consensus = {}
     price_performance = {}
-    rag_context = ""
     comparison_result = {}
 
     if route.get("news"):
@@ -40,12 +44,14 @@ def run_agent3(agent1_payload, question="", **_):
             events = extract_events(news)
         except Exception as e:
             print(f"Agent3 event extraction failed: {e}")
+            events = []
 
     if route.get("analyst"):
         try:
             analyst_consensus = get_analyst_consensus(ticker)
         except Exception as e:
             print(f"Agent3 analyst consensus failed: {e}")
+            analyst_consensus = {}
 
     if route.get("price"):
         try:
@@ -53,27 +59,38 @@ def run_agent3(agent1_payload, question="", **_):
             price_performance = create_price_chart(ticker, price_data, events_for_chart)
         except Exception as e:
             print(f"Agent3 price chart failed: {e}")
-
-    if route.get("rag"):
-        try:
-            from agent_3.rag import query_rag
-            rag_query = f"Sector outlook, risks, opportunities for {ticker}. {question}"
-            rag_context = query_rag(rag_query)
-        except Exception as e:
-            print(f"Agent3 RAG failed: {e}")
+            price_performance = {}
 
     if route.get("comparison"):
         try:
             comparison_result = compare_tickers(ticker, question)
         except Exception as e:
             print(f"Agent3 comparison failed: {e}")
+            comparison_result = {}
 
-    # simple sentiment heuristics (kept lightweight)
-    sentiment = ""
-    if route.get("analyst"):
-        sentiment = "Bullish"
-    if route.get("news") and not route.get("analyst"):
-        sentiment = "Mixed"
+    # Determine sentiment based on actual data (not defaults)
+    sentiment = None
+    if analyst_consensus:
+        rec = (analyst_consensus.get("recommendation_key") or analyst_consensus.get("recommendation") or "hold").lower().replace("_", " ")
+        if rec in ("buy", "strong buy", "overweight"):
+            sentiment = "Bullish"
+        elif rec in ("sell", "strong sell", "underweight"):
+            sentiment = "Bearish"
+        else:
+            sentiment = "Neutral"
+    
+    if events and not sentiment:
+        positive_count = sum(1 for e in events if (e.get("sentiment") or "").lower() == "positive")
+        negative_count = sum(1 for e in events if (e.get("sentiment") or "").lower() == "negative")
+        if positive_count > negative_count:
+            sentiment = "Bullish"
+        elif negative_count > positive_count:
+            sentiment = "Bearish"
+        else:
+            sentiment = "Neutral"
+    
+    # If we have no data to determine sentiment, leave it as None
+    # (This will be different from the hardcoded 50)
 
     try:
         result = synthesize_market(
@@ -81,7 +98,7 @@ def run_agent3(agent1_payload, question="", **_):
             events,
             analyst_consensus,
             price_performance,
-            rag_context,
+            "",
             question,
             need_future=route.get("future", False)
         )
@@ -125,12 +142,14 @@ def run_agent3(agent1_payload, question="", **_):
         "sentiment": sentiment,
         "market_intelligence_report": intelligence_report,
         "price_story": price_performance,
-        "rag_context": rag_context,
         "market_facts": {
             "recommendation": analyst_consensus.get("recommendation_key") or analyst_consensus.get("recommendation"),
-            "target_price": analyst_consensus.get("target_mean_price"),
+            "target_price": analyst_consensus.get("target_mean_price") or analyst_consensus.get("price_target"),
             "analyst_count": analyst_consensus.get("number_of_analysts") or analyst_consensus.get("analysts_count"),
             "upside_downside_percent": analyst_consensus.get("upside_downside_percent"),
+            "buy": analyst_consensus.get("buy"),
+            "hold": analyst_consensus.get("hold"),
+            "sell": analyst_consensus.get("sell"),
             "articles_positive": sum(1 for e in events if (e.get("sentiment") or "").lower() == "positive"),
             "articles_negative": sum(1 for e in events if (e.get("sentiment") or "").lower() == "negative"),
             "articles_neutral": sum(1 for e in events if (e.get("sentiment") or "").lower() == "neutral"),
