@@ -830,10 +830,8 @@ def _compute_financials(symbol):
                 # Try to find in total debt or long-term debt
                 return None  # Already has fallback keys
             elif label == "Current Assets":
-                assets = row.get("Total Assets")
-                ppe = row.get("Property Plant And Equipment") or row.get("Gross PPE")
-                if assets and ppe:
-                    return max(0, assets - ppe)
+                # Only real reported value — do not approximate from Total - PPE
+                return None
             return None
         
         balance_data = rows(balance, [
@@ -930,6 +928,14 @@ def _compute_financials(symbol):
                 pass
             if pe_val and ratios.get("profit_cagr_3y") and ratios["profit_cagr_3y"] > 0:
                 ratios["peg"] = safe_float(round(float(pe_val) / ratios["profit_cagr_3y"], 2))
+            # Fallback: yfinance's own reported PEG ratio
+            if "peg" not in ratios:
+                try:
+                    tp = safe_float(t.info.get("trailingPeg"))
+                    if tp:
+                        ratios["peg"] = tp
+                except Exception:
+                    pass
         except Exception:
             pass
 
@@ -1081,23 +1087,12 @@ async def get_financials(symbol: str):
                         elif label == "EPS":
                             ni = get_field(row, "Net Income")
                             shares = get_field(row, "Diluted Average Shares", "Basic Average Shares")
-                            # Use top-down for latest year only: Price / P/E
-                            v = calc_eps(row, ni, shares, current_price=current_price, pe_ratio=pe_ratio, is_latest_year=is_latest)
+                            # Only reported figures: direct EPS, or NI / average shares
+                            v = calc_eps(row, ni, shares)
                         elif label == "Borrowings":
-                            # Try Total Debt fields first
-                            v = get_field(row, "Total Debt", "Long Term Debt", "Current Debt", 
+                            # Only real reported debt fields — no approximations
+                            v = get_field(row, "Total Debt", "Long Term Debt", "Current Debt",
                                          "Short Term Borrowings", "Long Term Borrowings")
-                            # Fallback: if nothing found, try to calculate from balance sheet
-                            if v is None:
-                                # Try Total Liabilities - Equity approach
-                                total_assets = get_field(row, "Total Assets")
-                                total_equity = get_field(row, "Stockholders Equity", "Common Stock Equity")
-                                if total_assets and total_equity:
-                                    total_liab = total_assets - total_equity
-                                    current_liab = get_field(row, "Current Liabilities")
-                                    if current_liab:
-                                        # Borrowings ≈ Total Debt ≈ Long-term liabilities + Short-term debt
-                                        v = max(0, total_liab - current_liab)  # Non-current portion often has borrowings
                         elif label == "Other Liabilities":
                             total_liab = get_field(row, "Total Liabilities Net Minority Interest")
                             curr_liab = get_field(row, "Current Liabilities")
@@ -1108,26 +1103,15 @@ async def get_financials(symbol: str):
                             v = calc_total_liabilities(row, total_assets)
                         elif label == "CWIP":
                             v = get_field(row, "Construction In Progress", "Capital Work In Progress")
-                            if v is None:
-                                v = 0  # CWIP can be 0 if no construction in progress
+                            # If not reported, leave as None — do not assume 0
                         elif label == "Investments":
-                            # Try multiple financial asset fields
-                            v = get_field(row, "Financial Assets", "Long Term Equity Investment", 
+                            # Only real reported financial asset fields — no zero-fill
+                            v = get_field(row, "Financial Assets", "Long Term Equity Investment",
                                          "Non Current Financial Assets", "Investments In Subsidiaries")
-                            # If still empty, it's often a small line item - use 0 as fallback
-                            if v is None:
-                                v = 0  # Investments can legitimately be 0 or minimal
                         elif label == "Other Assets":
-                            # Direct lookup
-                            v = get_field(row, "Other Non Current Assets", "Other Assets", 
+                            # Direct lookup only — do not approximate from Total - Current
+                            v = get_field(row, "Other Non Current Assets", "Other Assets",
                                          "Other Current Assets", "Deferred Tax Assets")
-                            # Fallback: calculate from components
-                            if v is None:
-                                total_assets = get_field(row, "Total Assets")
-                                current_assets = get_field(row, "Current Assets")
-                                if total_assets and current_assets:
-                                    # Other Assets = Total - Current
-                                    v = max(0, total_assets - current_assets)
                     vals.append(to_cr(v) if label != "EPS" else v)  # EPS should not be converted to crores
                 rows[label] = vals
             return {"periods": periods, "rows": rows}
@@ -1313,6 +1297,8 @@ async def get_company_research(symbol: str):
         price_data = memory.get("price_data", {})
         current_price = price_data.get("current")
         
+        logger.info(f"Memory for {symbol}: price_data keys={list(price_data.keys())}, ohlcv_count={len(price_data.get('ohlcv', []))}")
+        
         # Sentiment handling (None if no analysis)
         sentiment_status = agent3_output.get("sentiment")
         sentiment_score = None
@@ -1358,28 +1344,34 @@ async def get_company_research(symbol: str):
                     "summary": "", "url": "", "source": "",
                 })
 
-        # ── Risk explanation from the anomaly model + red flags ──
+        # ── Risk explanation generated via LLM ──
         model_assessment = agent2_output.get("model_assessment", {}) or {}
         anomaly_score = model_assessment.get("anomaly_score")
         red_flags = agent2_output.get("red_flags", []) or []
-        risk_parts = []
-        if anomaly_score is not None:
-            if model_assessment.get("is_anomaly"):
-                risk_parts.append(
-                    f"Isolation Forest flagged an unusual financial pattern for this stock (anomaly score {anomaly_score:.2f}); treat reported figures with extra caution."
+        
+        risk_detail = None
+        if anomaly_score is not None or red_flags:
+            try:
+                import os
+                import json
+                from langchain_groq import ChatGroq
+                llm = ChatGroq(model=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"), temperature=0, max_tokens=1024)
+                prompt = (
+                    f"You are a financial risk analyst analyzing {symbol}. "
+                    f"You are provided with an anomaly score (0 to 1, higher is riskier): {anomaly_score}, "
+                    f"and some fundamental red flags: {json.dumps(red_flags)}. "
+                    "Write a 2-3 sentence explanation of the risk profile based on this data. "
+                    "Provide the explanation along with facts. "
+                    "DO NOT mention 'Isolation Forest' or any machine learning models. Just explain the risk clearly."
                 )
-            else:
-                risk_parts.append(
-                    f"Isolation Forest found the financial profile within normal ranges compared to its own history (anomaly score {anomaly_score:.2f}, where higher means more unusual)."
-                )
-        explained_flags = [f for f in red_flags if isinstance(f, dict) and (f.get("explanation") or f.get("metric"))]
-        if explained_flags:
-            concerns = "; ".join(
-                (f.get("metric") and f"{f.get('metric')}: {f.get('explanation')}") or f.get("explanation") or ""
-                for f in explained_flags[:3]
-            )
-            risk_parts.append(f"Key concerns identified: {concerns}.")
-        risk_detail = " ".join(risk_parts) or model_assessment.get("risk_explanation") or None
+                risk_detail = llm.invoke(prompt).content.strip()
+                if "<think>" in risk_detail:
+                    risk_detail = risk_detail.split("</think>")[-1].strip()
+            except Exception as e:
+                logger.warning(f"Risk explanation LLM failed: {e}")
+                risk_detail = "Risk analysis could not be fully generated."
+        else:
+            risk_detail = "No specific risk anomalies detected."
 
         # ── Risk factors as display strings (frontend renders them verbatim) ──
         risk_factors = []
@@ -1456,22 +1448,27 @@ async def get_company_research(symbol: str):
             risk_detail_line = f"Anomaly score {anomaly_score:.2f} · {'Unusual pattern flagged' if model_assessment.get('is_anomaly') else 'Normal pattern'} · {risk_level_value} risk"
 
         # ── Tab data: Financials / Shareholding / Peer metrics ──
-        # Build financials from agent2's financial_facts (real data from health analysis)
+        # Compute financials (statements + ratios) from yfinance; agent2's
+        # financial_facts hold raw rupee amounts (NetProfit, Debt), NOT ratios,
+        # so only use them as a fallback for keys the computation couldn't fill.
+        fin_computed = _compute_financials(full_symbol)
+        computed_ratios = fin_computed.get("ratios") or {}
         financials_facts = agent2_output.get("financial_facts", {})
-        financials = {
-            "ratios": {
-                "net_profit_margin": safe_float(financials_facts.get("NetProfit")),
-                "operating_margin": safe_float(financials_facts.get("OperatingMargin")),
-                "roe": safe_float(financials_facts.get("ROCE")),  # Using ROCE as ROE proxy
-                "roce": safe_float(financials_facts.get("ROCE")),
-                "debt_to_equity": safe_float(financials_facts.get("Debt")),
-                "current_ratio": safe_float(financials_facts.get("CurrentRatio")),
-            },
-            "income": {},
-            "balance_sheet": {},
-            "cashflow": {}
+        fallback_ratios = {
+            "operating_margin": safe_float(financials_facts.get("OperatingMargin")),
+            "roe": safe_float(financials_facts.get("ROCE")),  # Using ROCE as ROE proxy
+            "roce": safe_float(financials_facts.get("ROCE")),
+            "current_ratio": safe_float(financials_facts.get("CurrentRatio")),
         }
-        shareholding = _compute_shareholding(symbol)
+        merged_ratios = {k: v for k, v in fallback_ratios.items() if v is not None}
+        merged_ratios.update({k: v for k, v in computed_ratios.items() if v is not None})
+        financials = {
+            "ratios": merged_ratios,
+            "income": fin_computed.get("income") or {},
+            "balance_sheet": fin_computed.get("balance_sheet") or {},
+            "cashflow": fin_computed.get("cashflow") or {}
+        }
+        shareholding = _compute_shareholding(full_symbol)
         peer_metrics = agent2_output.get("peer_comparison", {}).get("metrics", {}) or {}
 
         # Cache memory so the tab AI assistant can answer from the same live data
@@ -1549,6 +1546,7 @@ async def get_company_research(symbol: str):
             "catalysts": catalysts,
             "news_articles": news_articles,
             "sentiment_score": sentiment_score,
+            "sentiment_label": sentiment_status,
             "positive_factors": agent3_output.get("opportunities", []) or agent2_output.get("fundamental_signals", {}).get("strengths", []),
             "risk_factors": risk_factors,
             "risk_level": risk_level_value,
@@ -1706,42 +1704,54 @@ def _build_report_html(detail, exec_summary):
     chg_cls = "up" if isinstance(chg, (int, float)) and chg >= 0 else "down"
 
     def stmt_table(title, d, years=3):
-        if not d or not d.get("periods"):
-            return ""
-        periods = d["periods"][:years]
+        if not d:
+            return f"<h3>{esc(title)}</h3><p class='muted'>No data available</p>"
+        
+        periods = d.get("periods", [])
+        rows_data = d.get("rows", {})
+        
+        if not rows_data or not periods:
+            return f"<h3>{esc(title)}</h3><p class='muted'>No data available</p>"
+        
+        periods = periods[:years]
         rows = "".join(
-            f"<tr><td>{esc(label)}</td>" + "".join(f"<td class='num'>{v if v is not None else 'N/A'}</td>" for v in vals[:years]) + "</tr>"
-            for label, vals in d["rows"].items()
+            f"<tr><td>{esc(label)}</td>" + "".join(f"<td class='num'>{format_financial_metric(label, v)}</td>" for v in vals[:years]) + "</tr>"
+            for label, vals in rows_data.items()
         )
-        return (f"<h2>{esc(title)} <span class='unit'>(last {years} years, ₹ Crore)</span></h2>"
+        return (f"<h3>{esc(title)} <span class='unit'>(last {years} years, ₹ Crore)</span></h3>"
                 f"<table><tr><th></th>" + "".join(f"<th>{esc(p)}</th>" for p in periods) + f"</tr>{rows}</table>")
 
+    from backend.metrics_formatter import format_financial_metric, is_valid_number
+    
     ratio_rows = [
-        ("Revenue CAGR (3Y)", ratios.get("revenue_cagr_3y"), "%"),
-        ("Revenue CAGR (5Y)", ratios.get("revenue_cagr_5y"), "%"),
-        ("Net Profit CAGR (3Y)", ratios.get("profit_cagr_3y"), "%"),
-        ("Net Profit CAGR (5Y)", ratios.get("profit_cagr_5y"), "%"),
-        ("PEG Ratio", ratios.get("peg"), ""),
-        ("Operating Profit Margin", ratios.get("operating_margin"), "%"),
-        ("Net Profit Margin", ratios.get("net_profit_margin"), "%"),
-        ("Interest Coverage Ratio", ratios.get("interest_coverage"), "x"),
-        ("ROE", ratios.get("roe"), "%"),
-        ("ROCE", ratios.get("roce"), "%"),
-        ("Debt / Equity", ratios.get("debt_to_equity"), "x"),
-        ("Current Ratio", ratios.get("current_ratio"), "x"),
+        ("Revenue CAGR (3Y)", ratios.get("revenue_cagr_3y")),
+        ("Revenue CAGR (5Y)", ratios.get("revenue_cagr_5y")),
+        ("Net Profit CAGR (3Y)", ratios.get("profit_cagr_3y")),
+        ("Net Profit CAGR (5Y)", ratios.get("profit_cagr_5y")),
+        ("PEG Ratio", ratios.get("peg")),
+        ("Operating Profit Margin", ratios.get("operating_margin")),
+        ("Net Profit Margin", ratios.get("net_profit_margin")),
+        ("Interest Coverage Ratio", ratios.get("interest_coverage")),
+        ("ROE", ratios.get("roe")),
+        ("ROCE", ratios.get("roce")),
+        ("Debt / Equity", ratios.get("debt_to_equity")),
+        ("Current Ratio", ratios.get("current_ratio")),
     ]
     ratio_html = "".join(
-        f"<tr><td>{esc(label)}</td><td class='num'>{v if v is not None else 'N/A'}{suffix if v is not None else ''}</td></tr>"
-        for label, v, suffix in ratio_rows
-    )
+        f"<tr><td>{esc(label)}</td><td class='num'>{format_financial_metric(label, v)}</td></tr>"
+        for label, v in ratio_rows
+        if is_valid_number(v)
+    ) or "<tr><td colspan='2'>Ratio data not available from data sources</td></tr>"
 
     def fmt_num(v, fmt):
-        return fmt.format(float(v)) if isinstance(v, (int, float)) else "N/A"
+        if not is_valid_number(v):
+            return "N/A"
+        return fmt.format(float(v))
 
     peers = detail.get("peers") or []
     peer_html = "".join(
-        f"<tr><td>{esc(p.get('name'))}</td><td class='num'>{'₹' + fmt_num(p.get('price'), ',.0f')}</td>"
-        f"<td class='num'>{fmt_num(p.get('pe'), '.1f') + 'x' if p.get('pe') is not None else 'N/A'}</td></tr>"
+        f"<tr><td>{esc(p.get('name'))}</td><td class='num'>₹{fmt_num(p.get('price'), '{:,.0f}')}</td>"
+        f"<td class='num'>{fmt_num(p.get('pe'), '{:.1f}x') if p.get('pe') is not None else 'N/A'}</td></tr>"
         for p in peers
     ) or "<tr><td colspan='3'>N/A</td></tr>"
 
@@ -1761,25 +1771,28 @@ def _build_report_html(detail, exec_summary):
     rec_txt = rec_txt if rec_txt and rec_txt != "NONE" else "N/A"
 
     snapshot = [
-        ("Market Cap", detail.get("market_cap")), ("P/E Ratio", detail.get("pe_ratio")),
-        ("ROE", detail.get("roe")), ("Dividend Yield", detail.get("dividend_yield")),
-        ("52W High", detail.get("high_52w")), ("52W Low", detail.get("low_52w")),
+        ("Market Cap", format_financial_metric("market_cap", detail.get("market_cap"))),
+        ("P/E Ratio", format_financial_metric("pe_ratio", detail.get("pe_ratio"))),
+        ("ROE", format_financial_metric("roe", detail.get("roe"))),
+        ("Dividend Yield", format_financial_metric("dividend_yield", detail.get("dividend_yield"))),
+        ("52W High", format_financial_metric("price", detail.get("high_52w"))),
+        ("52W Low", format_financial_metric("price", detail.get("low_52w"))),
     ]
-    snapshot_html = "".join(f"<div class='stat'><div class='label'>{esc(k)}</div><div class='value'>{esc(v)}</div></div>" for k, v in snapshot)
+    snapshot_html = "".join(f"<div class='stat'><div class='label'>{esc(k)}</div><div class='value'>{v}</div></div>" for k, v in snapshot)
 
     from datetime import datetime as _dt
     gen_time = _dt.now().strftime("%d %b %Y, %H:%M IST")
 
     return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>Research Report — {esc(detail.get('name'))}</title>
 <style>
-body{{font-family:'Segoe UI',Arial,sans-serif;max-width:900px;margin:0 auto;padding:36px;color:#0f172a;line-height:1.55}}
-h1{{font-size:28px;margin-bottom:4px}} h2{{font-size:19px;border-bottom:2px solid #003ec8;padding-bottom:6px;margin-top:32px}}
+body{{font-family:'Segoe UI',Arial,sans-serif;max-width:900px;margin:0 auto;padding:36px;color:#0f172a;line-height:1.55;word-wrap:break-word;overflow-wrap:break-word}}
+h1{{font-size:28px;margin-bottom:4px}} h2{{font-size:19px;border-bottom:2px solid #003ec8;padding-bottom:6px;margin-top:32px;page-break-after:avoid}}
 .unit{{font-size:12px;color:#64748b;font-weight:normal}}
-table{{width:100%;border-collapse:collapse;margin:12px 0}} td,th{{border:1px solid #cbd5e1;padding:8px;text-align:left;font-size:14px}}
+table{{width:100%;border-collapse:collapse;margin:12px 0;page-break-inside:avoid}} td,th{{border:1px solid #cbd5e1;padding:8px;text-align:left;font-size:14px;word-wrap:break-word}}
 th{{background:#f1f5f9}} .num{{text-align:right;font-family:Consolas,monospace}}
 .up{{color:#00A86B;font-weight:700}} .down{{color:#E5484D;font-weight:700}}
-.stat-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}}
-.stat{{border:1px solid #e2e8f0;border-radius:8px;padding:10px}} .stat .label{{font-size:11px;color:#64748b;text-transform:uppercase;font-weight:600}} .stat .value{{font-size:18px;font-weight:700;margin-top:4px}}
+.stat-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0;page-break-inside:avoid}}
+.stat{{border:1px solid #e2e8f0;border-radius:8px;padding:10px;page-break-inside:avoid}} .stat .label{{font-size:11px;color:#64748b;text-transform:uppercase;font-weight:600}} .stat .value{{font-size:18px;font-weight:700;margin-top:4px}}
 .header{{border-bottom:3px solid #003ec8;padding-bottom:14px;margin-bottom:10px}}
 .brand{{font-size:12px;color:#64748b;letter-spacing:1px;text-transform:uppercase}}
 .muted{{color:#64748b;font-size:13px}}
@@ -1819,22 +1832,18 @@ footer{{margin-top:40px;border-top:1px solid #cbd5e1;padding-top:14px;font-size:
 <table><tr><th>Company</th><th>Price</th><th>P/E</th></tr>{peer_html}</table>
 
 <h2>Market Intelligence</h2>
-<p><b>Sentiment:</b> {esc(detail.get('sentiment_score')) if detail.get('sentiment_score') is not None else 'AI-derived'} /100 ·
+<p><b>Sentiment:</b> {esc(detail.get('sentiment_label')) if detail.get('sentiment_label') else 'Not analyzed'} ·
    <b>Analyst rating:</b> {esc(rec_txt)}{(' (' + esc(ab.get('analyst_count')) + ' analysts)') if ab.get('analyst_count') else ''} ·
    <b>Articles:</b> {nsc.get('positive', 0)} positive / {nsc.get('negative', 0)} negative / {nsc.get('neutral', 0)} neutral</p>
 <ul>{cat_html}</ul>
 
 <h2>12-Month Price Forecast</h2>
 <table><tr><th>Current Price</th><th>Target</th><th>Expected Return</th><th>Direction</th></tr>
-<tr><td class="num">₹{esc(detail.get('current_price'))}</td><td class="num">₹{fmt_num(detail.get('target_price'), ',.0f')}</td>
+<tr><td class="num">₹{format_financial_metric('price', detail.get('current_price'))}</td><td class="num">₹{fmt_num(detail.get('target_price'), '{:,.0f}')}</td>
 <td class="num">{(('%+.1f%%' % detail['expected_return']) if isinstance(detail.get('expected_return'), (int, float)) else 'N/A')}</td>
 <td>{esc(detail.get('analyst_rating'))}</td></tr></table>
 <p class="muted">{esc(fx.get('summary')) if fx.get('summary') else ''}</p>
 
-<footer>
-  <p><b>Disclaimer:</b> For academic/demonstration purposes only, not investment advice.</p>
-  <p><b>Data sources:</b> yFinance, Google News RSS, Groq LLM, Isolation Forest model · Generated: {gen_time}</p>
-</footer>
 </body></html>"""
 
 

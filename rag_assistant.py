@@ -8,30 +8,21 @@ logger = logging.getLogger(__name__)
 
 
 def is_company_relevant(question, ticker):
-    """Check if question is relevant to company research."""
-    # Blocked keywords/patterns
+    """Check if question is relevant to company research.
+
+    Deliberately lenient: scope decisions are left to the LLM (which sees the
+    full question in context), so on-topic questions that merely CONTAIN words
+    like "medical" or "tax" (e.g. for a hospital company) are not rejected.
+    Only outright harmful/irrelevant topics are blocked here.
+    """
     blocked = [
-        r"(?i)(crypto|bitcoin|nft|forex|trading bot|gambling)",
-        r"(?i)(personal advice|should i buy|will you manage)",
-        r"(?i)(legal advice|tax|medical|political)",
-        r"(?i)(hack|malware|illegal|scam)",
+        r"(?i)\b(hack|malware|illegal|scam|gambling)\b",
     ]
-    
+
     for pattern in blocked:
         if re.search(pattern, question):
-            return False, "I can only answer questions about company fundamentals and stock research."
-    
-    # Check if question is about a different company
-    if re.search(r"(?i)(compare|vs|versus|different|other)\s+(?!to\s+)", question):
-        # Allow comparisons to this company
-        if re.search(rf"(?i){re.escape(ticker.split('.')[0])}", question):
-            return True, None
-        # Comparisons to peers OK
-        if "peer" in question.lower() or "competitor" in question.lower():
-            return True, None
-        # General comparison OK
-        return True, None
-    
+            return False, "That question is outside the scope of this company research assistant. I can help with questions about the company, its financials, stock data, or calculations based on the numbers shown on screen."
+
     return True, None
 
 
@@ -128,15 +119,8 @@ def rag_chat(question: str, memory: dict, agent2_output: dict, ticker: str = Non
             "company": ticker,
         }
     
-    # If question too short
-    if len(question.strip()) < 5:
-        return {
-            "response": f"Please ask a more specific question about {ticker}'s fundamentals or financial health.",
-            "status": "error",
-            "error_reason": "Question too vague",
-            "company": ticker,
-        }
-    
+    # Greetings / very short inputs are handled gracefully by the LLM prompt,
+    # so don't hard-block them here.
     try:
         client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         
@@ -145,22 +129,39 @@ def rag_chat(question: str, memory: dict, agent2_output: dict, ticker: str = Non
         
         system_prompt = f"""You are a professional investment research assistant analyzing {company_name} ({ticker}).
 
-Your role is to answer questions about this specific company using the provided financial data.
+OUTPUT RULE (HIGHEST PRIORITY): Your reply must be ONLY the final user-facing answer —
+one clean, direct response. NEVER output reasoning, thinking steps, numbered analysis
+plans, drafts, revisions, or meta-commentary such as "Let me analyze", "Draft:", "Step 1:",
+"Here's my thinking", "According to the data I need to...". If you need to reason, do it
+silently and output only the polished answer.
 
-CRITICAL: Respond with ONLY the final answer. Do not include your reasoning process, analysis steps, drafts, or meta-commentary about how you constructed the answer. Output the direct response only.
+HOW TO HANDLE EACH KIND OF QUESTION:
+1. Company/stock questions (business, financials, metrics, valuation, risks, peers):
+   Answer using the COMPANY DATA and on-screen data below. Cite concrete numbers.
+2. Math/calculation questions (percentages, ratios, differences, growth, market cap
+   arithmetic, "what if" computations): Understand what is being asked, compute the
+   result yourself (do the arithmetic carefully, step by step, silently), and present
+   the final number clearly. Use the company's actual figures from the provided data
+   when the question refers to them. Show the inputs used, e.g.
+   "₹8,837.5 × 2 = ₹17,675". Do NOT refuse math questions just because they are not
+   a standard metric.
+3. Questions about what is on the screen: If an on-screen data block is provided,
+   answer from it first — it reflects exactly what the user sees right now.
+4. Out-of-scope questions (unrelated companies with no comparison intent, general
+   trivia, weather, sports, coding help, personal opinions, etc.): Reply politely and
+   briefly, e.g. "That's outside what I can help with here — I'm focused on
+   {company_name} ({ticker}) and its financial data. Try asking about its business,
+   financials, valuation, or the numbers shown on screen."
+5. Greetings ("hi", "hello"): Greet back in one line and say what you can help with.
 
 IMPORTANT RULES:
-1. Always reference {ticker} specifically - never discuss other companies unless directly asked for comparison
-2. Use concrete numbers and metrics from the company data when available
-3. Explain financial concepts in simple, clear terms
-4. If data is unavailable for {ticker}, say "This metric is not available for {ticker}"
-5. Never provide personal investment advice (don't say "you should buy" or "you should sell")
-6. Instead use neutral language: "Based on the data, this company shows..." or "This metric suggests..."
-7. Always cite sources: "According to the financial data..." or "Red flags include..."
-8. If unsure about something, say "I don't have enough reliable data to answer that accurately"
-9. Answer BOTH kinds of questions: metric-specific ones (ground every number in the
-   on-screen tab data when provided) and general questions about the company
-   (business model, strategy, sector position, history) using the COMPANY DATA below.
+- Always reference {ticker} specifically - never discuss other companies unless directly asked for comparison
+- Use concrete numbers and metrics from the company data when available
+- Explain financial concepts in simple, clear terms
+- If data is unavailable for {ticker}, say "This metric is not available for {ticker}"
+- Never provide personal investment advice (don't say "you should buy" or "you should sell")
+- Instead use neutral language: "Based on the data, this company shows..." or "This metric suggests..."
+- If unsure about something, say "I don't have enough reliable data to answer that accurately"
 
 COMPANY DATA:
 {company_context}
@@ -189,15 +190,15 @@ numbers first before reaching for other data.
         
         def _call(model):
             return client.chat.completions.create(
-                model=model, messages=messages, temperature=0.3, max_tokens=500,
+                model=model, messages=messages, temperature=0, max_tokens=700,
             )
 
         try:
-            response = _call(os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"))
+            response = _call(os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"))
         except Exception as llm_err:
             # Rate-limited on the primary model — retry once on a fallback model (separate quota)
             if "rate_limit" in str(llm_err).lower() or "429" in str(llm_err):
-                response = _call("openai/gpt-oss-20b")
+                response = _call("llama3-8b-8192")
             else:
                 raise
 
@@ -205,31 +206,35 @@ numbers first before reaching for other data.
         # Reasoning models (e.g. qwen) prepend a <think> block — strip it
         if "<think>" in answer:
             answer = answer.split("</think>")[-1].strip()
-        
-        # Strip any leaked reasoning that starts with "Here's a thinking process", "Let me think", etc.
-        reasoning_markers = ["Here's a thinking process:", "Here's my thinking:", "Let me analyze:", 
-                            "Here's my analysis:", "Let me think about this:", "Here's my approach:",
-                            "Draft:", "Analysis:"]
+
+        # Strip any leaked reasoning preamble — keep only what follows the LAST marker
+        reasoning_markers = [
+            "Here's a thinking process", "Here's my thinking", "Let me analyze",
+            "Here's my analysis", "Let me think about this", "Here's my approach",
+            "Here's how I", "Draft", "Analysis of the question", "Thinking process",
+            "Step 1:", "First, let me", "Let's analyze", 
+            "✅ Proceed. Output generation. [Self-Correction/Verification during thought]",
+            "[Self-Correction/Verification during thought]",
+            "✅ Proceed.",
+        ]
         for marker in reasoning_markers:
-            if marker in answer:
-                # Take only content after the marker if it looks like preamble, else keep all
-                parts = answer.split(marker, 1)
-                if len(parts) > 1:
-                    rest = parts[1].strip()
-                    # If the rest looks like reasoning continuation, skip it
-                    if rest.lower().startswith(("1.", "step", "first", "then", "next", "finally")):
-                        answer = answer  # Keep original if it seems like reasoning steps
-                    else:
-                        answer = rest  # Use the part after the marker
-        
-        # Final sanity: if answer still has multiple paragraphs that look like thinking, extract the last coherent one
-        if answer.count("\n\n") > 2:
-            paragraphs = answer.split("\n\n")
-            # Take the longest final paragraph that doesn't look like reasoning
-            for para in reversed(paragraphs):
-                if not any(p in para.lower() for p in ["step", "process", "draft", "here's", "analysis"]):
-                    answer = para.strip()
-                    break
+            if marker.lower() in answer.lower():
+                idx = answer.lower().rfind(marker.lower())
+                rest = answer[idx + len(marker):].lstrip(" :\n-").strip()
+                # Only use the tail if a substantial final answer remains after the marker
+                if len(rest) > 40:
+                    answer = rest
+
+        # If multiple large paragraphs remain and the earliest ones look like
+        # reasoning scaffolding, keep the last coherent paragraph.
+        paragraphs = [p.strip() for p in answer.split("\n\n") if p.strip()]
+        if len(paragraphs) > 2 and any(
+            p.lower().startswith(("step", "draft", "here's", "let me", "first,", "1.", "2.", "analysis"))
+            for p in paragraphs[:-1]
+        ):
+            answer = paragraphs[-1]
+
+        answer = answer.strip()
         
         logger.info(f"RAG chat successful for {ticker}")
         return {

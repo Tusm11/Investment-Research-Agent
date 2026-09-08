@@ -6,6 +6,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>tailwind.config = {
     darkMode: "class", theme: {
       extend: {
@@ -146,17 +147,6 @@
           <span class="material-symbols-outlined text-primary">shield</span>Risk Analysis
         </h2>
         <div class="p-3 rounded-lg bg-surface-secondary space-y-3">
-          <div class="flex items-center gap-4">
-            <svg class="w-20 h-20" viewBox="0 0 120 70">
-              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="#E2E8F0" stroke-width="10"/>
-              <path d="M10 60 A50 50 0 0 1 45 22" fill="none" stroke="#00A86B" stroke-width="10"/>
-              <path d="M45 22 A50 50 0 0 1 75 22" fill="none" stroke="#F59E0B" stroke-width="10"/>
-              <path d="M75 22 A50 50 0 0 1 110 60" fill="none" stroke="#E5484D" stroke-width="10"/>
-              <polygon fill="#0F172A" points="60,60 56,22 64,22"/>
-              <circle cx="60" cy="60" fill="#0F172A" r="5"/>
-            </svg>
-            <div><div class="font-code-numeral text-code-numeral font-bold text-text-primary text-[16px]" id="risk-score">--</div><div class="text-body-sm text-text-tertiary uppercase">Risk Level</div></div>
-          </div>
           <div class="text-body-sm text-text-secondary leading-relaxed" id="risk-detail">Loading...</div>
         </div>
       </div>
@@ -204,49 +194,7 @@
       </div>
     </div>
 
-    <!-- DATA SOURCES & FRESHNESS -->
-    <div class="bg-surface-card p-space-xl rounded-xl shadow-sm border border-border-subtle">
-      <h2 class="font-headline-sm text-headline-sm font-bold text-text-primary mb-space-lg flex items-center gap-2">
-        <span class="material-symbols-outlined text-primary">info</span>Data Sources & Freshness
-      </h2>
-      <div class="space-y-3">
-        <div class="text-body-sm text-text-tertiary mb-space-lg">
-          Last updated: <span class="font-semibold text-text-primary" id="fetch-time">--</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
-          <div class="p-3 rounded-lg bg-surface-page space-y-1">
-            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Price Data</div>
-            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">yfinance</span></div>
-            <div class="text-body-sm" id="price-status">–</div>
-          </div>
-          <div class="p-3 rounded-lg bg-surface-page space-y-1">
-            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">News & Events</div>
-            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">Google News RSS</span></div>
-            <div class="text-body-sm" id="news-status">–</div>
-          </div>
-          <div class="p-3 rounded-lg bg-surface-page space-y-1">
-            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Analyst Consensus</div>
-            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">yfinance targets</span></div>
-            <div class="text-body-sm" id="analyst-status">–</div>
-          </div>
-          <div class="p-3 rounded-lg bg-surface-page space-y-1">
-            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Fundamentals</div>
-            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">yfinance + AI</span></div>
-            <div class="text-body-sm" id="fundamentals-status">–</div>
-          </div>
-          <div class="p-3 rounded-lg bg-surface-page space-y-1">
-            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Sentiment</div>
-            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">Groq LLM</span></div>
-            <div class="text-body-sm" id="sentiment-status">–</div>
-          </div>
-          <div class="p-3 rounded-lg bg-surface-page space-y-1">
-            <div class="text-tag-label text-tag-label uppercase text-text-tertiary font-semibold">Risk Model</div>
-            <div class="text-body-sm text-text-secondary">Source: <span class="font-semibold">Isolation Forest</span></div>
-            <div class="text-body-sm" id="risk-model-status">–</div>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     </div><!-- /tab-overview -->
 
@@ -321,6 +269,7 @@
   </div>
 </main>
 
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
 <script src="metrics_formatter.js"></script>
 <script>
 const API_BASE = 'http://localhost:8502/api';
@@ -480,14 +429,14 @@ function renderFinSubTab(subtab, data) {
   const stmtTable = (title, d) => {
     if (!d || !d.periods || !Object.keys(d.rows || {}).length) return '';
     const head = `<tr class="border-b border-border-subtle"><th class="text-left px-3 py-2 text-text-tertiary font-semibold text-body-sm">₹ Cr</th>${d.periods.map(p => `<th class="text-right px-3 py-2 text-text-tertiary font-semibold text-body-sm">${p}</th>`).join('')}</tr>`;
-    const rows = Object.entries(d.rows).map(([label, vals]) => `<tr class="border-b border-border-subtle hover:bg-surface-page"><td class="px-3 py-2 font-semibold text-body-sm">${label}</td>${vals.map(v => `<td class="px-3 py-2 text-right font-code-numeral tabular-nums text-body-sm">${v != null ? Number(v).toLocaleString('en-IN') : '--'}</td>`).join('')}</tr>`).join('');
+    const rows = Object.entries(d.rows).map(([label, vals]) => `<tr class="border-b border-border-subtle hover:bg-surface-page"><td class="px-3 py-2 font-semibold text-body-sm">${label}</td>${vals.map(v => `<td class="px-3 py-2 text-right font-code-numeral tabular-nums text-body-sm">${v != null ? Number(v).toLocaleString('en-IN') : 'N/A'}</td>`).join('')}</tr>`).join('');
     return `<div><h3 class="font-headline-sm font-bold mb-space-md mt-space-lg first:mt-0">${title}</h3><table class="w-full text-body-sm">${head}${rows}</table></div>`;
   };
   
   const ratioCard = (label, value, unit, note) => `
     <div class="bg-surface-page p-space-md rounded-lg space-y-1">
       <div class="text-tag-label uppercase text-text-tertiary font-semibold">${label}</div>
-      <div class="font-metric-display font-bold text-primary">${value != null ? value + unit : '--'}</div>
+      <div class="font-metric-display font-bold text-primary">${value != null ? value + unit : 'N/A'}</div>
       ${note ? `<div class="text-body-sm text-text-tertiary">${note}</div>` : ''}
     </div>
   `;
@@ -541,7 +490,7 @@ function renderPeersTab(data) {
   document.getElementById('peers-tab-table').innerHTML = peers.length ? peers.map(p => `
     <div class="flex justify-between items-center p-2 rounded hover:bg-surface-page">
       <span class="font-semibold">${p.name || p.ticker || 'N/A'}</span>
-      <span class="font-code-numeral">${p.price != null ? '₹' + Number(p.price).toLocaleString('en-IN') : '--'} · P/E ${p.pe != null ? parseFloat(p.pe).toFixed(1) + 'x' : '--'}</span>
+      <span class="font-code-numeral">${p.price != null ? '₹' + Number(p.price).toLocaleString('en-IN') : 'N/A'} · P/E ${p.pe != null ? parseFloat(p.pe).toFixed(1) + 'x' : 'N/A'}</span>
     </div>`).join('') : '<span class="text-text-muted">No peer data available</span>';
   const pm = data.peer_metrics || {};
   const fmtMetric = v => {
@@ -556,12 +505,14 @@ function renderPeersTab(data) {
     .map(([m, v]) => {
       const label = m.replace(/_z$/, '').replace(/_/g, ' ');
       const hasCompany = v.company != null;
-      const pct = hasCompany ? v.percentile : null;
+      // Treat percentile=0 as genuinely 0th (worst) — show N/A to avoid confusing display
+      const pct = (hasCompany && v.percentile != null && v.percentile > 0) ? v.percentile : null;
+      const barWidth = pct != null ? pct : (hasCompany ? 2 : 100);
       return `<div class="flex items-center gap-3 p-2 rounded hover:bg-surface-page">
       <span class="w-44 font-semibold capitalize">${label}</span>
-      <div class="flex-1 h-2 bg-surface-secondary rounded overflow-hidden"><div class="h-full ${hasCompany ? 'bg-primary' : 'bg-text-muted'}" style="width:${pct != null ? pct : (hasCompany ? 0 : 100)}%"></div></div>
+      <div class="flex-1 h-2 bg-surface-secondary rounded overflow-hidden"><div class="h-full ${hasCompany ? 'bg-primary' : 'bg-text-muted'}" style="width:${barWidth}%"></div></div>
       <span class="font-code-numeral w-56 text-right">Co: ${fmtMetric(v.company)} · Sector: ${fmtMetric(v.sector_average)}</span>
-      <span class="font-code-numeral w-14 text-right font-semibold">${pct != null ? pct + 'th' : 'N/A'}</span>
+      <span class="font-code-numeral w-14 text-right font-semibold">${pct != null ? pct + 'th' : (hasCompany ? 'Low' : 'N/A')}</span>
     </div>`;
     }).join('');
   document.getElementById('peers-metrics').innerHTML = rows || '<span class="text-text-muted">No sector percentile data available</span>';
@@ -653,7 +604,7 @@ function renderPeoplesTab(data) {
 // ─── Download Full Report (compiled server-side from the same live tab data) ──
 async function downloadReport() {
   const btn = document.getElementById('btn-download-report');
-  btn.disabled = true; const old = btn.textContent; btn.textContent = 'Generating Report...';
+  btn.disabled = true; const old = btn.textContent; btn.textContent = 'Generating PDF...';
   try {
     const res = await fetch(`${API_BASE}/download-report`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -664,15 +615,27 @@ async function downloadReport() {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || 'Report generation failed');
     }
-    const blob = await res.blob();
-    const fname = `${symbol.split('.')[0]}_research_report_${new Date().toISOString().slice(0, 10)}.html`;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = fname;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(a.href);
+    const htmlText = await res.text();
+    const fname = `${symbol.split('.')[0]}_research_report_${new Date().toISOString().slice(0, 10)}.pdf`;
+    
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.left = '-9999px';
+    document.body.appendChild(iframe);
+    iframe.contentWindow.document.open();
+    iframe.contentWindow.document.write(htmlText);
+    iframe.contentWindow.document.close();
+    
+    const opt = {
+      margin: 10,
+      filename: fname,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    await html2pdf().set(opt).from(iframe.contentWindow.document.documentElement).save();
+    document.body.removeChild(iframe);
   } catch (err) {
     alert('Report download failed: ' + err.message);
   } finally { btn.disabled = false; btn.textContent = 'Download Full Report'; }
@@ -716,23 +679,6 @@ async function loadCompany() {
     const dataSources = safeGet(data, '_data_sources', {});
     const sectorMetrics = safeGet(data, 'sector_metrics', {});
 
-    // Update data sources section
-    if (dataSources.fetched_at) {
-      document.getElementById('fetch-time').textContent = formatTimestamp(dataSources.fetched_at);
-    }
-    
-    const renderSource = (elId, src) => {
-      const badge = getStatusBadge(src.available, src.timestamp);
-      const detail = src.detail ? `<div class="text-[12px] text-text-secondary mt-1 leading-snug">${src.detail}</div>` : '';
-      document.getElementById(elId).innerHTML = badge + detail;
-    };
-
-    renderSource('price-status', safeGet(dataSources, 'price_data', {}));
-    renderSource('news-status', safeGet(dataSources, 'news', {}));
-    renderSource('analyst-status', safeGet(dataSources, 'analyst_consensus', {}));
-    renderSource('fundamentals-status', safeGet(dataSources, 'fundamentals', {}));
-    renderSource('sentiment-status', safeGet(dataSources, 'sentiment', {}));
-    renderSource('risk-model-status', safeGet(dataSources, 'risk_model', {}));
 
     // Update header
     document.getElementById('company-name').textContent = name;
@@ -826,7 +772,8 @@ async function loadCompany() {
     // Risk Analysis
     const riskLevel = safeGet(data, 'risk_level', 'Unknown');
     const riskDetail = safeGet(data, 'risk_detail', null);
-    document.getElementById('risk-score').textContent = riskLevel;
+    const riskScoreEl = document.getElementById('risk-score');
+    if (riskScoreEl) riskScoreEl.textContent = riskLevel;
     document.getElementById('risk-detail').textContent = riskDetail || 'No risk analysis available';
 
     // Peers with sector-awareness
@@ -943,8 +890,15 @@ async function sendChat() {
       })
     });
     const data = await res.json();
-    const answer = safeGet(data, 'answer', 'No response generated');
-    history.innerHTML += `<div class="text-body-sm text-text-secondary bg-surface-page p-2 rounded">Assistant: ${answer}</div>`;
+    const rawAnswer = safeGet(data, 'answer', 'No response generated');
+    // Strip markdown formatting (bold, italic, bullet stars) from LLM output
+    const answer = rawAnswer
+      .replace(/\*\*(.+?)\*\*/g, '$1')   // **bold**
+      .replace(/\*(.+?)\*/g, '$1')         // *italic*
+      .replace(/^\s*[\*\-]\s+/gm, '• ')   // * or - bullet points
+      .replace(/#+\s*/g, '')               // ## headings
+      .trim();
+    history.innerHTML += `<div class="text-body-sm text-text-secondary bg-surface-page p-2 rounded whitespace-pre-wrap">Assistant: ${answer}</div>`;
     history.scrollTop = history.scrollHeight;
   } catch (err) {
     history.innerHTML += `<div class="text-body-sm text-loss-red">Error: ${err.message}</div>`;
@@ -985,49 +939,70 @@ function _filterCompanySeries(tf) {
 function renderCompanyChart(tf) {
   const el = document.getElementById('company-price-chart');
   if (!el) return;
-  
+
+  el.innerHTML = '';
   Plotly.purge('company-price-chart');
   const data = _filterCompanySeries(tf);
-  
+
   if (!data.length) {
     el.innerHTML = '<p class="text-center p-8 text-text-tertiary text-body-sm">No chart data available</p>';
     return;
   }
 
-  const color = COMPANY_TF_COLORS[tf] || '#00A86B';
-  const lastPrice = data[data.length - 1]?.y;
-  const firstPrice = data[0]?.y;
+  const dates = data.map(p => p.x);
+  const closes = data.map(p => p.y);
+  const lastPrice = closes[closes.length - 1];
+  const firstPrice = closes[0];
   const isUp = lastPrice >= firstPrice;
+  const pctChange = firstPrice ? ((lastPrice - firstPrice) / firstPrice) * 100 : 0;
+
+  const color = isUp ? '#00A86B' : '#E5484D';
+  const rgb = parseInt(color.slice(1), 16);
+  const areaColor = `rgba(${(rgb >> 16) & 255},${(rgb >> 8) & 255},${rgb & 255},0.12)`;
+  const arrow = isUp ? '▲' : '▼';
+
+  // Per-point change vs the previous point, for the hover tooltip
+  const changes = closes.map((c, i) => {
+    if (i === 0 || !closes[i - 1]) return null;
+    const chg = ((c - closes[i - 1]) / closes[i - 1]) * 100;
+    return `${chg >= 0 ? '▲ +' : '▼ '}${chg.toFixed(2)}% vs prev`;
+  });
+
+  // Baseline anchored just below the visible minimum so the fill isn't a solid block
+  const yFloor = Math.min(...closes) * 0.995;
+  const baseline = dates.map(() => yFloor);
 
   const trace = {
-    x: data.map(p => p.x),
-    y: data.map(p => p.y),
+    x: dates,
+    y: closes,
+    customdata: changes,
     type: 'scatter',
     mode: 'lines',
     name: symbol,
     line: { color: color, width: 2 },
     fill: 'tozeroy',
-    fillcolor: color + '1a',
-    hovertemplate: '<b>%{x|%b %d, %Y}</b><br>₹%{y:.2f}<extra></extra>'
+    fillcolor: areaColor,
+    hovertemplate: '<b>%{x|%d %b %Y}</b><br>₹%{y:,.2f}<br>%{customdata}<extra></extra>'
   };
 
+  // Diamond marker on the latest point
   const lastTrace = {
-    x: [data[data.length - 1].x],
-    y: [data[data.length - 1].y],
+    x: [dates[dates.length - 1]],
+    y: [lastPrice],
     type: 'scatter',
     mode: 'markers',
     name: 'Current',
-    marker: { size: 8, color: color },
-    hovertemplate: '<b>Current Price</b><br>₹%{y:.2f}<extra></extra>'
+    marker: { symbol: 'diamond', size: 11, color: color, line: { width: 2, color: '#fff' } },
+    hovertemplate: `<b>Latest ${arrow} ${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(2)}%</b><br>₹${lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<extra></extra>`
   };
 
   Plotly.newPlot('company-price-chart', [trace, lastTrace], {
-    title: `${symbol} • ${tf.toUpperCase()}`,
-    margin: { t: 8, r: 8, b: 30, l: 60 }, autosize: true,
+    title: `${symbol} • ${tf.toUpperCase()} • <span style="color:${color}">${arrow} ${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(2)}%</span>`,
+    margin: { t: 24, r: 8, b: 30, l: 60 }, autosize: true,
     paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
-    xaxis: { showgrid: true, gridcolor: '#E2E8F0', zeroline: false },
-    yaxis: { showgrid: true, gridcolor: '#E2E8F0', zeroline: false },
-    hovermode: 'x unified', showlegend: false
+    xaxis: { showgrid: false, zeroline: false },
+    yaxis: { showgrid: true, gridcolor: '#E2E8F0', zeroline: false, tickformat: ',.0f', range: [yFloor, Math.max(...closes) * 1.005] },
+    hovermode: 'x', showlegend: false
   }, { responsive: true, displayModeBar: false });
 }
 

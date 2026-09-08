@@ -71,18 +71,14 @@ def calc_tax(row, pbt, net_profit):
 
 def calc_eps(row, net_profit, shares_out, current_price=None, pe_ratio=None, is_latest_year=False):
     """
-    EPS = Current Price / P/E Ratio (for latest year only)
-    OR Net Profit / Shares Outstanding (if shares available)
-    OR None for historical years
+    EPS = Net Profit / Average Shares (reported figures only).
+    Never estimate EPS from Price / P/E — that fabricates a value not in the statements.
     """
-    # Try direct EPS from financials first
+    # Direct EPS from financials first
     eps = get_field(row, "Diluted EPS", "Basic EPS")
     if eps:
         return eps
-    # Top-down for LATEST YEAR ONLY: EPS = Price / P/E
-    if is_latest_year and current_price and pe_ratio and pe_ratio > 0:
-        return current_price / pe_ratio
-    # Bottom-up: EPS = Net Profit / Shares Outstanding
+    # Bottom-up: EPS = Net Profit / Average Shares (both reported in the statement)
     if net_profit and shares_out and shares_out > 0:
         return net_profit / shares_out
     return None

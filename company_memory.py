@@ -162,6 +162,8 @@ def _extract_anomaly_detection(agent2): #extracts anomaly detection results from
 def _extract_price_data(agent1):#extracts price data and related metrics from agent1 output
     price = agent1.get("price_history", {})
     ohlcv = price.get("ohlcv", [])
+    if not ohlcv:
+        logger.warning(f"extract_price_data: OHLCV empty, price_keys={list(price.keys())}")
     info = agent1.get("company_info", {})
     current = price.get("current_price")
     if not _is_valid_number(current):

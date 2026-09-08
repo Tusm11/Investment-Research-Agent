@@ -31,14 +31,14 @@ class PricePredictionService:
             if self.classifier_path.exists():
                 with open(self.classifier_path, 'rb') as f:
                     self.classifier = pickle.load(f)
-                logger.info("✓ XGBoost Classifier loaded successfully")
+                logger.info("XGBoost Classifier loaded successfully")
             else:
                 logger.warning(f"Classifier not found at {self.classifier_path}")
             
             if self.regressor_path.exists():
                 with open(self.regressor_path, 'rb') as f:
                     self.regressor = pickle.load(f)
-                logger.info("✓ XGBoost Regressor loaded successfully")
+                logger.info("XGBoost Regressor loaded successfully")
             else:
                 logger.warning(f"Regressor not found at {self.regressor_path}")
                 

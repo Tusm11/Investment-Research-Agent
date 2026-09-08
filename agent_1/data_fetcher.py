@@ -146,18 +146,33 @@ def fetch_news_articles(ticker, days=180, max_articles=10):
 
 
 def fetch_price_history(ticker, days=180):
-    """Fetch OHLCV history with a single yf.download call; avoid duplicate .history() calls."""
+    """Fetch OHLCV history with retries and fallback."""
     try:
         stock = yf.Ticker(ticker)
-        # Single call covers both the rolling window and 52-week stats
-        hist = stock.history(period="1y")
-
-        if hist.empty:
-            for period in ("2y",):
-                hist = stock.history(period=period)
+        hist = None
+        
+        # Try 1y with retry
+        for attempt in range(2):
+            try:
+                hist = stock.history(period="1y")
                 if not hist.empty:
+                    logger.debug(f"fetch_price_history {ticker}: 1y returned {len(hist)} rows (attempt {attempt+1})")
                     break
-        if hist.empty:
+                logger.debug(f"fetch_price_history {ticker}: 1y empty (attempt {attempt+1}), retrying...")
+            except Exception as e:
+                logger.debug(f"fetch_price_history {ticker}: 1y error attempt {attempt+1}: {e}")
+                if attempt == 0:
+                    import time
+                    time.sleep(0.5)
+        
+        # Fallback to 2y
+        if hist is None or hist.empty:
+            logger.debug(f"fetch_price_history {ticker}: trying 2y fallback")
+            hist = stock.history(period="2y")
+            logger.debug(f"fetch_price_history {ticker}: 2y returned {len(hist) if hist is not None else 0} rows")
+        
+        if hist is None or hist.empty:
+            logger.warning(f"fetch_price_history {ticker}: completely empty after retries")
             return {
                 "status": "no_data",
                 "error_reason": f"No price history found for {ticker}",
@@ -169,30 +184,39 @@ def fetch_price_history(ticker, days=180):
             }
 
         hist = hist.reset_index()
+        logger.info(f"fetch_price_history {ticker}: reset_index → {len(hist)} rows, cols={list(hist.columns)}")
 
         # For OHLCV, only keep the last `days` rows
         cutoff = datetime.now(timezone.utc).date() - timedelta(days=days)
         ohlcv = []
         week52_highs = []
         week52_lows = []
+        skipped = 0
 
         for _, row in hist.iterrows():
-            close = float(row["Close"]) if row["Close"] is not None else None
-            open_ = float(row["Open"]) if row["Open"] is not None else None
-            high = float(row["High"]) if row["High"] is not None else None
-            low = float(row["Low"]) if row["Low"] is not None else None
-            volume = row["Volume"]
-            if any(v is None or (isinstance(v, float) and isnan(v)) for v in [open_, high, low, close]):
-                logger.debug(f"Skipping row with NaN: {row['Date']}")
-                continue
+            try:
+                close = float(row["Close"]) if row["Close"] is not None else None
+                open_ = float(row["Open"]) if row["Open"] is not None else None
+                high = float(row["High"]) if row["High"] is not None else None
+                low = float(row["Low"]) if row["Low"] is not None else None
+                volume = row["Volume"]
+                
+                # Skip only if ALL are missing, not if ANY is NaN
+                if close is None or open_ is None or high is None or low is None:
+                    skipped += 1
+                    continue
+                
+                # Check NaN only for valid numbers
+                if any(isinstance(v, float) and isnan(v) for v in [open_, high, low, close]):
+                    skipped += 1
+                    continue
 
-            # 52-week aggregates from full 1y data
-            week52_highs.append(high)
-            week52_lows.append(low)
+                # 52-week aggregates from full 1y data
+                week52_highs.append(high)
+                week52_lows.append(low)
 
-            # Rolling window for OHLCV array
-            row_date = row["Date"].date() if hasattr(row["Date"], "date") else row["Date"]
-            if row_date >= cutoff:
+                # Rolling window for OHLCV array (include all data, not just > cutoff)
+                row_date = row["Date"].date() if hasattr(row["Date"], "date") else row["Date"]
                 ohlcv.append({
                     "date": row["Date"].strftime("%Y-%m-%d"),
                     "open": round(open_, 2),
@@ -201,6 +225,11 @@ def fetch_price_history(ticker, days=180):
                     "close": round(close, 2),
                     "volume": int(volume) if volume is not None else 0,
                 })
+            except Exception as e:
+                logger.debug(f"Error processing row {row.get('Date')}: {e}")
+                skipped += 1
+
+        logger.info(f"fetch_price_history {ticker}: processed {len(hist)} rows → {len(ohlcv)} valid ohlcv (skipped {skipped} NaN rows)")
 
         current_price = None
         if ohlcv:

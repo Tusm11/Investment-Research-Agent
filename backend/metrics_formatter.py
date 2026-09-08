@@ -148,7 +148,7 @@ def format_financial_metric(
         return default
     
     # Percentages
-    if any(p in metric for p in ["yield", "margin", "growth", "return", "change"]):
+    if any(p in metric for p in ["yield", "margin", "growth", "return", "change", "cagr"]):
         return format_percentage(value)
     
     # Ratios
