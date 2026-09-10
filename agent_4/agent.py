@@ -428,6 +428,14 @@ def _generate_general_answer(query, context, memory):
     
     try:
         response = (ChatPromptTemplate.from_template(prompt) | llm).invoke({}).content
+        
+        # Clean up reasoning blocks
+        if "<think>" in response:
+            response = response.split("</think>")[-1].strip()
+        
+        # Remove markdown
+        response = response.replace("**", "").replace("__", "").replace("*", "")
+        
         return {"response": response, "sections_used": list(context.keys())}
     except Exception as e:
         return {"response": f"Error generating response: {str(e)}", "sections_used": []}
@@ -537,6 +545,14 @@ def _generate_comparison_answer(query, context, memory):
     
     try:
         response = (ChatPromptTemplate.from_template("\n".join(prompt_parts)) | llm).invoke({}).content
+        
+        # Clean up reasoning blocks
+        if "<think>" in response:
+            response = response.split("</think>")[-1].strip()
+        
+        # Remove markdown
+        response = response.replace("**", "").replace("__", "").replace("*", "")
+        
         return {"response": response, "sections_used": list(context.keys())}
     except Exception as e:
         return {"response": f"Error generating response: {str(e)}", "sections_used": []}
@@ -1392,11 +1408,27 @@ Forecast data:
         llm = ChatGroq(model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"), temperature=0, max_tokens=4096)
         # Plain-string invoke: a prompt template would treat the JSON braces as variables
         response = llm.invoke(prompt).content.strip()
+        
         # Strip reasoning-model <think> blocks and code fences
         if "<think>" in response:
             response = response.split("</think>")[-1].strip()
+        
+        # Remove markdown formatting
+        response = response.replace("**", "").replace("__", "").replace("*", "")
+        
+        # Strip reasoning preamble
+        reasoning_markers = ["Here's", "Let me", "First,", "Step 1:", "Draft", "Analysis"]
+        for marker in reasoning_markers:
+            if response.lower().startswith(marker.lower()):
+                # Find the actual JSON start
+                json_start = response.find("{")
+                if json_start > 0:
+                    response = response[json_start:]
+                    break
+        
         if response.startswith("```"):
             response = response.split("```")[1].lstrip("json").strip()
+        
         # Parse the first JSON object, ignoring any prose before/after it
         start = response.find("{")
         if start == -1:

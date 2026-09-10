@@ -1376,18 +1376,26 @@ async def get_company_research(symbol: str):
                     
                     response = client.chat.completions.create(
                         messages=[
-                            {"role": "system", "content": "You are a financial risk analyst. Be concise and factual."},
+                            {"role": "system", "content": "You are a financial risk analyst. Be concise and factual. Output ONLY the final explanation, no reasoning steps or thinking blocks."},
                             {"role": "user", "content": prompt}
                         ],
                         model=model_name,
                         temperature=0,
-                        max_tokens=1024
+                        max_tokens=500
                     )
                     
                     risk_detail = response.choices[0].message.content.strip() if response.choices else None
                     
-                    if risk_detail and "<think>" in risk_detail:
-                        risk_detail = risk_detail.split("</think>")[-1].strip()
+                    # Remove reasoning blocks if present
+                    if risk_detail:
+                        if "<think>" in risk_detail:
+                            risk_detail = risk_detail.split("</think>")[-1].strip()
+                        if "**Reasoning:**" in risk_detail:
+                            risk_detail = risk_detail.split("**Reasoning:**")[0].strip()
+                        if "**Answer:**" in risk_detail:
+                            risk_detail = risk_detail.split("**Answer:**")[-1].strip()
+                        # Remove markdown bold/italic formatting
+                        risk_detail = risk_detail.replace("**", "").replace("__", "").replace("*", "")
                     
                     if not risk_detail or len(risk_detail) < 10:
                         risk_detail = None

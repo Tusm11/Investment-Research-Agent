@@ -203,38 +203,47 @@ numbers first before reaching for other data.
                 raise
 
         answer = response.choices[0].message.content or ""
+        
         # Reasoning models (e.g. qwen) prepend a <think> block — strip it
         if "<think>" in answer:
             answer = answer.split("</think>")[-1].strip()
+        
+        # Remove markdown formatting markers
+        answer = answer.replace("**", "").replace("__", "").replace("*", "")
 
         # Strip any leaked reasoning preamble — keep only what follows the LAST marker
         reasoning_markers = [
             "Here's a thinking process", "Here's my thinking", "Let me analyze",
             "Here's my analysis", "Let me think about this", "Here's my approach",
             "Here's how I", "Draft", "Analysis of the question", "Thinking process",
-            "Step 1:", "First, let me", "Let's analyze", 
-            "✅ Proceed. Output generation. [Self-Correction/Verification during thought]",
-            "[Self-Correction/Verification during thought]",
-            "✅ Proceed.",
+            "Step 1:", "First, let me", "Let's analyze", "According to the data",
+            "✅ Proceed. Output generation.", "[Self-Correction/Verification during thought]",
+            "✅ Proceed.", "Final answer:", "Answer:", "Response:",
         ]
         for marker in reasoning_markers:
             if marker.lower() in answer.lower():
                 idx = answer.lower().rfind(marker.lower())
                 rest = answer[idx + len(marker):].lstrip(" :\n-").strip()
                 # Only use the tail if a substantial final answer remains after the marker
-                if len(rest) > 40:
+                if len(rest) > 20:
                     answer = rest
 
         # If multiple large paragraphs remain and the earliest ones look like
         # reasoning scaffolding, keep the last coherent paragraph.
         paragraphs = [p.strip() for p in answer.split("\n\n") if p.strip()]
         if len(paragraphs) > 2 and any(
-            p.lower().startswith(("step", "draft", "here's", "let me", "first,", "1.", "2.", "analysis"))
+            p.lower().startswith(("step", "draft", "here's", "let me", "first,", "1.", "2.", "analysis", "my thinking", "reasoning"))
             for p in paragraphs[:-1]
         ):
             answer = paragraphs[-1]
-
+        
+        # Clean up excessive newlines and spacing
+        answer = "\n".join([p.strip() for p in answer.split("\n") if p.strip()])
         answer = answer.strip()
+        
+        # Ensure we don't return empty or truncated responses
+        if not answer or len(answer) < 5:
+            answer = "I could not generate a response. Please try rephrasing your question."
         
         logger.info(f"RAG chat successful for {ticker}")
         return {
