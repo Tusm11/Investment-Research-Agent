@@ -1409,19 +1409,44 @@ async def get_company_research(symbol: str):
                     
                     risk_detail = response.choices[0].message.content.strip() if response.choices else None
                     
-                    # AGGRESSIVE: Remove ALL reasoning blocks using regex
+                    # AGGRESSIVE: Strip <think> blocks FIRST with multiple methods
                     if risk_detail:
+                        # Method 1: Regex (handles nested/malformed blocks)
                         import re
-                        # Remove <think>...</think> blocks completely
-                        risk_detail = re.sub(r'<think>.*?</think>', '', risk_detail, flags=re.DOTALL).strip()
+                        risk_detail = re.sub(r'<think>.*?</think>', '', risk_detail, flags=re.DOTALL | re.IGNORECASE).strip()
                         
-                        # If answer still starts with thinking, extract the actual answer
-                        if risk_detail.startswith("Here's a thinking"):
-                            lines = risk_detail.split('\n')
-                            for i, line in enumerate(lines):
-                                if line.strip() and not any(line.strip().startswith(marker) for marker in ["Here's", "1.", "2.", "3.", "4.", "-", "•", "Step"]):
-                                    risk_detail = '\n'.join(lines[i:]).strip()
-                                    break
+                        # Method 2: If <think> still exists (malformed), brute force remove
+                        while '<think>' in risk_detail.lower():
+                            idx_start = risk_detail.lower().find('<think>')
+                            idx_end = risk_detail.lower().find('</think>')
+                            if idx_end > idx_start >= 0:
+                                risk_detail = (risk_detail[:idx_start] + risk_detail[idx_end+8:]).strip()
+                            else:
+                                # Malformed: just remove up to end or everything after start
+                                risk_detail = risk_detail[:idx_start].strip()
+                                break
+                        
+                        # Method 3: Remove "Here's a thinking" preamble entirely
+                        lines = risk_detail.split('\n')
+                        cleaned_lines = []
+                        skip_until_content = False
+                        
+                        for line in lines:
+                            line_lower = line.lower().strip()
+                            if 'here\'s a thinking' in line_lower or 'thinking process' in line_lower:
+                                skip_until_content = True
+                                continue
+                            if skip_until_content:
+                                # Skip numbered/bulleted lines
+                                if line.strip() and any(line.strip().startswith(m) for m in ['1.', '2.', '3.', '4.', '5.', '-', '•', 'step']):
+                                    continue
+                                else:
+                                    skip_until_content = False
+                                    cleaned_lines.append(line)
+                            else:
+                                cleaned_lines.append(line)
+                        
+                        risk_detail = '\n'.join(cleaned_lines).strip()
                         
                         # Remove markdown formatting
                         risk_detail = risk_detail.replace("**", "").replace("__", "").replace("*", "")
