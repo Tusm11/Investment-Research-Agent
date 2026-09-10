@@ -190,7 +190,7 @@ numbers first before reaching for other data.
         
         def _call(model):
             return client.chat.completions.create(
-                model=model, messages=messages, temperature=0, max_tokens=700,
+                model=model, messages=messages, temperature=0, max_tokens=1500,
             )
 
         try:
@@ -204,20 +204,24 @@ numbers first before reaching for other data.
 
         answer = response.choices[0].message.content or ""
         
-        # Reasoning models (e.g. qwen) prepend a <think> block — strip it
-        if "<think>" in answer:
-            answer = answer.split("</think>")[-1].strip()
+        # AGGRESSIVE: Remove reasoning blocks first
+        while "<think>" in answer:
+            start = answer.find("<think>")
+            end = answer.find("</think>")
+            if end != -1:
+                answer = (answer[:start] + answer[end+8:]).strip()
+            else:
+                break
         
-        # Remove markdown formatting markers
+        # Remove markdown formatting
         answer = answer.replace("**", "").replace("__", "").replace("*", "")
 
         # Strip any leaked reasoning preamble — keep only what follows the LAST marker
         reasoning_markers = [
-            "Here's a thinking process", "Here's my thinking", "Let me analyze",
-            "Here's my analysis", "Let me think about this", "Here's my approach",
-            "Here's how I", "Draft", "Analysis of the question", "Thinking process",
-            "Step 1:", "First, let me", "Let's analyze", "According to the data",
-            "✅ Proceed. Output generation.", "[Self-Correction/Verification during thought]",
+            "Here's a thinking process:", "Here's my thinking:", "Let me analyze:",
+            "Here's my analysis:", "Let me think about this:", "Here's my approach:",
+            "Here's how I", "Draft", "Analysis of the question:", "Thinking process:",
+            "Step 1:", "First, let me", "Let's analyze:", "According to the data:",
             "✅ Proceed.", "Final answer:", "Answer:", "Response:",
         ]
         for marker in reasoning_markers:
@@ -227,6 +231,7 @@ numbers first before reaching for other data.
                 # Only use the tail if a substantial final answer remains after the marker
                 if len(rest) > 20:
                     answer = rest
+                    break
 
         # If multiple large paragraphs remain and the earliest ones look like
         # reasoning scaffolding, keep the last coherent paragraph.

@@ -1409,16 +1409,24 @@ async def get_company_research(symbol: str):
                     
                     risk_detail = response.choices[0].message.content.strip() if response.choices else None
                     
-                    # Remove reasoning blocks if present
+                    # AGGRESSIVE: Remove ALL reasoning blocks and formatting FIRST
                     if risk_detail:
-                        if "<think>" in risk_detail:
-                            risk_detail = risk_detail.split("</think>")[-1].strip()
-                        if "**Reasoning:**" in risk_detail:
-                            risk_detail = risk_detail.split("**Reasoning:**")[0].strip()
-                        if "**Answer:**" in risk_detail:
-                            risk_detail = risk_detail.split("**Answer:**")[-1].strip()
-                        # Remove markdown bold/italic formatting
+                        # Remove <think> blocks
+                        while "<think>" in risk_detail:
+                            start = risk_detail.find("<think>")
+                            end = risk_detail.find("</think>")
+                            if end != -1:
+                                risk_detail = (risk_detail[:start] + risk_detail[end+8:]).strip()
+                            else:
+                                break
+                        
+                        # Remove markdown formatting
                         risk_detail = risk_detail.replace("**", "").replace("__", "").replace("*", "")
+                        
+                        # Remove any remaining reasoning markers
+                        for marker in ["Here's my thinking:", "Thinking:", "Analysis:", "Draft:"]:
+                            if marker in risk_detail:
+                                risk_detail = risk_detail.split(marker)[-1].strip()
                     
                     if not risk_detail or len(risk_detail) < 10:
                         risk_detail = None
