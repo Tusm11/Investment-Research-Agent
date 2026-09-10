@@ -1354,46 +1354,54 @@ async def get_company_research(symbol: str):
             try:
                 import os
                 import json
-                from langchain_groq import ChatGroq
+                from groq import Groq
                 
-                model_name = os.getenv("GROQ_MODEL", "mixtral-8x7b-32768")
                 api_key = os.getenv("GROQ_API_KEY")
+                model_name = os.getenv("GROQ_MODEL", "mixtral-8x7b-32768")
                 
                 if not api_key:
                     logger.error("GROQ_API_KEY not set")
                     risk_detail = "Risk analysis unavailable (API key missing)."
                 else:
-                    llm = ChatGroq(
-                        model=model_name, 
-                        temperature=0, 
-                        max_tokens=1024,
-                        api_key=api_key
-                    )
+                    client = Groq(api_key=api_key)
                     
                     prompt = (
                         f"You are a financial risk analyst analyzing {symbol}. "
                         f"You are provided with an anomaly score (0 to 1, higher is riskier): {anomaly_score}, "
-                        f"and some fundamental red flags: {json.dumps(red_flags)}. "
+                        f"and some fundamental red flags: {json.dumps([f.get('metric', str(f)) for f in red_flags])}. "
                         "Write a 2-3 sentence explanation of the risk profile based on this data. "
                         "Provide the explanation along with facts. "
                         "DO NOT mention 'Isolation Forest' or any machine learning models. Just explain the risk clearly."
                     )
                     
-                    response = llm.invoke(prompt)
-                    risk_detail = response.content.strip() if hasattr(response, 'content') else str(response).strip()
+                    response = client.chat.completions.create(
+                        messages=[
+                            {"role": "system", "content": "You are a financial risk analyst. Be concise and factual."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        model=model_name,
+                        temperature=0,
+                        max_tokens=1024
+                    )
                     
-                    if "<think>" in risk_detail:
+                    risk_detail = response.choices[0].message.content.strip() if response.choices else None
+                    
+                    if risk_detail and "<think>" in risk_detail:
                         risk_detail = risk_detail.split("</think>")[-1].strip()
                     
                     if not risk_detail or len(risk_detail) < 10:
-                        risk_detail = "Risk assessment complete: " + (", ".join([f.get("category", str(f)) for f in red_flags[:3]]) if red_flags else "No specific anomalies detected.")
+                        risk_detail = None
             except Exception as e:
-                logger.error(f"Risk explanation LLM failed for {symbol}: {e}", exc_info=True)
-                # Fallback: create risk summary from red flags
+                logger.error(f"Risk explanation Groq call failed for {symbol}: {e}", exc_info=True)
+                risk_detail = None
+            
+            # Fallback: create risk summary from red flags if LLM failed
+            if not risk_detail:
                 if red_flags:
-                    risk_detail = "Risk factors identified: " + (", ".join([f.get("category", str(f)) for f in red_flags[:3]]))
+                    flag_summaries = [f.get("explanation", f.get("metric", str(f))) for f in red_flags[:3]]
+                    risk_detail = "Risk assessment: " + "; ".join(flag_summaries)
                 else:
-                    risk_detail = "Risk analysis could not be fully generated."
+                    risk_detail = "Anomaly detected: Company financial profile differs from peer group."
         else:
             risk_detail = "No specific risk anomalies detected."
 
