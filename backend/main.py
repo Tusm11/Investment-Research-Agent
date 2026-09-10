@@ -1528,6 +1528,17 @@ async def get_company_research(symbol: str):
         except Exception as e:
             logger.warning(f"Price change computation failed for {symbol}: {e}")
 
+        # Build risk_analysis structure for frontend
+        risk_analysis = {
+            "overall_risk": risk_level_value,
+            "financial_observations": risk_factors,
+            "isolation_forest": {
+                "status": "Available" if anomaly_score is not None else "Unavailable",
+                "explanation": risk_detail or "No risk analysis available."
+            },
+            "peer_comparison": agent2_output.get("peer_comparison", {}).get("peers", [])[:5] if agent2_output.get("peer_comparison") else []
+        }
+
         response = {
             "success": True,
             "name": info.get("name", symbol),
@@ -1551,6 +1562,7 @@ async def get_company_research(symbol: str):
             "risk_factors": risk_factors,
             "risk_level": risk_level_value,
             "risk_detail": risk_detail,
+            "risk_analysis": risk_analysis,
             "peers": peers,
             "price_history": price_data.get("ohlcv") or [],
             "current_price": current_price,

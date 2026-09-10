@@ -651,35 +651,35 @@ async function researchCompany(name, ticker) {
             }
 
             // ── Investment Risk Analysis (Enhanced) ────────────────────────
-            const agent3 = result.agent3 || {};
+            const riskAnalysis = result.risk_analysis || {};
             
             // Overall Risk Level
-            const riskLevel = agent3.overall_risk || 'Low';
+            const riskLevel = riskAnalysis.overall_risk || result.risk_level || 'Low';
             const riskBadge = document.getElementById('cr-risk-level');
             if (riskBadge) {
                 riskBadge.textContent = riskLevel;
                 riskBadge.className = 'risk-badge ' + riskLevel.toLowerCase();
             }
             
-            // Financial Observations
-            const financial = agent3.financial_observations || [];
+            // Financial Observations (Risk Factors)
+            const financial = riskAnalysis.financial_observations || result.risk_factors || [];
             document.getElementById('cr-rf-financial').innerHTML = financial.length > 0
                 ? financial.map(e => `<li>${extractText(e)}</li>`).join('')
                 : '<li style="color: var(--text-muted);">No significant financial risks identified</li>';
             
-            // Isolation Forest
-            const isolationForest = agent3.isolation_forest || {};
+            // Isolation Forest Status & Explanation
+            const isolationForest = riskAnalysis.isolation_forest || {};
             document.getElementById('cr-if-status').textContent = isolationForest.status || '--';
-            document.getElementById('cr-if-explanation').textContent = isolationForest.explanation || '';
+            document.getElementById('cr-if-explanation').textContent = isolationForest.explanation || result.risk_detail || '';
             
-            // Statistical Findings
-            const statistical = agent3.statistical_findings || [];
+            // Statistical Findings (fallback to risk_detail if available)
+            const statistical = riskAnalysis.statistical_findings || (result.risk_detail ? [result.risk_detail] : []);
             document.getElementById('cr-rf-statistical').innerHTML = statistical.length > 0
                 ? statistical.map(e => `<li>${extractText(e)}</li>`).join('')
                 : '<li style="color: var(--text-muted);">No statistical anomalies detected</li>';
             
             // Peer Comparison
-            const peerComp = agent3.peer_comparison || [];
+            const peerComp = riskAnalysis.peer_comparison || [];
             document.getElementById('cr-rf-peers').innerHTML = peerComp.length > 0
                 ? peerComp.map(e => `<li>${extractText(e)}</li>`).join('')
                 : '<li style="color: var(--text-muted);">Peer comparison data unavailable</li>';
