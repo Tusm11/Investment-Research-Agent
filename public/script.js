@@ -669,7 +669,11 @@ async function researchCompany(name, ticker) {
             
             // Isolation Forest Status & Explanation
             const isolationForest = riskAnalysis.isolation_forest || {};
-            document.getElementById('cr-if-status').textContent = isolationForest.status || '--';
+            // Hide the status line - only show explanation
+            const statusElem = document.getElementById('cr-if-status');
+            if (statusElem) {
+                statusElem.style.display = 'none';
+            }
             document.getElementById('cr-if-explanation').textContent = isolationForest.explanation || result.risk_detail || '';
             
             // Statistical Findings (fallback to risk_detail if available)

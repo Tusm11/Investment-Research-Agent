@@ -1347,6 +1347,7 @@ async def get_company_research(symbol: str):
         # ── Risk explanation generated via LLM ──
         model_assessment = agent2_output.get("model_assessment", {}) or {}
         anomaly_score = model_assessment.get("anomaly_score")
+        is_anomalous = model_assessment.get("is_anomalous", False)
         red_flags = agent2_output.get("red_flags", []) or []
         
         risk_detail = None
@@ -1365,23 +1366,45 @@ async def get_company_research(symbol: str):
                 else:
                     client = Groq(api_key=api_key)
                     
+                    # If anomaly detected, use news context to explain it
+                    news_context = ""
+                    if is_anomalous:
+                        articles = agent1_output.get("news", {}).get("articles", [])[:3]
+                        if articles:
+                            news_summaries = []
+                            for art in articles:
+                                title = art.get("title") or art.get("headline") or ""
+                                summary = art.get("summary") or art.get("description") or ""
+                                if title:
+                                    news_summaries.append(f"- {title}: {summary[:80]}")
+                            if news_summaries:
+                                news_context = "\n\nRecent context:\n" + "\n".join(news_summaries[:2])
+                    
                     prompt = (
-                        f"You are a financial risk analyst analyzing {symbol}. "
-                        f"You are provided with an anomaly score (0 to 1, higher is riskier): {anomaly_score}, "
-                        f"and some fundamental red flags: {json.dumps([f.get('metric', str(f)) for f in red_flags])}. "
-                        "Write a 2-3 sentence explanation of the risk profile based on this data. "
-                        "Provide the explanation along with facts. "
-                        "DO NOT mention 'Isolation Forest' or any machine learning models. Just explain the risk clearly."
+                        f"You are a financial analyst analyzing {symbol}. "
+                        f"Red flags detected: {json.dumps([f.get('metric', str(f)) for f in red_flags[:3]])}. "
                     )
+                    
+                    if is_anomalous:
+                        prompt += (
+                            f"The company's financial profile is unusual compared to peers. "
+                            f"Based on this financial anomaly and recent news, explain in 1-2 sentences why the company stands out."
+                            f"{news_context}"
+                        )
+                    else:
+                        prompt += (
+                            "Write a 2-3 sentence explanation of the financial risks based on these red flags. "
+                            "Be factual and avoid generic statements."
+                        )
                     
                     response = client.chat.completions.create(
                         messages=[
-                            {"role": "system", "content": "You are a financial risk analyst. Be concise and factual. Output ONLY the final explanation, no reasoning steps or thinking blocks."},
+                            {"role": "system", "content": "You are a financial analyst. Be concise and factual. Output ONLY the final explanation, no reasoning steps."},
                             {"role": "user", "content": prompt}
                         ],
                         model=model_name,
                         temperature=0,
-                        max_tokens=500
+                        max_tokens=300
                     )
                     
                     risk_detail = response.choices[0].message.content.strip() if response.choices else None
@@ -1406,10 +1429,12 @@ async def get_company_research(symbol: str):
             # Fallback: create risk summary from red flags if LLM failed
             if not risk_detail:
                 if red_flags:
-                    flag_summaries = [f.get("explanation", f.get("metric", str(f))) for f in red_flags[:3]]
-                    risk_detail = "Risk assessment: " + "; ".join(flag_summaries)
+                    flag_summaries = [f.get("explanation", f.get("metric", str(f))) for f in red_flags[:2]]
+                    risk_detail = "Risk factors: " + "; ".join(flag_summaries)
+                elif is_anomalous:
+                    risk_detail = "Company financial profile is unusual compared to sector peers."
                 else:
-                    risk_detail = "Anomaly detected: Company financial profile differs from peer group."
+                    risk_detail = "No specific risk anomalies detected."
         else:
             risk_detail = "No specific risk anomalies detected."
 
@@ -1573,7 +1598,6 @@ async def get_company_research(symbol: str):
             "overall_risk": risk_level_value,
             "financial_observations": risk_factors,
             "isolation_forest": {
-                "status": "Available" if anomaly_score is not None else "Unavailable",
                 "explanation": risk_detail or "No risk analysis available."
             },
             "peer_comparison": agent2_output.get("peer_comparison", {}).get("peers", [])[:5] if agent2_output.get("peer_comparison") else []
