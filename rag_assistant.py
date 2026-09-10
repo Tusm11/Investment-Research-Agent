@@ -194,11 +194,11 @@ numbers first before reaching for other data.
             )
 
         try:
-            response = _call(os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"))
+            response = _call(os.getenv("GROQ_MODEL", "mixtral-8x7b-32768"))
         except Exception as llm_err:
-            # Rate-limited on the primary model — retry once on a fallback model (separate quota)
-            if "rate_limit" in str(llm_err).lower() or "429" in str(llm_err):
-                response = _call("llama3-8b-8192")
+            # Rate-limited or model error — retry once on a fallback model
+            if "rate_limit" in str(llm_err).lower() or "429" in str(llm_err) or "decommissioned" in str(llm_err).lower():
+                response = _call("mixtral-8x7b-32768")
             else:
                 raise
 

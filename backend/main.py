@@ -1409,24 +1409,22 @@ async def get_company_research(symbol: str):
                     
                     risk_detail = response.choices[0].message.content.strip() if response.choices else None
                     
-                    # AGGRESSIVE: Remove ALL reasoning blocks and formatting FIRST
+                    # AGGRESSIVE: Remove ALL reasoning blocks using regex
                     if risk_detail:
-                        # Remove <think> blocks
-                        while "<think>" in risk_detail:
-                            start = risk_detail.find("<think>")
-                            end = risk_detail.find("</think>")
-                            if end != -1:
-                                risk_detail = (risk_detail[:start] + risk_detail[end+8:]).strip()
-                            else:
-                                break
+                        import re
+                        # Remove <think>...</think> blocks completely
+                        risk_detail = re.sub(r'<think>.*?</think>', '', risk_detail, flags=re.DOTALL).strip()
+                        
+                        # If answer still starts with thinking, extract the actual answer
+                        if risk_detail.startswith("Here's a thinking"):
+                            lines = risk_detail.split('\n')
+                            for i, line in enumerate(lines):
+                                if line.strip() and not any(line.strip().startswith(marker) for marker in ["Here's", "1.", "2.", "3.", "4.", "-", "•", "Step"]):
+                                    risk_detail = '\n'.join(lines[i:]).strip()
+                                    break
                         
                         # Remove markdown formatting
                         risk_detail = risk_detail.replace("**", "").replace("__", "").replace("*", "")
-                        
-                        # Remove any remaining reasoning markers
-                        for marker in ["Here's my thinking:", "Thinking:", "Analysis:", "Draft:"]:
-                            if marker in risk_detail:
-                                risk_detail = risk_detail.split(marker)[-1].strip()
                     
                     if not risk_detail or len(risk_detail) < 10:
                         risk_detail = None
