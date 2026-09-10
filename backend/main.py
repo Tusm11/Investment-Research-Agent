@@ -1355,21 +1355,45 @@ async def get_company_research(symbol: str):
                 import os
                 import json
                 from langchain_groq import ChatGroq
-                llm = ChatGroq(model=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"), temperature=0, max_tokens=1024)
-                prompt = (
-                    f"You are a financial risk analyst analyzing {symbol}. "
-                    f"You are provided with an anomaly score (0 to 1, higher is riskier): {anomaly_score}, "
-                    f"and some fundamental red flags: {json.dumps(red_flags)}. "
-                    "Write a 2-3 sentence explanation of the risk profile based on this data. "
-                    "Provide the explanation along with facts. "
-                    "DO NOT mention 'Isolation Forest' or any machine learning models. Just explain the risk clearly."
-                )
-                risk_detail = llm.invoke(prompt).content.strip()
-                if "<think>" in risk_detail:
-                    risk_detail = risk_detail.split("</think>")[-1].strip()
+                
+                model_name = os.getenv("GROQ_MODEL", "mixtral-8x7b-32768")
+                api_key = os.getenv("GROQ_API_KEY")
+                
+                if not api_key:
+                    logger.error("GROQ_API_KEY not set")
+                    risk_detail = "Risk analysis unavailable (API key missing)."
+                else:
+                    llm = ChatGroq(
+                        model=model_name, 
+                        temperature=0, 
+                        max_tokens=1024,
+                        api_key=api_key
+                    )
+                    
+                    prompt = (
+                        f"You are a financial risk analyst analyzing {symbol}. "
+                        f"You are provided with an anomaly score (0 to 1, higher is riskier): {anomaly_score}, "
+                        f"and some fundamental red flags: {json.dumps(red_flags)}. "
+                        "Write a 2-3 sentence explanation of the risk profile based on this data. "
+                        "Provide the explanation along with facts. "
+                        "DO NOT mention 'Isolation Forest' or any machine learning models. Just explain the risk clearly."
+                    )
+                    
+                    response = llm.invoke(prompt)
+                    risk_detail = response.content.strip() if hasattr(response, 'content') else str(response).strip()
+                    
+                    if "<think>" in risk_detail:
+                        risk_detail = risk_detail.split("</think>")[-1].strip()
+                    
+                    if not risk_detail or len(risk_detail) < 10:
+                        risk_detail = "Risk assessment complete: " + (", ".join([f.get("category", str(f)) for f in red_flags[:3]]) if red_flags else "No specific anomalies detected.")
             except Exception as e:
-                logger.warning(f"Risk explanation LLM failed: {e}")
-                risk_detail = "Risk analysis could not be fully generated."
+                logger.error(f"Risk explanation LLM failed for {symbol}: {e}", exc_info=True)
+                # Fallback: create risk summary from red flags
+                if red_flags:
+                    risk_detail = "Risk factors identified: " + (", ".join([f.get("category", str(f)) for f in red_flags[:3]]))
+                else:
+                    risk_detail = "Risk analysis could not be fully generated."
         else:
             risk_detail = "No specific risk anomalies detected."
 
