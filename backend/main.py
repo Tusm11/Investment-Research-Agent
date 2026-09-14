@@ -2015,4 +2015,8 @@ app.mount("/", StaticFiles(directory=str(PUBLIC_DIR), html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8502)
+    import os
+    
+    # This forces the app to look for Railway's port, defaulting to 8080 only for local testing
+    port = int(os.getenv("PORT", 8080))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
