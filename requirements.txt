@@ -22,7 +22,6 @@ googlenewsdecoder>=0.1.7
 pypdf==4.0.0
 
 python-dotenv==1.0.0
-streamlit>=1.37.0
 nselib>=2.5.0
 fastapi>=0.115.0
 uvicorn>=0.30.0
