@@ -3,8 +3,11 @@ import joblib
 import yfinance as yf
 import numpy as np
 import pandas as pd
+import logging
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "isolation_forest_model.pkl") #it is trained on the financial features of the NIFTY50 companies to detect anomalies in the financial statements of a given company. The model is used to identify red flags in the financial statements of a given company by comparing its financial features with those of its peers in the same sector.
+logger = logging.getLogger(__name__)
+
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "isolation_forest_model.pkl")
 
 EXPECTED_FEATURES = [
     "Debt To Equity_z",
@@ -26,7 +29,8 @@ EXPECTED_FEATURES = [
 
 if_model = None
 
-#safe ratio function calculates the ratio of two numbers, handling cases where the denominator is zero or None. It returns None instead of 0 for missing data so missing metrics don't appear as 0%.
+METRIC_LABELS = {"Sales": "Revenue Growth", "Net Profit Margin": "Net Profit Margin (%)", "ROCE": "ROCE (%)", "OPM %": "Operating Margin (%)"}
+
 def _safe_ratio(numerator, denominator):
     if numerator is None or denominator in (None, 0):
         return None  # ← Return None, not 0, for missing data
@@ -136,101 +140,65 @@ def build_features(ticker_symbol):
 
     return features
 
-def detect_red_flags(ticker):
+def detect_red_flags(ticker, peer_comparison=None):
     flags = []
     try:
-        t = yf.Ticker(ticker)
-        info = t.info
-        bs = t.balance_sheet.iloc[:, 0] if not t.balance_sheet.empty else {}
+        peer_metrics = (peer_comparison or {}).get("metrics", {})
         
-        revenue = info.get("totalRevenue") or 0
-        net_income = info.get("netIncomeToCommon") or 0
-        operating_income = info.get("operatingIncome") or 0
-        debt = bs.get("Total Debt") or info.get("totalDebt")
-        equity = bs.get("Stockholders Equity") or info.get("totalStockholderEquity")
+        # Use peer_comparison data as primary source (already computed from health_data)
+        if not peer_metrics:
+            return flags
         
-        # Check if critical data is missing
-        if not revenue or not equity:
-            flags.append({
-                "metric": "Incomplete Financial Data",
-                "value": "N/A",
-                "severity": "high",
-                "explanation": "Missing key financial metrics (revenue or equity) - cannot calculate ratios."
-            })
-            return flags  # Cannot calculate other ratios without base data
+        # Extract actual company values and sector averages
+        roce_company = peer_metrics.get("ROCE", {}).get("company")
+        roce_sector = peer_metrics.get("ROCE", {}).get("sector_average")
         
-        debt_to_equity = debt / equity if debt and equity else 0
+        debt_company = peer_metrics.get("Debt", {}).get("company")
+        debt_sector = peer_metrics.get("Debt", {}).get("sector_average")
         
-        if debt_to_equity > 5:
+        opm_company = peer_metrics.get("OPM %", {}).get("company")
+        opm_sector = peer_metrics.get("OPM %", {}).get("sector_average")
+        
+        sales_company = peer_metrics.get("Sales", {}).get("company")
+        sales_sector = peer_metrics.get("Sales", {}).get("sector_average")
+        
+        # Flag: High Debt
+        if debt_company and debt_sector and debt_company > debt_sector * 1.5:
             flags.append({
                 "metric": "High Debt",
-                "value": f"Debt/Equity: {debt_to_equity:.2f}",
+                "value": f"₹{debt_company:,.0f}",
                 "severity": "high",
-                "explanation": "Company has high debt relative to equity, which increases financial risk."
+                "explanation": f"Debt ₹{debt_company:,.0f} vs sector avg ₹{debt_sector:,.0f}."
             })
-        elif debt is None:
+        
+        # Flag: Low ROCE
+        if roce_company is not None and roce_sector is not None and roce_company < roce_sector * 0.8:
             flags.append({
-                "metric": "Debt Data Unavailable",
-                "value": "N/A",
+                "metric": "Low ROCE",
+                "value": f"{roce_company:.1f}%",
                 "severity": "medium",
-                "explanation": "Debt information not available - unable to assess leverage."
+                "explanation": f"ROCE {roce_company:.1f}% vs sector {roce_sector:.1f}%."
             })
         
-        profit_margin = net_income / revenue if revenue else 0
-        if profit_margin < 0.10 and revenue:
+        # Flag: Low Operating Margin
+        if opm_company is not None and opm_sector is not None and opm_company < opm_sector * 0.8:
             flags.append({
-                "metric": "Low Profit Margin",
-                "value": f"{profit_margin*100:.1f}%",
+                "metric": "Low Operating Margin",
+                "value": f"{opm_company:.1f}%",
                 "severity": "medium",
-                "explanation": "Profit margin is below 10%, indicating weaker profitability."
+                "explanation": f"OPM {opm_company:.1f}% vs sector {opm_sector:.1f}%."
             })
         
-        roe = info.get("returnOnEquity")
-        if roe and roe < 0.15:
+        # Flag: Slow Growth
+        if sales_company is not None and sales_sector is not None and sales_company < sales_sector * 0.8:
             flags.append({
-                "metric": "Low ROE",
-                "value": f"{roe*100:.1f}%",
+                "metric": "Slow Growth",
+                "value": f"₹{sales_company:,.0f}",
                 "severity": "low",
-                "explanation": "Return on equity is below 15%, below industry best practices."
-            })
-        elif roe is None:
-            flags.append({
-                "metric": "ROE Unavailable",
-                "value": "N/A",
-                "severity": "low",
-                "explanation": "Return on equity data not available from data sources."
-            })
-        
-        revenue_growth = info.get("revenueGrowth")
-        if revenue_growth and revenue_growth < 0.08:
-            flags.append({
-                "metric": "Slow Revenue Growth",
-                "value": f"{revenue_growth*100:.1f}%",
-                "severity": "low",
-                "explanation": "Revenue growth is below 8%, indicating limited expansion momentum."
-            })
-        
-        assessment = assess_isolation_forest(ticker)
-        anomaly_score = assessment.get("anomaly_score", 0)
-
-        if assessment.get("is_anomaly") or anomaly_score >= 0.7:
-            flags.append({
-                "metric": "Financial Statements",
-                "value": f"Risk Score: {anomaly_score:.2f}",
-                "severity": "high" if anomaly_score >= 0.85 or assessment.get("is_anomaly") else "medium",
-                "explanation": (
-                    f"Statistical analysis flagged this company as {'anomalous' if assessment.get('is_anomaly') else 'elevated risk'} "
-                    f"(score: {anomaly_score:.2f})."
-                ),
+                "explanation": f"Revenue ₹{sales_company:,.0f} vs sector avg ₹{sales_sector:,.0f}."
             })
             
     except Exception as e:
         logger.error(f"Red flag detection error: {e}")
-        flags.append({
-            "metric": "Analysis Failed",
-            "value": "N/A",
-            "severity": "high",
-            "explanation": f"Red flag analysis could not complete: {str(e)}"
-        })
         
     return flags

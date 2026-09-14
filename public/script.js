@@ -1064,8 +1064,6 @@ function renderReport(data) {
                     </div>
                 </div>
                 <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 5px;">Model Used:</p>
-                    <p style="color: #cbd5e1;">${data.price_forecast.model}</p>
                 </div>
             </div>
             

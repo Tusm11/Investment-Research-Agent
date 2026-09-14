@@ -1439,7 +1439,6 @@ Forecast data:
             parsed.setdefault("assumptions", [])
             parsed.setdefault("risks_to_forecast", [])
             parsed.setdefault("confidence", "Moderate")
-            parsed["basis"] = "Fundamental health analysis + analyst consensus + LLM synthesis"
             return parsed
     except Exception as e:
         print(f"Forecast explanation LLM failed, using fallback: {e}")
@@ -1466,5 +1465,4 @@ Forecast data:
         "assumptions": assumptions,
         "risks_to_forecast": risks,
         "confidence": "Moderate" if analyst_rating in ("Hold",) else "Low",
-        "basis": "Fundamental health analysis + analyst consensus (deterministic)",
     }

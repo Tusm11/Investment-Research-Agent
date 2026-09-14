@@ -294,7 +294,6 @@ async def company_research(request: CompanyResearchRequest):
                 "predicted_price": target_price,
                 "expected_return": expected_return,
                 "direction": agent4_output.get("consensus_rating", "Hold"),
-                "basis": "Fundamental health analysis"
             },
         }
         
@@ -708,7 +707,6 @@ async def generate_report(request: ReportRequest):
             "predicted_price": detail.get("target_price"),
             "expected_return": detail.get("expected_return"),
             "direction": detail.get("analyst_rating", "Hold").upper().replace("BUY", "UP").replace("SELL", "DOWN"),
-            "model": "Fundamental health analysis (Agent 4)",
         }
         highlights = (detail.get("positive_factors") or [])[:5]
 
@@ -984,8 +982,8 @@ def _compute_shareholding(symbol):
         return None
 
 
-def _compute_roe(ticker):
-    """ROE = Net Income / Stockholders Equity * 100, from yfinance statements."""
+def _compute_roe(ticker, agent2_facts=None):
+    """ROE = Net Income / Stockholders Equity * 100, from yfinance statements or agent2 fallback."""
     import yfinance as yf
     try:
         t = yf.Ticker(ticker)
@@ -995,6 +993,17 @@ def _compute_roe(ticker):
             return round(float(ni) / float(eq) * 100, 2)
     except Exception:
         pass
+    
+    if agent2_facts:
+        ni = agent2_facts.get("NetProfit")
+        eq = agent2_facts.get("TotalEquity")
+        if ni and eq:
+            try:
+                return round(float(ni) / float(eq) * 100, 2)
+            except (ValueError, ZeroDivisionError):
+                pass
+    
+    logger.warning(f"ROE unavailable for {ticker}")
     return None
 
 
@@ -1360,7 +1369,7 @@ async def get_company_research(symbol: str):
             from groq import Groq
             
             api_key = os.getenv("GROQ_API_KEY")
-            model_name = os.getenv("GROQ_MODEL", "mixtral-8x7b-32768")
+            model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
             
             logger.info(f"Risk for {symbol}: anomaly={anomaly_score}, flags={len(red_flags)}, api_key={'SET' if api_key else 'MISSING'}")
             
@@ -1406,17 +1415,21 @@ async def get_company_research(symbol: str):
                     
                     risk_detail = response.choices[0].message.content.strip() if response.choices else None
                     
-                    # Remove <think> blocks aggressively
+                    # Remove <think> blocks - multi-pass aggressive removal
                     if risk_detail:
-                        risk_detail = re.sub(r'<think>.*?</think>', '', risk_detail, flags=re.DOTALL | re.IGNORECASE).strip()
+                        # Remove all <think>...</think> blocks (including nested)
+                        while '<think>' in risk_detail.lower():
+                            risk_detail = re.sub(r'<think>.*?</think>', '', risk_detail, flags=re.DOTALL | re.IGNORECASE).strip()
                         
-                        # Remove preamble
-                        if risk_detail.lower().startswith('here\'s'):
-                            lines = [l for l in risk_detail.split('\n') if l.strip()]
-                            for i, line in enumerate(lines):
-                                if line.strip() and not any(line.strip().startswith(p) for p in ['1.', '2.', 'here', '-', '•']):
-                                    risk_detail = '\n'.join(lines[i:]).strip()
-                                    break
+                        # Remove preamble lines like "Here's the answer:" or "Here's a thinking process:"
+                        lines = risk_detail.split('\n')
+                        clean_lines = []
+                        for line in lines:
+                            lower_line = line.lower()
+                            if any(lower_line.startswith(prefix) for prefix in ["here's", "here is", "the answer:", "based on"]):
+                                continue
+                            clean_lines.append(line)
+                        risk_detail = '\n'.join(clean_lines).strip()
                         
                         # Clean markdown
                         risk_detail = risk_detail.replace("**", "").replace("__", "").replace("*", "")
@@ -1445,28 +1458,8 @@ async def get_company_research(symbol: str):
                 risk_detail = "Unusual financial profile compared to peers."
             else:
                 risk_detail = "Financial profile appears normal."
-        else:
-            risk_detail = "No specific risk anomalies detected."
 
-        # ── Risk factors as display strings (frontend renders them verbatim) ──
-        risk_factors = []
-        for r in (agent3_output.get("risks") or red_flags or [])[:6]:
-            if isinstance(r, str):
-                risk_factors.append(r)
-            elif isinstance(r, dict):
-                metric, value, explanation = r.get("metric"), r.get("value"), r.get("explanation")
-                if metric and explanation:
-                    risk_factors.append(f"{metric}: {explanation}")
-                elif metric and value:
-                    risk_factors.append(f"{metric}: {value}")
-                elif explanation:
-                    risk_factors.append(explanation)
-                elif metric:
-                    risk_factors.append(metric)
-
-        # ── Real metric values for the Data Sources panel ──
-        fetch_time = datetime.utcnow().isoformat() + "Z"
-        roe_value = info.get("return_on_equity") if info.get("return_on_equity") is not None else _compute_roe(symbol)
+        # ── Risk level determination (before risk_factors so fallback can use it) ──
         if model_assessment.get("is_anomaly") or (anomaly_score or 0) >= 0.7:
             risk_level_value = "High"
         elif (anomaly_score or 0) >= 0.3:
@@ -1475,6 +1468,36 @@ async def get_company_research(symbol: str):
             risk_level_value = "Low"
         else:
             risk_level_value = "Moderate"
+
+        # ── Risk factors (skip "data not available" strings, only show meaningful signals) ──
+        risk_factors = []
+        for r in (agent3_output.get("risks") or red_flags or [])[:10]:
+            if isinstance(r, str):
+                if "not available" not in r.lower() and "data not available" not in r.lower():
+                    risk_factors.append(r)
+            elif isinstance(r, dict):
+                metric, value, explanation = r.get("metric"), r.get("value"), r.get("explanation")
+                if not any(s in str(explanation or "").lower() for s in ["not available", "data not available"]):
+                    if metric and explanation:
+                        risk_factors.append(f"{metric}: {explanation}")
+                    elif metric and value:
+                        risk_factors.append(f"{metric}: {value}")
+                    elif explanation:
+                        risk_factors.append(explanation)
+                    elif metric:
+                        risk_factors.append(metric)
+        
+        # Fallback: if no factors, add the risk_level itself
+        if not risk_factors:
+            if risk_level_value == "High":
+                risk_factors.append("High risk profile identified")
+            elif risk_level_value == "Moderate":
+                risk_factors.append("Moderate risk factors present")
+
+        # ── Real metric values for the Data Sources panel ──
+        fetch_time = datetime.utcnow().isoformat() + "Z"
+        agent2_facts = agent2_output.get("financial_facts", {})
+        roe_value = info.get("return_on_equity") if info.get("return_on_equity") is not None else _compute_roe(symbol, agent2_facts)
 
         analyst_data = memory.get("analyst_data", {}) or {}
         mood = memory.get("dashboard", {}).get("market_mood", {}) or {}
@@ -1514,13 +1537,15 @@ async def get_company_research(symbol: str):
         news_count = len(agent1_output.get("news", {}).get("articles", []))
         sentiment_detail = None
         if sentiment_score is not None:
-            sentiment_detail = f"{sentiment_status} ({sentiment_score}/100)"
+            sentiment_detail = f"{sentiment_status}"
         elif mood.get("overall_sentiment"):
             sentiment_detail = f"AI mood from news flow: {mood.get('overall_sentiment')}"
 
         risk_detail_line = None
-        if anomaly_score is not None:
-            risk_detail_line = f"Anomaly score {anomaly_score:.2f} · {'Unusual pattern flagged' if model_assessment.get('is_anomaly') else 'Normal pattern'} · {risk_level_value} risk"
+        if is_anomalous:
+            risk_detail_line = f"Statistical analysis: {risk_level_value} risk profile"
+        elif anomaly_score is not None:
+            risk_detail_line = f"{risk_level_value} risk"
 
         # ── Tab data: Financials / Shareholding / Peer metrics ──
         # Compute financials (statements + ratios) from yfinance; agent2's
@@ -1594,14 +1619,28 @@ async def get_company_research(symbol: str):
         price_change = None
         try:
             ohlcv = price_data.get("ohlcv") or []
-            closes = [row.get("close") for row in ohlcv if row.get("close") is not None]
-            if len(closes) >= 2 and current_price:
-                # If current_price matches the last close, use the prior close as reference
-                ref = closes[-2] if abs(closes[-1] - current_price) < 1e-6 else closes[-1]
-                if ref:
-                    price_change = round((current_price - ref) / ref * 100, 2)
+            if ohlcv:
+                closes = [row.get("close") for row in ohlcv if row.get("close") is not None]
+                if len(closes) >= 2 and current_price:
+                    ref = closes[-2] if abs(closes[-1] - current_price) < 1e-6 else closes[-1]
+                    if ref:
+                        price_change = round((current_price - ref) / ref * 100, 2)
         except Exception as e:
             logger.warning(f"Price change computation failed for {symbol}: {e}")
+        
+        # Fallback: if no OHLCV, fetch from yfinance
+        if price_change is None:
+            try:
+                import yfinance as yf
+                full_sym = f"{symbol}.NS" if not symbol.endswith(".NS") else symbol
+                hist = yf.download(full_sym, period="5d", progress=False)
+                if not hist.empty and len(hist) >= 2:
+                    latest_close = float(hist.iloc[-1]["Close"])
+                    prev_close = float(hist.iloc[-2]["Close"])
+                    if prev_close and current_price:
+                        price_change = round((current_price - prev_close) / prev_close * 100, 2)
+            except Exception as e:
+                logger.warning(f"Price change fallback failed for {symbol}: {e}")
 
         # Build risk_analysis structure for frontend
         risk_analysis = {

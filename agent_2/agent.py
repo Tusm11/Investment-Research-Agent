@@ -15,15 +15,7 @@ def run_agent2(agent1_payload, question=""):
 
     route = route_query(question, ticker)
     
-    # Run red flags detection
-    if "red_flags" in route.get("modules", []) or "fundamentals" in route.get("modules", []):
-        try:
-            red_flags = detect_red_flags(ticker)
-            model_assessment = assess_isolation_forest(ticker)
-        except Exception as e:
-            print(f"Agent2 red flags failed: {e}")
-
-    # Run peer comparison
+    # Run peer comparison first
     if "peer_comparison" in route.get("modules", []) or "fundamentals" in route.get("modules", []):
         try:
             company_features = build_health_features(ticker)["feature_vector"]
@@ -41,6 +33,14 @@ def run_agent2(agent1_payload, question=""):
             }
         except Exception as e:
             print(f"Agent2 peer comparison failed: {e}")
+    
+    # Run red flags detection with peer_comparison
+    if "red_flags" in route.get("modules", []) or "fundamentals" in route.get("modules", []):
+        try:
+            red_flags = detect_red_flags(ticker, peer_comparison)
+            model_assessment = assess_isolation_forest(ticker)
+        except Exception as e:
+            print(f"Agent2 red flags failed: {e}")
 
     # Build fundamental profile
     profile = build_fundamental_profile(peer_comparison, red_flags)

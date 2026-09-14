@@ -1236,3 +1236,201 @@ body {
 .if-status span, .if-explanation span {
     color: var(--text-muted);
 }
+
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   DARK MODE (html.dark class)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+html.dark {
+    --bg-color: #0f172a;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+html.dark body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    color: var(--text-main);
+}
+
+html.dark .top-header {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+}
+
+html.dark .data-table th {
+    background: rgba(15, 23, 42, 0.95);
+}
+
+html.dark .indicator-item {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+html.dark .stat-box {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+html.dark .research-header {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+}
+
+html.dark .snapshot-item {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+html.dark .driver-item {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+html.dark .forecast-item {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+html.dark .ai-analysis-box {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+html.dark .ai-assessment-box {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+html.dark .mood-sentiment {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+html.dark .snapshot-grid {
+    color: var(--text-main);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   LIGHT MODE (default / html.light or just html)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+html, html.light {
+    --primary: #003ec8;
+    --primary-dark: #0032a8;
+    --secondary: #00b24b;
+    --danger: #e5484d;
+    --bg-color: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+html body, html.light body {
+    background: linear-gradient(135deg, #f8fafc 0%, #eff4ff 100%);
+    color: var(--text-main);
+}
+
+html .top-header, html.light .top-header {
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(239, 244, 255, 0.95) 100%);
+}
+
+html .data-table th, html.light .data-table th {
+    background: rgba(248, 250, 252, 0.95);
+}
+
+html .indicator-item, html.light .indicator-item {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+html .stat-box, html.light .stat-box {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+html .research-header, html.light .research-header {
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(239, 244, 255, 0.95) 100%);
+}
+
+html .snapshot-item, html.light .snapshot-item {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+html .driver-item, html.light .driver-item {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+html .forecast-item, html.light .forecast-item {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+html .ai-analysis-box, html.light .ai-analysis-box {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+html .ai-assessment-box, html.light .ai-assessment-box {
+    background: rgba(59, 130, 246, 0.06);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+html .mood-sentiment, html.light .mood-sentiment {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+html .nav-item, html.light .nav-item {
+    color: var(--text-muted);
+}
+
+html .nav-item:hover, html.light .nav-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+html .nav-item.active, html.light .nav-item.active {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+html .tf-btn, html.light .tf-btn {
+    border-color: rgba(0, 0, 0, 0.2);
+    color: var(--text-muted);
+}
+
+html .tf-btn:hover, html.light .tf-btn:hover {
+    border-color: var(--text-main);
+}
+
+html .tf-btn.active, html.light .tf-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+html .glass-panel, html.light .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+html table, html.light table {
+    color: var(--text-main);
+}
+
+html table tbody tr:hover, html.light table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+html .news-desc, html.light .news-desc {
+    color: var(--text-muted);
+}
+
+html .ai-summary-container ul li, html.light .ai-summary-container ul li {
+    color: var(--text-muted);
+}
+
+html .risk-content, html.light .risk-content {
+    color: var(--text-main);
+}
+
+html .driver-explanation, html.light .driver-explanation {
+    color: var(--text-muted);
+}
+
+html ::-webkit-scrollbar-thumb, html.light ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+html ::-webkit-scrollbar-thumb:hover, html.light ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+}

@@ -25,13 +25,13 @@
       }
     }
   };</script>
-  <style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}}::-webkit-scrollbar{display:none;}</style>
+  <style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}}::-webkit-scrollbar{display:none;}html{--bg: #F8FAFC;--text-primary: #0F172A;--text-secondary: #334155;--surface-card: #FFFFFF;--surface-page: #F8FAFC;--border-subtle: #E2E8F0;}html.dark{--bg: #0f172a;--text-primary: #f8fafc;--text-secondary: #cbd5e1;--surface-card: #1e293b;--surface-page: #0f172a;--border-subtle: #334155;}body{background-color: var(--bg); color: var(--text-primary);}</style>
   <title>Company Research</title>
 </head>
 <body class="bg-surface-page font-body-base text-text-primary antialiased min-h-screen">
 <header class="fixed top-0 left-0 right-0 z-50 bg-surface-card border-b border-border-subtle shadow-sm h-16 px-space-lg flex items-center justify-between">
   <div class="flex items-center gap-space-lg"><a href="dashboard.html" class="font-headline-lg text-headline-lg font-bold hover:text-primary">◄ Investment Research Agent</a></div>
-  <div class="flex items-center gap-space-sm"><button class="p-2 rounded hover:bg-surface-container-low" onclick="switchTheme()"><span class="material-symbols-outlined">light_mode</span></button></div>
+  <div></div>
 </header>
 
 <main class="w-full pt-20 px-space-lg pb-space-lg bg-surface-page min-h-screen">
@@ -912,8 +912,20 @@ function goToDashboard() {
 }
 
 function switchTheme() {
-  document.documentElement.classList.toggle('dark');
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  const icon = document.querySelector('button[onclick="switchTheme()"] .material-symbols-outlined');
+  if (icon) icon.textContent = isDark ? 'dark_mode' : 'light_mode';
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  if (savedTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+    const icon = document.querySelector('button[onclick="switchTheme()"] .material-symbols-outlined');
+    if (icon) icon.textContent = 'dark_mode';
+  }
+});
 
 // ─── COMPANY PRICE CHART (similar to dashboard) ──
 let _companyChartTf = '1y';

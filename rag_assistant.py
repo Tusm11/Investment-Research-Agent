@@ -194,11 +194,10 @@ numbers first before reaching for other data.
             )
 
         try:
-            response = _call(os.getenv("GROQ_MODEL", "mixtral-8x7b-32768"))
+            response = _call(os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"))
         except Exception as llm_err:
-            # Rate-limited or model error — retry once on a fallback model
             if "rate_limit" in str(llm_err).lower() or "429" in str(llm_err) or "decommissioned" in str(llm_err).lower():
-                response = _call("mixtral-8x7b-32768")
+                response = _call("openai/gpt-oss-20b")
             else:
                 raise
 
