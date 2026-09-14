@@ -1351,22 +1351,24 @@ async def get_company_research(symbol: str):
         red_flags = agent2_output.get("red_flags", []) or []
         
         risk_detail = None
-        if anomaly_score is not None or red_flags:
-            try:
-                import os
-                import json
-                from groq import Groq
-                
-                api_key = os.getenv("GROQ_API_KEY")
-                model_name = os.getenv("GROQ_MODEL", "mixtral-8x7b-32768")
-                
-                if not api_key:
-                    logger.error("GROQ_API_KEY not set")
-                    risk_detail = "Risk analysis unavailable (API key missing)."
-                else:
+        
+        # ALWAYS try to generate risk_detail (removed gate condition)
+        try:
+            import os
+            import json
+            import re
+            from groq import Groq
+            
+            api_key = os.getenv("GROQ_API_KEY")
+            model_name = os.getenv("GROQ_MODEL", "mixtral-8x7b-32768")
+            
+            logger.info(f"Risk for {symbol}: anomaly={anomaly_score}, flags={len(red_flags)}, api_key={'SET' if api_key else 'MISSING'}")
+            
+            if api_key:
+                try:
                     client = Groq(api_key=api_key)
                     
-                    # If anomaly detected, use news context to explain it
+                    # Build news context if anomalous
                     news_context = ""
                     if is_anomalous:
                         articles = agent1_output.get("news", {}).get("articles", [])[:3]
@@ -1381,25 +1383,20 @@ async def get_company_research(symbol: str):
                                 news_context = "\n\nRecent context:\n" + "\n".join(news_summaries[:2])
                     
                     prompt = (
-                        f"You are a financial analyst analyzing {symbol}. "
-                        f"Red flags detected: {json.dumps([f.get('metric', str(f)) for f in red_flags[:3]])}. "
+                        f"Financial analyst analyzing {symbol}. "
+                        f"Red flags: {json.dumps([f.get('metric', str(f))[:50] for f in red_flags[:3]])}. "
                     )
                     
                     if is_anomalous:
-                        prompt += (
-                            f"The company's financial profile is unusual compared to peers. "
-                            f"Based on this financial anomaly and recent news, explain in 1-2 sentences why the company stands out."
-                            f"{news_context}"
-                        )
+                        prompt += f"Unusual financial profile. Explain in 1-2 sentences why it stands out.{news_context}"
+                    elif red_flags:
+                        prompt += "Write 2-3 sentences explaining the financial risks. Be factual."
                     else:
-                        prompt += (
-                            "Write a 2-3 sentence explanation of the financial risks based on these red flags. "
-                            "Be factual and avoid generic statements."
-                        )
+                        prompt += "Write a brief financial assessment."
                     
                     response = client.chat.completions.create(
                         messages=[
-                            {"role": "system", "content": "You are a financial analyst. Be concise and factual. Output ONLY the final explanation, no reasoning steps."},
+                            {"role": "system", "content": "Financial analyst. Output ONLY the explanation, no reasoning."},
                             {"role": "user", "content": prompt}
                         ],
                         model=model_name,
@@ -1409,63 +1406,45 @@ async def get_company_research(symbol: str):
                     
                     risk_detail = response.choices[0].message.content.strip() if response.choices else None
                     
-                    # AGGRESSIVE: Strip <think> blocks FIRST with multiple methods
+                    # Remove <think> blocks aggressively
                     if risk_detail:
-                        # Method 1: Regex (handles nested/malformed blocks)
-                        import re
                         risk_detail = re.sub(r'<think>.*?</think>', '', risk_detail, flags=re.DOTALL | re.IGNORECASE).strip()
                         
-                        # Method 2: If <think> still exists (malformed), brute force remove
-                        while '<think>' in risk_detail.lower():
-                            idx_start = risk_detail.lower().find('<think>')
-                            idx_end = risk_detail.lower().find('</think>')
-                            if idx_end > idx_start >= 0:
-                                risk_detail = (risk_detail[:idx_start] + risk_detail[idx_end+8:]).strip()
-                            else:
-                                # Malformed: just remove up to end or everything after start
-                                risk_detail = risk_detail[:idx_start].strip()
-                                break
+                        # Remove preamble
+                        if risk_detail.lower().startswith('here\'s'):
+                            lines = [l for l in risk_detail.split('\n') if l.strip()]
+                            for i, line in enumerate(lines):
+                                if line.strip() and not any(line.strip().startswith(p) for p in ['1.', '2.', 'here', '-', '•']):
+                                    risk_detail = '\n'.join(lines[i:]).strip()
+                                    break
                         
-                        # Method 3: Remove "Here's a thinking" preamble entirely
-                        lines = risk_detail.split('\n')
-                        cleaned_lines = []
-                        skip_until_content = False
-                        
-                        for line in lines:
-                            line_lower = line.lower().strip()
-                            if 'here\'s a thinking' in line_lower or 'thinking process' in line_lower:
-                                skip_until_content = True
-                                continue
-                            if skip_until_content:
-                                # Skip numbered/bulleted lines
-                                if line.strip() and any(line.strip().startswith(m) for m in ['1.', '2.', '3.', '4.', '5.', '-', '•', 'step']):
-                                    continue
-                                else:
-                                    skip_until_content = False
-                                    cleaned_lines.append(line)
-                            else:
-                                cleaned_lines.append(line)
-                        
-                        risk_detail = '\n'.join(cleaned_lines).strip()
-                        
-                        # Remove markdown formatting
+                        # Clean markdown
                         risk_detail = risk_detail.replace("**", "").replace("__", "").replace("*", "")
+                        
+                        if len(risk_detail) < 5:
+                            risk_detail = None
                     
-                    if not risk_detail or len(risk_detail) < 10:
-                        risk_detail = None
-            except Exception as e:
-                logger.error(f"Risk explanation Groq call failed for {symbol}: {e}", exc_info=True)
-                risk_detail = None
-            
-            # Fallback: create risk summary from red flags if LLM failed
-            if not risk_detail:
-                if red_flags:
-                    flag_summaries = [f.get("explanation", f.get("metric", str(f))) for f in red_flags[:2]]
-                    risk_detail = "Risk factors: " + "; ".join(flag_summaries)
-                elif is_anomalous:
-                    risk_detail = "Company financial profile is unusual compared to sector peers."
-                else:
-                    risk_detail = "No specific risk anomalies detected."
+                    logger.info(f"Groq: {symbol} got {len(risk_detail) if risk_detail else 0} chars")
+                
+                except Exception as groq_err:
+                    logger.error(f"Groq failed for {symbol}: {groq_err}")
+                    risk_detail = None
+            else:
+                logger.warning(f"GROQ_API_KEY not set for {symbol}")
+        
+        except Exception as setup_err:
+            logger.error(f"Risk setup failed for {symbol}: {setup_err}")
+            risk_detail = None
+        
+        # ALWAYS use fallback if LLM failed
+        if not risk_detail:
+            if red_flags:
+                summaries = [f.get("explanation", f.get("metric", "Unknown")) for f in red_flags[:2]]
+                risk_detail = "Risk factors identified: " + "; ".join(summaries)
+            elif is_anomalous:
+                risk_detail = "Unusual financial profile compared to peers."
+            else:
+                risk_detail = "Financial profile appears normal."
         else:
             risk_detail = "No specific risk anomalies detected."
 
