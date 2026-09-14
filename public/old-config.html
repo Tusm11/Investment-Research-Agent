@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Research Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Plotly for charts -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass-panel">
+            <div class="brand">
+                <div class="logo"></div>
+                <h2>Investment</h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-target="dashboard-view">
+                    <span class="icon">🏠</span> Dashboard
+                </a>
+                
+                <div class="nav-group">
+                    <div class="nav-item has-dropdown" id="research-nav">
+                        <span class="icon">🔍</span> Company Research
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="dropdown-menu" id="company-dropdown">
+                        <!-- Populated via JS -->
+                        <div class="dropdown-loading">Loading...</div>
+                    </div>
+                </div>
+
+                <a href="#" class="nav-item" data-target="reports-view">
+                    <span class="icon">📄</span> Reports
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header glass-panel">
+                <div class="header-titles">
+                    <h1>Stock Market Research Agent</h1>
+                    <p class="subtitle">Decision Support System for Investors</p>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view-section active">
+                
+                <!-- Row 1: Chart & Indicators -->
+                <div class="grid-row-2col">
+                    <div class="card chart-card glass-panel">
+                        <h3>NIFTY 50 Index</h3>
+                        <!-- Live price bar -->
+                        <div class="chart-price-bar">
+                            <span class="chart-price-val" id="nifty-price">--</span>
+                            <span class="chart-price-chg" id="nifty-chg">--</span>
+                        </div>
+                        <div class="timeframe-selector">
+                            <button class="tf-btn" data-tf="1d">1D</button>
+                            <button class="tf-btn" data-tf="1w">1W</button>
+                            <button class="tf-btn" data-tf="1m">1M</button>
+                            <button class="tf-btn" data-tf="6m">6M</button>
+                            <button class="tf-btn active" data-tf="1y">1Y</button>
+                            <button class="tf-btn" data-tf="5y">5Y</button>
+                        </div>
+                        <div id="nifty-chart" class="chart-container">
+                            <div class="loading-spinner"></div>
+                        </div>
+                    </div>
+
+                    <div class="card indicators-card glass-panel">
+                        <h3>Market Indicators</h3>
+                        <div class="indicators-grid" id="market-indicators">
+                            <div class="indicator-item">
+                                <span class="label">Advancing Stocks</span>
+                                <span class="value" id="ind-adv">--</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="label">Declining Stocks</span>
+                                <span class="value" id="ind-dec">--</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="label">A/D Ratio</span>
+                                <span class="value" id="ind-adr">--</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="label">Market Breadth</span>
+                                <span class="value" id="ind-breadth">--%</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="label">Avg Daily Return</span>
+                                <span class="value" id="ind-return">--%</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="label">Total Turnover</span>
+                                <span class="value" id="ind-turnover">--</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="label">Total Volume</span>
+                                <span class="value" id="ind-volume">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: News & Movers -->
+                <div class="grid-row-2col">
+                    <div class="card news-card glass-panel">
+                        <h3>Latest Market News</h3>
+                        <div class="news-list" id="market-news">
+                            <div class="loading-spinner"></div>
+                        </div>
+                    </div>
+
+                    <div class="card movers-card glass-panel">
+                        <h3>Top Market Movers</h3>
+                        <div class="movers-container">
+                            <div class="gainers">
+                                <h4>▲ Top 5 Gainers</h4>
+                                <ul id="top-gainers" class="movers-list"></ul>
+                            </div>
+                            <div class="losers">
+                                <h4>▼ Top 5 Losers</h4>
+                                <ul id="top-losers" class="movers-list"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Sector & Forecast -->
+                <div class="grid-row-2col">
+                    <div class="card sector-card glass-panel">
+                        <h3>Sector Performance</h3>
+                        <div class="sector-list" id="sector-performance">
+                            <div class="loading-spinner"></div>
+                        </div>
+                    </div>
+
+                    <div class="card forecast-card glass-panel">
+                        <h3>Market Forecast (AI)</h3>
+                        <p class="subtitle">Price Predictions — All NIFTY 50 Companies</p>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Company</th>
+                                        <th>Current Price</th>
+                                        <th>Direction</th>
+                                        <th>Expected Return</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="4" class="text-center">Generating predictions...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 4: Tables -->
+                <div class="grid-row-2col">
+                    <div class="card table-card glass-panel">
+                        <h3>52 Week High / Low</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>52W High</th>
+                                        <th>52W Low</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="high-low-table">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card table-card glass-panel">
+                        <h3>NIFTY 50 Companies</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Company</th>
+                                        <th>Price</th>
+                                        <th>%Chg</th>
+                                        <th>P/E</th>
+                                        <th>Research</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nifty50-table">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Research View -->
+            <div id="research-view" class="view-section hidden">
+                
+                <!-- Company Header Bar -->
+                <div class="research-header card glass-panel">
+                    <div class="header-left">
+                        <h2 id="cr-header-name">Company Specific Research</h2>
+                        <div class="company-badges mt-1">
+                            <span class="badge" id="cr-ticker">--</span>
+                            <span class="badge" id="cr-date" style="color: var(--text-muted);">--</span>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <h1 id="cr-header-price">--</h1>
+                        <p id="cr-header-change" class="price-change">--</p>
+                    </div>
+                </div>
+
+                <!-- Row 1: Business Fundamentals & Market Intelligence -->
+                <div class="grid-row-2col">
+                    <div class="card glass-panel">
+                        <h3>Business Fundamentals</h3>
+                        <div class="fundamentals-content">
+                            <div class="fundamental-item">
+                                <span class="label">Business Summary</span>
+                                <p id="cr-summary" class="value-text">Loading data...</p>
+                            </div>
+                            <div class="fundamental-item">
+                                <span class="label">Sector</span>
+                                <span id="cr-sector" class="value">--</span>
+                            </div>
+                            <div class="fundamental-item">
+                                <span class="label">Industry</span>
+                                <span id="cr-industry" class="value">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-panel">
+                        <h3>Market Intelligence</h3>
+                        <div class="intelligence-content">
+                            <div class="intel-section">
+                                <h4>Latest Company News</h4>
+                                <div class="news-list-compact" id="cr-news"></div>
+                            </div>
+                            <div class="intel-section">
+                                <h4>Top Developments</h4>
+                                <ul id="cr-news-events" class="list-neutral"></ul>
+                            </div>
+                            <div class="intel-section">
+                                <h4>AI News Summary</h4>
+                                <p id="cr-news-summary" class="summary-text">--</p>
+                            </div>
+                            <div class="intel-section">
+                                <h4>Key Events</h4>
+                                <ul id="cr-key-events" class="list-neutral"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Company Snapshot & Market Mood -->
+                <div class="grid-row-2col">
+                    <div class="card glass-panel">
+                        <h3>Company Snapshot</h3>
+                        <div class="snapshot-grid">
+                            <div class="snapshot-item">
+                                <span class="label">Market Cap</span>
+                                <span id="cr-mcap" class="value">--</span>
+                            </div>
+                            <div class="snapshot-item">
+                                <span class="label">P/E Ratio</span>
+                                <span id="cr-pe" class="value">--</span>
+                            </div>
+                            <div class="snapshot-item">
+                                <span class="label">Dividend Yield</span>
+                                <span id="cr-div-yield" class="value">--</span>
+                            </div>
+                            <div class="snapshot-item">
+                                <span class="label">52W High</span>
+                                <span id="cr-high52" class="value text-green">--</span>
+                            </div>
+                            <div class="snapshot-item">
+                                <span class="label">52W Low</span>
+                                <span id="cr-low52" class="value text-red">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-panel">
+                        <h3>Company Outlook</h3>
+                        <div class="mood-content">
+                            <div class="mood-section">
+                                <div class="mood-header">
+                                    <h4>Overall Sentiment</h4>
+                                    <span id="cr-mood-sentiment" class="sentiment-badge">Neutral</span>
+                                </div>
+                            </div>
+                            <div class="mood-section">
+                                <h4 class="text-green">✓ Positive Factors</h4>
+                                <ul id="cr-mood-positive" class="list-green"></ul>
+                            </div>
+                            <div class="mood-section">
+                                <h4 class="text-amber">⚠ Areas to Watch</h4>
+                                <ul id="cr-mood-uncertainty" class="rf-list"></ul>
+                            </div>
+                            <div class="mood-section">
+                                <h4>Current Market Focus</h4>
+                                <ul id="cr-mood-watching" class="list-neutral"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Price Story & Broader Drivers -->
+                <div class="grid-row-2col">
+                    <div class="card glass-panel">
+                        <div class="card-header-row">
+                            <h3>Price Story</h3>
+                            <div class="timeframe-selector" id="cr-timeframe-selector">
+                                <button class="tf-btn" data-tf="1d">1D</button>
+                                <button class="tf-btn" data-tf="1w">1W</button>
+                                <button class="tf-btn" data-tf="1m">1M</button>
+                                <button class="tf-btn" data-tf="6m">6M</button>
+                                <button class="tf-btn active" data-tf="1y">1Y</button>
+                                <button class="tf-btn" data-tf="5y">5Y</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <div id="cr-price-chart" class="chart-container">
+                                <p class="chart-placeholder">Select a company to view price chart</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-panel">
+                        <h3>Broader Market Drivers</h3>
+                        <div class="drivers-grid">
+                            <div class="driver-item-enhanced">
+                                <span class="label">NIFTY 50</span>
+                                <span id="cr-drv-nifty" class="value">--</span>
+                                <p id="cr-drv-nifty-exp" class="driver-explanation">Loading...</p>
+                            </div>
+                            <div class="driver-item-enhanced">
+                                <span class="label">Sector Performance</span>
+                                <span id="cr-drv-sector" class="value">--</span>
+                                <p id="cr-drv-sector-exp" class="driver-explanation">Loading...</p>
+                            </div>
+                            <div class="driver-item-enhanced">
+                                <span class="label">Company vs NIFTY</span>
+                                <span id="cr-drv-company" class="value">--</span>
+                                <p id="cr-drv-company-exp" class="driver-explanation">Loading...</p>
+                            </div>
+                            <div class="driver-item-enhanced">
+                                <span class="label">Market Correlation</span>
+                                <span id="cr-drv-corr" class="value">--</span>
+                                <p id="cr-drv-corr-exp" class="driver-explanation">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 4: AI Risk Detection & AI Price Forecast -->
+                <div class="grid-row-2col">
+                    <div class="card glass-panel">
+                        <h3>Investment Risk Analysis</h3>
+                        <div class="risk-content">
+                            <div class="risk-section">
+                                <div class="risk-header">
+                                    <h4>Overall Risk</h4>
+                                    <span id="cr-risk-level" class="risk-badge">Low</span>
+                                </div>
+                            </div>
+                            <div class="risk-section">
+                                <h4>Financial Observations</h4>
+                                <ul id="cr-rf-financial" class="rf-list"></ul>
+                            </div>
+                            <div class="risk-section">
+                                <h4>Statistical Analysis</h4>
+                                <div class="isolation-forest-box">
+                                    <div class="if-status"><strong>Status:</strong> <span id="cr-if-status">--</span></div>
+                                    <div class="if-explanation"><strong>Explanation:</strong> <span id="cr-if-explanation">--</span></div>
+                                </div>
+                            </div>
+                            <div class="risk-section">
+                                <h4>Statistical Findings</h4>
+                                <ul id="cr-rf-statistical" class="list-neutral"></ul>
+                            </div>
+                            <div class="risk-section">
+                                <h4>Peer Comparison</h4>
+                                <ul id="cr-rf-peers" class="list-neutral"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-panel">
+                        <h3>AI Price Forecast</h3>
+                        <p class="section-subtitle">Price Prediction Model</p>
+                        <div class="forecast-grid">
+                            <div class="forecast-item">
+                                <span class="label">Current Price</span>
+                                <span id="ml-current" class="value">--</span>
+                            </div>
+                            <div class="forecast-item">
+                                <span class="label">Predicted Price</span>
+                                <span id="ml-predicted" class="value">--</span>
+                            </div>
+                            <div class="forecast-item">
+                                <span class="label">Expected Return</span>
+                                <span id="ml-return" class="value">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 5: AI Research Assistant -->
+                <div class="card glass-panel">
+                    <div class="ai-assistant-header">
+                        <h3>AI Research Assistant</h3>
+                        <span class="ai-icon">🤖</span>
+                    </div>
+                    
+                    <div class="ai-assistant-content" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div id="ai-chat-history" class="chat-history" style="max-height: 300px; overflow-y: auto; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; flex-grow: 1;">
+                            <div class="chat-msg system-msg" style="color: var(--text-muted); font-style: italic; margin-bottom: 1rem;">
+                                AI Assistant ready. Ask me any general questions about the selected company!
+                            </div>
+                        </div>
+                        <div class="chat-input-area" style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="ai-chat-input" placeholder="Ask a question about this company..." style="flex-grow: 1; padding: 0.75rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;">
+                            <button id="ai-chat-btn" class="research-btn" style="padding: 0.75rem 1.5rem; white-space: nowrap;">Ask</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Report Button -->
+                <div class="generate-report-section">
+                    <button id="btn-generate-report" class="generate-report-btn">Generate PDF Report</button>
+                </div>
+
+            </div>
+
+            <!-- Generic placeholder views -->
+            <div id="reports-view" class="view-section hidden">
+                <div class="card glass-panel">
+                    <h2>Reports</h2>
+                    <p>Coming soon...</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
