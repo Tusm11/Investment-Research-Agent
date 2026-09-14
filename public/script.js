@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8502/api';
+const API_BASE = 'https://investment-research-agent-production-4105.up.railway.app/api';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let _dashboardData = null;   // full raw payload from /api/dashboard
